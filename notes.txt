@@ -1,0 +1,9 @@
+
+
+D:\Data\Projects\VC++\slnSimulant>..\junction.exe include\libraw ..\3rdparty\LibRaw\LibRaw-0.16.0\libraw
+D:\Data\Projects\VC++\slnSimulant>..\junction.exe include\wx     ..\3rdparty\wxwidgets\wxwidgets-3.0.2\include\wx
+D:\Data\Projects\VC++\slnSimulant>..\junction.exe include\boost  ..\3rdparty\boost\boost_1_57_0\boost
+
+D:\Data\Projects\VC++\slnSimulant>..\junction.exe link\libraw    ..\3rdparty\LibRaw\LibRaw-0.16.0
+D:\Data\Projects\VC++\slnSimulant>..\junction.exe link\wx        ..\3rdparty\wxwidgets\wxwidgets-3.0.2\lib
+D:\Data\Projects\VC++\slnSimulant>..\junction.exe link\boost     ..\3rdparty\boost\boost_1_57_0\stage
