@@ -1,3 +1,19 @@
+/*
+  Copywrite (2014) Raymond Burkholder
+  GPL2 License
+  Created 2014/12/28
+  Contact:  raymond@burkholder.net
+
+  * mouse interaction:
+      scroll wheel to select from a finite set of magnification factors
+      left drag to move (translate) a selected subset of the image
+  * uses simple double buffering concept to eliminate most drawing artificats
+  * several copies of an image are maintained:
+    * m_pimageOriginal - original demosaiced image
+    * m_pimageSubset - subset of original image  used for scale and translation operations
+    * m_pBitmapMemory - in memory device context for caching virgin output image
+*/
+
 #include "stdafx.h"
 
 #include <boost/lexical_cast.hpp>
@@ -19,6 +35,7 @@ void FramePicture::SetPicture( wxImage* pImage ) {
   m_vScalingFactor.push_back( Fraction( 1, 14 ) );
   m_vScalingFactor.push_back( Fraction( 1, 16 ) );
   m_vScalingFactor.push_back( Fraction( 1, 20 ) );
+  m_vScalingFactor.push_back( Fraction( 1, 25 ) );
 
   m_iterScalingFactor = m_vScalingFactor.begin();
 

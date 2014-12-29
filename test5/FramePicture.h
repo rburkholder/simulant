@@ -1,4 +1,12 @@
+/*
+  Copywrite (2014) Raymond Burkholder
+  GPL2 License
+  Created 2014/12/28
+  Contact:  raymond@burkholder.net
+  */
+
 #pragma once
+
 
 #include <vector>
 
@@ -31,13 +39,12 @@ private:
 
   boost::shared_ptr<wxImage> m_pimageOriginal;  // need to change to shared_ptr as well
   boost::shared_ptr<wxImage> m_pimageSubset; // used for subset of original image
-  boost::shared_ptr<wxBitmap> m_pBitmapMemory;
+  boost::shared_ptr<wxBitmap> m_pBitmapMemory;  // in memory device context for caching virgin output image
   boost::shared_ptr<wxMemoryDC> m_pdc;
   wxRect m_rectLocationOfSubsetImage; // in original image
   wxRect m_rectLocationOfScaledImage; // overall window frame (needs proper initialization)
 
   double m_dblAspectRatio;
-  //int m_intScale;  // for now 1x - 16x, later may be able to reduce size, but for now, scale and crop to match frame
   wxPoint m_pointMouse;
   wxPoint m_pointMouseOrigin; // used for mouse left drag operations
   bool m_bMouseLeftDown;

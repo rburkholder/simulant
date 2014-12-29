@@ -9,6 +9,9 @@ Project Test5 is used for testing the capabilities of:
   wxWidgets:  graphical presentation and picture scaling/translation
   Boost:  various tools such as smart_ptr and timers
 
-At some point, some OpenFrameworks and Processing features will be added 
+At some point, some OpenFrameworks-like and Processing-like features will be added 
 to facilitate multi-window projections and animations via OpenGL.
+
+This is a 64 bit oriented solution.  
+The 32 bit versions are not configured to properly build.
 

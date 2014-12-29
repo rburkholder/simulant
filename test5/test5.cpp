@@ -1,7 +1,18 @@
-// test5.cpp : Defines the entry point for the application.
-//
+/*
+  Copywrite (2014) Raymond Burkholder
+  GPL2 License
+  Created 2014/12/28
+  Contact:  raymond@burkholder.net
+  */
 
 #include "stdafx.h"
+
+/*
+  2014/12/29
+    * currently loads a Nikon RAW image file with a hard coded file name
+    * the image is demosaiced with mostly default settings
+    * the image is then sent over to FramePicture for interactive viewing
+*/
 
 #include <string>
 #include <iostream>

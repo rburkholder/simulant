@@ -1,3 +1,9 @@
+/*
+  Copywrite (2014) Raymond Burkholder
+  GPL2 License
+  Created 2014/12/28
+  Contact:  raymond@burkholder.net
+*/
 
 #pragma once
 

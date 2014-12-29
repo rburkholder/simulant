@@ -1,3 +1,10 @@
+/*
+  Copywrite (2014) Raymond Burkholder
+  GPL2 License
+  Created 2014/12/28
+  Contact:  raymond@burkholder.net
+  */
+
 #include "stdafx.h"
 
 #include <boost/timer/timer.hpp>
