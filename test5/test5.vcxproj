@@ -94,9 +94,9 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\Library</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>LIBRAW_NODLL;_WIN32_WINNT=0x0502;WINVER=0x0502;WIN32;_DEBUG;__WXMSW__;_WINDOWS;wxUSE_GUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>LIBRAW_DEMOSAIC_PACK_GPL3;LIBRAW_DEMOSAIC_PACK_GPL2;_CRT_SECURE_NO_WARNINGS;LIBRAW_NODLL;_WIN32_WINNT=0x0502;WINVER=0x0502;WIN32;_DEBUG;__WXMSW__;_WINDOWS;wxUSE_GUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -114,10 +114,10 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include..\Library</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <PreprocessorDefinitions>LIBRAW_NODLL;_WIN32_WINNT=0x0502;WINVER=0x0502;WIN32;__WXMSW__;_WINDOWS;wxUSE_GUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;LIBRAW_NODLL;_WIN32_WINNT=0x0502;WINVER=0x0502;WIN32;__WXMSW__;_WINDOWS;wxUSE_GUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -136,6 +136,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="FrameLibRawOptions.h" />
     <ClInclude Include="FramePicture.h" />
     <ClInclude Include="RawImage.h" />
     <ClInclude Include="Resource.h" />
@@ -144,6 +145,7 @@
     <ClInclude Include="test5.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="FrameLibRawOptions.cpp" />
     <ClCompile Include="FramePicture.cpp" />
     <ClCompile Include="RawImage.cpp" />
     <ClCompile Include="stdafx.cpp">

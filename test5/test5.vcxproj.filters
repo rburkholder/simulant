@@ -36,6 +36,9 @@
     <ClInclude Include="FramePicture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="FrameLibRawOptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -48,6 +51,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FramePicture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FrameLibRawOptions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

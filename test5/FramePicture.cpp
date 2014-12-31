@@ -1,5 +1,5 @@
 /*
-  Copywrite (2014) Raymond Burkholder
+  Copyright (2014) Raymond Burkholder
   GPL2 License
   Created 2014/12/28
   Contact:  raymond@burkholder.net
@@ -16,35 +16,49 @@
 
 #include "stdafx.h"
 
+#include <boost/assign/std/vector.hpp>
 #include <boost/lexical_cast.hpp>
+
+using namespace boost::assign;
 
 #include "FramePicture.h"
 
-void FramePicture::SetPicture( wxImage* pImage ) {
+FramePicture::FramePicture( 
+  wxWindow *parent,
+  const wxWindowID id,
+  const wxString& title,
+  const wxPoint& pos,
+  const wxSize& size,
+  const long style ) 
+: wxFrame( parent, id, title, pos, size, style | wxFULL_REPAINT_ON_RESIZE ),
+m_pimageOriginal( 0 ),
+m_bSizeChanged( false ), m_bImageChanged( false ), m_bMouseLeftDown( false ), m_bCanPaint( false )
+{
+  Init();
+};
 
-  m_vScalingFactor.push_back( Fraction( 1, 1 ) );
-  m_vScalingFactor.push_back( Fraction( 7, 8 ) );
-  m_vScalingFactor.push_back( Fraction( 4, 5 ) );
-  m_vScalingFactor.push_back( Fraction( 2, 3 ) );
-  m_vScalingFactor.push_back( Fraction( 1, 2 ) );
-  m_vScalingFactor.push_back( Fraction( 1, 3 ) );
-  m_vScalingFactor.push_back( Fraction( 1, 5 ) );
-  m_vScalingFactor.push_back( Fraction( 1, 8 ) );
-  m_vScalingFactor.push_back( Fraction( 1, 10 ) );
-  m_vScalingFactor.push_back( Fraction( 1, 12 ) );
-  m_vScalingFactor.push_back( Fraction( 1, 14 ) );
-  m_vScalingFactor.push_back( Fraction( 1, 16 ) );
-  m_vScalingFactor.push_back( Fraction( 1, 20 ) );
-  m_vScalingFactor.push_back( Fraction( 1, 25 ) );
+void FramePicture::Init( void ) {
 
-  m_iterScalingFactor = m_vScalingFactor.begin();
+  //www.boost.org / doc / libs / 1_57_0 / libs / assign / doc / index.html
+  m_vScalingFactor +=
+    Fraction( 1, 1 ),
+    Fraction( 7, 8 ),
+    Fraction( 4, 5 ),
+    Fraction( 2, 3 ),
+    Fraction( 1, 2 ),
+    Fraction( 1, 3 ),
+    Fraction( 1, 5 ),
+    Fraction( 1, 8 ),
+    Fraction( 1, 10 ),
+    Fraction( 1, 12 ),
+    Fraction( 1, 14 ),
+    Fraction( 1, 16 ),
+    Fraction( 1, 20 ),
+    Fraction( 1, 25 ),
+    Fraction( 1, 50 );
 
-  m_pimageOriginal.reset( pImage );
-  m_pimageSubset.reset( new wxImage( *m_pimageOriginal ) );
-  m_dblAspectRatio = (double)pImage->GetWidth( ) / (double)pImage->GetHeight( );
-  m_rectLocationOfSubsetImage 
-    = m_rectLocationOfScaledImage 
-    = wxRect( 0, 0, m_pimageSubset->GetWidth(), m_pimageSubset->GetHeight() );
+  m_iterScalingFactor = m_vScalingFactor.begin( );
+
   Bind( wxEVT_PAINT, &FramePicture::OnPaint, this );
   Bind( wxEVT_ERASE_BACKGROUND, &FramePicture::OnEraseBackground, this );
   Bind( wxEVT_MOUSEWHEEL, &FramePicture::OnMouseWheel, this );
@@ -53,6 +67,36 @@ void FramePicture::SetPicture( wxImage* pImage ) {
   Bind( wxEVT_SIZING, &FramePicture::OnSizing, this );
   Bind( wxEVT_LEFT_DOWN, &FramePicture::OnMouseLeftDown, this );
   Bind( wxEVT_LEFT_UP, &FramePicture::OnMouseLeftUp, this );
+
+  Bind( wxEVT_CLOSE_WINDOW, &FramePicture::OnClose, this );
+
+}
+
+void FramePicture::SetPicture( wxImage* pImage ) {
+
+  // todo:  if image parameters not changed, just refresh the image with existing scale/translation
+  bool bSizesMatch = false;
+  if (0 != m_pimageOriginal.use_count()) {
+    bSizesMatch =
+      (pImage->GetWidth() == m_pimageOriginal->GetWidth()) &&
+      (pImage->GetHeight() == m_pimageOriginal->GetHeight());
+  }
+  m_pimageOriginal.reset( pImage );
+  if (bSizesMatch) {
+    // reuse existing subset parameters
+    m_pimageSubset.reset( new wxImage( m_pimageOriginal->GetSubImage( m_rectLocationOfSubsetImage ) ) );
+  }
+  else {
+    // build new subset parameters
+    m_dblAspectRatio = (double)pImage->GetWidth( ) / (double)pImage->GetHeight( );
+    m_pimageSubset.reset( new wxImage( *m_pimageOriginal ) );
+    m_rectLocationOfSubsetImage
+      = m_rectLocationOfScaledImage
+      = wxRect( 0, 0, m_pimageSubset->GetWidth( ), m_pimageSubset->GetHeight( ) );
+  }
+  m_bCanPaint = true;
+  m_bImageChanged = true;
+  FramePicture::Refresh();
 }
 
 void FramePicture::OnSizing( wxSizeEvent& event ) {
@@ -265,7 +309,7 @@ void FramePicture::OnPaint( wxPaintEvent& event )   {
 
   wxPaintDC dcPaint( this );
 
-  if (dcPaint.CanDrawBitmap( )) {
+  if (dcPaint.CanDrawBitmap( ) && m_bCanPaint ) {
     try {
       if (m_bImageChanged||m_bSizeChanged) {
         DrawSubImage( );
@@ -293,3 +337,10 @@ void FramePicture::OnPaint( wxPaintEvent& event )   {
     }
   }
 }
+
+void FramePicture::OnClose( wxCloseEvent& event ) {
+  Unbind( wxEVT_CLOSE_WINDOW, &FramePicture::OnClose, this );
+  event.Skip( );
+}
+
+

@@ -1,5 +1,5 @@
 /*
-  Copywrite (2014) Raymond Burkholder
+  Copyright (2014) Raymond Burkholder
   GPL2 License
   Created 2014/12/28
   Contact:  raymond@burkholder.net
@@ -18,18 +18,9 @@
 class FramePicture: public wxFrame {
 public:
 
-  FramePicture( wxWindow *parent,
-    const wxWindowID id,
-    const wxString& title,
-    const wxPoint& pos,
-    const wxSize& size,
-    const long style )
-    : wxFrame( parent, id, title, pos, size, style | wxFULL_REPAINT_ON_RESIZE ),
-    m_pimageOriginal( 0 ), 
-    m_bSizeChanged( false ), m_bImageChanged( false ), m_bMouseLeftDown( false )
-  {
-
-  };
+  FramePicture::FramePicture(
+    wxWindow *parent, const wxWindowID id, const wxString& title,
+    const wxPoint& pos, const wxSize& size, const long style );
   ~FramePicture( ) {};
 
   void SetPicture( wxImage* pImage );
@@ -37,7 +28,7 @@ public:
 protected:
 private:
 
-  boost::shared_ptr<wxImage> m_pimageOriginal;  // need to change to shared_ptr as well
+  boost::shared_ptr<wxImage> m_pimageOriginal;  // todo:  need to use LibRaw::dcraw_clear_mem
   boost::shared_ptr<wxImage> m_pimageSubset; // used for subset of original image
   boost::shared_ptr<wxBitmap> m_pBitmapMemory;  // in memory device context for caching virgin output image
   boost::shared_ptr<wxMemoryDC> m_pdc;
@@ -51,6 +42,7 @@ private:
 
   bool m_bSizeChanged;  
   bool m_bImageChanged;  // handles situation of scale / translation, signals when to redo image calc
+  bool m_bCanPaint;
   wxRect m_rectClient;
 
   struct Fraction {
@@ -65,6 +57,8 @@ private:
   vScalingFactor_t m_vScalingFactor;
   vScalingFactor_t::const_iterator m_iterScalingFactor;
 
+  void Init( void );
+
   int TranslateX1FromScaledImageToSubSampledImage( int x1 );
   int TranslateY1FromScaledImageToSubSampledImage( int y1 );
   void NormalizeSubSampledImage( void );
@@ -73,6 +67,8 @@ private:
   void ScaleSubImage( void );
   void TranslateSubImage( void );
   void DrawSubImage( void );
+
+  void OnClose( wxCloseEvent& event );
 
   void OnSizing( wxSizeEvent& event );
   void OnSize( wxSizeEvent& event );

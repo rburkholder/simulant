@@ -1,5 +1,5 @@
 /*
-  Copywrite (2014) Raymond Burkholder
+  Copyright (2014) Raymond Burkholder
   GPL2 License
   Created 2014/12/28
   Contact:  raymond@burkholder.net
@@ -16,12 +16,18 @@ RawImage::RawImage() {
 }
 
 RawImage::~RawImage() {
+  //LibRaw::free_image( )
 }
 
-int my_progress_callback( void *unused_data, enum LibRaw_progress state, int iter, int expected ) {
+int my_progress_callback( void *data, enum LibRaw_progress state, int iter, int expected ) {
   if (iter == 0)
-    printf( "CB: state=%x, expected %d iterations\n", state, expected );
-  return 0;
+    assert( 0 != data );
+    // use  LibRaw::strprogress to decode stage  http://www.libraw.org/docs/API-CXX-eng.html#unpack
+    //std::cout << "CB: state=" << std::hex << state << ", expected " << std::dec << expected << " iterations" << std::endl;
+    std::cout << "CB: state=" << libraw_strprogress( state ) 
+    << ", expected " << expected << " iterations, " << (char*) data << std::endl;
+    //printf( "CB: state=%x, expected %d iterations\n", state, expected );
+  return 0;  // return 1; // cancel processing immediately
 }
 
 libraw_processed_image_t* RawImage::ObtainImage( const std::string& sFileName ) {
@@ -30,13 +36,14 @@ libraw_processed_image_t* RawImage::ObtainImage( const std::string& sFileName ) 
   int ret;
   int verbose = 0;
 
+  LibRaw m_raw;
+
   // don't use fixed size buffers in real apps!
   //  char outfn[1024], thumbfn[1024];
 
-  LibRaw RawProcessor;
-
   boost::timer::auto_cpu_timer t;
 
+  /*
   printf(
     "simple_dcraw - LibRaw %s sample. Emulates dcraw [-D] [-T] [-v] [-e] [-E]\n"
     " %d cameras supported\n"
@@ -48,6 +55,7 @@ libraw_processed_image_t* RawImage::ObtainImage( const std::string& sFileName ) 
     LibRaw::version( ),
     LibRaw::cameraCount( )
     );
+  */
 
   putenv( (char*)"TZ=UTC" ); // dcraw compatibility, affects TIFF datestamp field
 
@@ -58,54 +66,26 @@ libraw_processed_image_t* RawImage::ObtainImage( const std::string& sFileName ) 
   //#define P2  RawProcessor.imgdata.other
   //#define OUT RawProcessor.imgdata.params
 
-  RawProcessor.imgdata.params.output_tiff = 1;
+  m_raw.imgdata.params.output_tiff = 1;
   verbose++;
   //        OUT.output_bps = 16;  // bits per colour
-  RawProcessor.set_progress_handler( &::my_progress_callback, NULL );
+  m_raw.set_progress_handler( &::my_progress_callback, NULL );
 
   //if (verbose) printf( "Processing file %s\n", av[i] );
 
-  if (LIBRAW_SUCCESS != (ret = RawProcessor.open_file( sFileName.c_str( ) ))) {
+  if (LIBRAW_SUCCESS != (ret = m_raw.open_file( sFileName.c_str( ) ))) {
     throw std::runtime_error( "Cannot open " + sFileName + " " + libraw_strerror( ret ) );
   }
 
-  //RawProcessor.imgdata.params.no_auto_scale = 1; //disables scaling from camera maximum to 64k
-  RawProcessor.imgdata.params.no_auto_bright = 1; //disables auto brighten
-  RawProcessor.imgdata.params.use_auto_wb = 0;
-  RawProcessor.imgdata.params.use_camera_wb = 1;
-  RawProcessor.imgdata.params.output_color = 1;  // sRGB  [0-5] Output colorspace (raw, sRGB, Adobe, Wide, ProPhoto, XYZ). 
-  //    RawProcessor.
-  //      LibRaw_image_formats
-
-  /*
-  int user_qual;
-  dcraw keys : -q
-  0 - 10 : interpolation quality :
-
-  0 - linear interpolation
-  1 - VNG interpolation
-  2 - PPG interpolation
-  3 - AHD interpolation
-  4 - DCB interpolation
-  5 - Modified AHD interpolation by Paul Lee
-  6 - AFD interpolation( 5 - pass )
-  7 - VCD interpolation
-  8 - Mixed VCD / Modified AHD interpolation
-  9 - LMMSE interpolation
-  10 - AMaZE intepolation
-
-  Values 5 - 9 are useful only if "LibRaw demosaic pack GPL2" compiled in.
-  Value 10 is useful only if LibRaw compiled with "LibRaw demosaic pack GPL3".
-  If some interpolation method is unsupported because LibRaw compiled without corresponding demosaic pack, AHD interpolation will be used without any notice.
-  */
-
   boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now( );
 
-  if (LIBRAW_SUCCESS != (ret = RawProcessor.unpack( ))) {
+  if (LIBRAW_SUCCESS != (ret = m_raw.unpack( ))) {
     throw std::runtime_error( "Cannot unpack " + sFileName + " " + libraw_strerror( ret ) );
   }
 
-  ret = RawProcessor.dcraw_process( );
+  if (0 != m_OnLibRawOutputParams) m_OnLibRawOutputParams( m_raw.imgdata.params );
+
+  ret = m_raw.dcraw_process( );
   if (LIBRAW_SUCCESS != ret) {
     throw std::runtime_error( "Cannot do postprocessing on " + sFileName + libraw_strerror( ret ) );
     // if (LIBRAW_FATAL_ERROR( ret )) ... ?
@@ -122,16 +102,16 @@ libraw_processed_image_t* RawImage::ObtainImage( const std::string& sFileName ) 
   fprintf( stderr, "Cannot write %s: %s\n", outfn, libraw_strerror( ret ) );
   */
 
-  libraw_processed_image_t* img = RawProcessor.dcraw_make_mem_image( &ret );
+  libraw_processed_image_t* img = m_raw.dcraw_make_mem_image( &ret );
   if (LIBRAW_SUCCESS != ret) {
     throw std::runtime_error( "Cannot make memory image " + sFileName + libraw_strerror( ret ) );
     // if (LIBRAW_FATAL_ERROR( ret )) ... ?
   }
 
-  boost::chrono::nanoseconds sec = boost::chrono::system_clock::now( ) - start;
-  std::cout << "RawProcessor was alive for\n " << sec.count( ) << " nanoseconds\n";
+  boost::chrono::nanoseconds nsec = boost::chrono::system_clock::now( ) - start;
+  std::cout << "RawProcessor was alive for\n " << nsec.count( ) << " nanoseconds\n";
 
-  RawProcessor.recycle( ); // just for show this call
+  m_raw.recycle( );
 
   return img;
 }
