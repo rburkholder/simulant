@@ -15,8 +15,8 @@
 #pragma once
 
 #include "RawImage.h"
-#include "FramePicture.h"
-#include "FrameLibRawOptions.h"
+#include "PanelPicture.h"
+#include "PanelLibRawOptions.h"
 
 class AppTest5 : public wxApp {
 public:

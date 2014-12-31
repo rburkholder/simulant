@@ -9,7 +9,7 @@ Contact:  raymond@burkholder.net
 
 #include "stdafx.h"
 
-#include "FrameLibRawOptions.h"
+#include "PanelLibRawOptions.h"
 
 FrameLibRawOptions::FrameLibRawOptions( void ) {
   Init( );

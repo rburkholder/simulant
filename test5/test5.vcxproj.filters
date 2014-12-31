@@ -33,10 +33,10 @@
     <ClInclude Include="RawImage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FramePicture.h">
+    <ClInclude Include="PanelLibRawOptions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FrameLibRawOptions.h">
+    <ClInclude Include="PanelPicture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -50,10 +50,10 @@
     <ClCompile Include="RawImage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FramePicture.cpp">
+    <ClCompile Include="PanelLibRawOptions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FrameLibRawOptions.cpp">
+    <ClCompile Include="PanelPicture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

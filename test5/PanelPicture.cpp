@@ -21,7 +21,7 @@
 
 using namespace boost::assign;
 
-#include "FramePicture.h"
+#include "PanelPicture.h"
 
 FramePicture::FramePicture( 
   wxWindow *parent,

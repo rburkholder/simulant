@@ -136,8 +136,8 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="FrameLibRawOptions.h" />
-    <ClInclude Include="FramePicture.h" />
+    <ClInclude Include="PanelLibRawOptions.h" />
+    <ClInclude Include="PanelPicture.h" />
     <ClInclude Include="RawImage.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
@@ -145,8 +145,8 @@
     <ClInclude Include="test5.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="FrameLibRawOptions.cpp" />
-    <ClCompile Include="FramePicture.cpp" />
+    <ClCompile Include="PanelLibRawOptions.cpp" />
+    <ClCompile Include="PanelPicture.cpp" />
     <ClCompile Include="RawImage.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
