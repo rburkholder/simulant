@@ -1,3 +1,11 @@
+2014/12/31
+With git download of LibRaw:
+..\junction.exe -d include\libraw
+..\junction.exe -d link\libraw
+D:\Data\Projects\VC++\slnSimulant>..\junction.exe include\libraw ..\3rdparty\LibRaw\LibRaw\libraw
+D:\Data\Projects\VC++\slnSimulant>..\junction.exe link\libraw    ..\3rdparty\LibRaw\LibRaw
+
+
 2014/12/29
 git command line:
 

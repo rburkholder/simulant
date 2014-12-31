@@ -21,11 +21,10 @@ RawImage::~RawImage() {
 
 int my_progress_callback( void *data, enum LibRaw_progress state, int iter, int expected ) {
   if (iter == 0)
-    assert( 0 != data );
+    //assert( 0 != data );
     // use  LibRaw::strprogress to decode stage  http://www.libraw.org/docs/API-CXX-eng.html#unpack
-    //std::cout << "CB: state=" << std::hex << state << ", expected " << std::dec << expected << " iterations" << std::endl;
-    std::cout << "CB: state=" << libraw_strprogress( state ) 
-    << ", expected " << expected << " iterations, " << (char*) data << std::endl;
+    std::cout << "CB: state=" << std::hex << state << ", expected " << std::dec << expected << " iterations" << std::endl;
+    //std::cout << "CB: state=" << libraw_strprogress( state ) << ", expected " << expected << " iterations, " << (char*) data << std::endl;
     //printf( "CB: state=%x, expected %d iterations\n", state, expected );
   return 0;  // return 1; // cancel processing immediately
 }
