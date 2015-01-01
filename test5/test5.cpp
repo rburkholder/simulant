@@ -83,14 +83,12 @@ void AppTest5::OnMouseWheel1( wxMouseEvent& event ) {
 //}
 
 void AppTest5::SetLibRawOutputParams( libraw_output_params_t& params ) {
-  //RawProcessor.imgdata.params.no_auto_scale = 1; //disables scaling from camera maximum to 64k
   params.output_tiff = 1;
-  params.no_auto_bright = 1; //disables auto brighten
-  //params.no_auto_scale = 1;  // turns green cast
-  params.use_auto_wb = 0;
-  params.use_camera_wb = 1;
+  params.no_auto_bright = !m_options.bAutoBrighten; //disables auto brighten
+  //params.no_auto_scale = 1;  // enables green cast, disables scaling from camera maximum to 64k
+  params.use_auto_wb = m_options.bAutoWhiteBalance;
+  params.use_camera_wb = m_options.bUseCameraWhiteBalance;
   params.user_qual = m_options.eInterpolation;
-  //params.output_color = 1;  // sRGB  [0-5] Output colorspace (raw, sRGB, Adobe, Wide, ProPhoto, XYZ). 
   params.output_color = m_options.eColourSpace;
   params.threshold = (float)m_options.intNoiseThreshold;
   params.med_passes = m_options.nMedianFilterPasses;
@@ -108,41 +106,18 @@ void AppTest5::LoadImage( void ) {
     }
     m_ri.FreeImage( image );
   }
-  catch (...) {
-    std::cout << "failed image" << std::endl;
+  catch (std::runtime_error& e) {
+    std::cout << "failed image: " << e.what() << std::endl;
   }
 }
 
 void AppTest5::HandleDemosaicSelection( const PanelLibRawOptions::options_t& options ) {
 
-  /*
-  int user_qual;
-  dcraw keys : -q
-  0 - 10 : interpolation quality :
-
-  0 - linear interpolation
-  1 - VNG interpolation
-  2 - PPG interpolation
-  3 - AHD interpolation
-  4 - DCB interpolation
-  5 - Modified AHD interpolation by Paul Lee
-  6 - AFD interpolation( 5 - pass )
-  7 - VCD interpolation
-  8 - Mixed VCD / Modified AHD interpolation
-  9 - LMMSE interpolation
-  10 - AMaZE intepolation
-
-  Values 5 - 9 are useful only if "LibRaw demosaic pack GPL2" compiled in.
-  Value 10 is useful only if LibRaw compiled with "LibRaw demosaic pack GPL3".
-  If some interpolation method is unsupported because LibRaw compiled without corresponding demosaic pack, AHD interpolation will be used without any notice.
-  */
-
-  //libraw_output_params_t& params( m_ri.Params( ) );
-  //params.user_qual = interp;
-  //m_user_qual = options.eInterpolation;
+  // options are supplied through callback to SetLibRawOutputParams
   m_options = options;
   LoadImage( );
   std::cout << std::endl;  // clears the auto timer
+
 }
 
 int AppTest5::OnExit( void ) {

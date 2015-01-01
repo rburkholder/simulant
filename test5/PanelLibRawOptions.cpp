@@ -56,6 +56,14 @@ void PanelLibRawOptions::Init() {
   wxPanel::InitDialog();
 }
 
+/*
+For interpolation:
+Values 5 - 9 are useful only if "LibRaw demosaic pack GPL2" compiled in.
+Value 10 is useful only if LibRaw compiled with "LibRaw demosaic pack GPL3".
+If some interpolation method is unsupported because LibRaw compiled without corresponding demosaic pack, 
+AHD interpolation will be used without any notice.
+*/
+
 void PanelLibRawOptions::CreateControls( void ) {
 
   PanelLibRawOptions* itemPanel1 = this;
@@ -82,16 +90,21 @@ void PanelLibRawOptions::CreateControls( void ) {
   wxBoxSizer* itemBoxSizer4 = new wxBoxSizer( wxVERTICAL );
   itemBoxSizer2->Add( itemBoxSizer4, 0, wxALIGN_TOP | wxALL, 0 );
 
-  wxStaticBox* itemStaticBoxSizer5Static = new wxStaticBox( itemPanel1, wxID_ANY, _( "Noise Threshold" ) );
-  wxStaticBoxSizer* itemStaticBoxSizer5 = new wxStaticBoxSizer( itemStaticBoxSizer5Static, wxVERTICAL );
-  itemBoxSizer4->Add( itemStaticBoxSizer5, 0, wxALIGN_LEFT | wxALL, 2 );
+  m_cbAutoBrighten = new wxCheckBox( itemPanel1, ID_cbAutoBrighten, _( "Auto Brighten" ), wxDefaultPosition, wxDefaultSize, 0 );
+  m_cbAutoBrighten->SetValue( false );
+  itemBoxSizer4->Add( m_cbAutoBrighten, 0, wxALIGN_LEFT | wxALL, 2 );
 
-  m_sliderNoiseThreshold = new wxSlider( itemStaticBoxSizer5->GetStaticBox( ), ID_SliderNoiseThreshold, 0, 0, 1000, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL | wxSL_LABELS );
-  itemStaticBoxSizer5->Add( m_sliderNoiseThreshold, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 2 );
+  m_cbAutoWhiteBalance = new wxCheckBox( itemPanel1, ID_cbAutoWhiteBalance, _( "Auto White Balance" ), wxDefaultPosition, wxDefaultSize, 0 );
+  m_cbAutoWhiteBalance->SetValue( false );
+  itemBoxSizer4->Add( m_cbAutoWhiteBalance, 0, wxALIGN_LEFT | wxALL, 2 );
 
-  wxStaticBox* itemStaticBoxSizer7Static = new wxStaticBox( itemPanel1, wxID_ANY, _( "Colour Space" ) );
-  wxStaticBoxSizer* itemStaticBoxSizer7 = new wxStaticBoxSizer( itemStaticBoxSizer7Static, wxVERTICAL );
-  itemBoxSizer4->Add( itemStaticBoxSizer7, 0, wxALIGN_LEFT | wxALL, 0 );
+  m_cbUseCameraWhiteBalance = new wxCheckBox( itemPanel1, ID_cbUseCameraWhiteBalance, _( "Use Camera White Balance" ), wxDefaultPosition, wxDefaultSize, 0 );
+  m_cbUseCameraWhiteBalance->SetValue( true );
+  itemBoxSizer4->Add( m_cbUseCameraWhiteBalance, 0, wxALIGN_LEFT | wxALL, 2 );
+
+  wxStaticBox* itemStaticBoxSizer8Static = new wxStaticBox( itemPanel1, wxID_ANY, _( "Colour Space" ) );
+  wxStaticBoxSizer* itemStaticBoxSizer8 = new wxStaticBoxSizer( itemStaticBoxSizer8Static, wxVERTICAL );
+  itemBoxSizer4->Add( itemStaticBoxSizer8, 0, wxALIGN_LEFT | wxALL, 0 );
 
   wxArrayString m_choiceColourSpaceStrings;
   m_choiceColourSpaceStrings.Add( _( "Raw Colour" ) );
@@ -100,9 +113,9 @@ void PanelLibRawOptions::CreateControls( void ) {
   m_choiceColourSpaceStrings.Add( _( "Wide Gamut RGB D65" ) );
   m_choiceColourSpaceStrings.Add( _( "Kodak ProPhoto RGB D65" ) );
   m_choiceColourSpaceStrings.Add( _( "XYZ" ) );
-  m_choiceColourSpace = new wxChoice( itemStaticBoxSizer7->GetStaticBox( ), ID_choiceColourSpace, wxDefaultPosition, wxDefaultSize, m_choiceColourSpaceStrings, 0 );
+  m_choiceColourSpace = new wxChoice( itemStaticBoxSizer8->GetStaticBox( ), ID_choiceColourSpace, wxDefaultPosition, wxDefaultSize, m_choiceColourSpaceStrings, 0 );
   m_choiceColourSpace->SetStringSelection( _( "sRGB D65" ) );
-  itemStaticBoxSizer7->Add( m_choiceColourSpace, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 2 );
+  itemStaticBoxSizer8->Add( m_choiceColourSpace, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 2 );
 
   m_boxMedianFilterPasses = new wxStaticBox( itemPanel1, wxID_ANY, _( "Median Filter Passes" ) );
   m_sizerMedianFilterPasses = new wxStaticBoxSizer( m_boxMedianFilterPasses, wxVERTICAL );
@@ -112,8 +125,16 @@ void PanelLibRawOptions::CreateControls( void ) {
   m_txtMedianFilterPasses->SetMaxLength( 1 );
   m_sizerMedianFilterPasses->Add( m_txtMedianFilterPasses, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 2 );
 
+  wxStaticBox* itemStaticBoxSizer12Static = new wxStaticBox( itemPanel1, wxID_ANY, _( "Noise Threshold" ) );
+  wxStaticBoxSizer* itemStaticBoxSizer12 = new wxStaticBoxSizer( itemStaticBoxSizer12Static, wxVERTICAL );
+  itemBoxSizer4->Add( itemStaticBoxSizer12, 0, wxALIGN_LEFT | wxALL, 2 );
+
+  m_sliderNoiseThreshold = new wxSlider( itemStaticBoxSizer12->GetStaticBox( ), ID_SliderNoiseThreshold, 0, 0, 1000, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL | wxSL_LABELS );
+  itemStaticBoxSizer12->Add( m_sliderNoiseThreshold, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 2 );
+
   m_btnProcess = new wxButton( itemPanel1, ID_btnProcess, _( "Process" ), wxDefaultPosition, wxDefaultSize, 0 );
   itemBoxSizer4->Add( m_btnProcess, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 10 );
+
 
 
   // validators
@@ -136,6 +157,9 @@ void PanelLibRawOptions::OnBtnProcessClick( wxCommandEvent& event ) {
   if (bValidate){
   //if (wxPanel::Validate() ) {
     //wxPanel::TransferDataFromWindow();
+    m_options.bAutoBrighten = m_cbAutoBrighten->GetValue();
+    m_options.bAutoWhiteBalance = m_cbAutoWhiteBalance->GetValue();
+    m_options.bUseCameraWhiteBalance = m_cbUseCameraWhiteBalance->GetValue();
     m_options.eInterpolation = static_cast<eInterpolation_t>(m_rbDemosaicType->GetSelection( ));
     m_options.eColourSpace = static_cast<eColourSpace_t>(m_choiceColourSpace->GetSelection());
     // http://docs.wxwidgets.org/trunk/classwx_slider.html

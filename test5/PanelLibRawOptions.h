@@ -29,12 +29,16 @@ public:
   };
 
   struct options_t {
+    bool bAutoBrighten;
+    bool bAutoWhiteBalance;
+    bool bUseCameraWhiteBalance;
     eInterpolation_t eInterpolation;
     eColourSpace_t eColourSpace;
     unsigned int intNoiseThreshold; // change to float
     unsigned int nMedianFilterPasses;
     options_t( void )
       : eInterpolation( Linear ), eColourSpace( sRGB ), intNoiseThreshold( 0 ),
+      bAutoBrighten( false ), bAutoWhiteBalance( false ), bUseCameraWhiteBalance( true ),
       nMedianFilterPasses( 0 ) {}
   };
 
@@ -71,7 +75,8 @@ private:
   enum {
     ID_Null = wxID_HIGHEST, ID_PANELLIBRAWOPTIONS, 
     ID_rbDemosaicType, ID_SliderNoiseThreshold, ID_choiceColourSpace,
-    ID_txtMedianFilterPasses, ID_btnProcess
+    ID_txtMedianFilterPasses, ID_btnProcess, 
+    ID_cbAutoBrighten, ID_cbAutoWhiteBalance, ID_cbUseCameraWhiteBalance
   };
 
   options_t m_options;
@@ -80,11 +85,14 @@ private:
 //  mapLUInterpolation_t m_mapLUInterpolation;
 
   wxRadioBox* m_rbDemosaicType;
-  wxSlider* m_sliderNoiseThreshold;
+  wxCheckBox* m_cbAutoBrighten;
+  wxCheckBox* m_cbAutoWhiteBalance;
+  wxCheckBox* m_cbUseCameraWhiteBalance;
   wxChoice* m_choiceColourSpace;
   wxStaticBox* m_boxMedianFilterPasses;
   wxStaticBoxSizer* m_sizerMedianFilterPasses;
   wxTextCtrl* m_txtMedianFilterPasses;
+  wxSlider* m_sliderNoiseThreshold;
   wxButton* m_btnProcess;
 
   void Init( );

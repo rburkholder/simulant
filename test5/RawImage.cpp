@@ -69,7 +69,7 @@ libraw_processed_image_t* RawImage::CalcImage( void ) {
   int ret;
   //int verbose = 0;
 
-  m_raw.recycle( );  
+  //m_raw.recycle( );  
 
   /*
   printf(
