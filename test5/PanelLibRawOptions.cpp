@@ -85,7 +85,7 @@ void PanelLibRawOptions::CreateControls( void ) {
   m_rbDemosaicTypeStrings.Add( _( "AMaZE" ) );
   m_rbDemosaicType = new wxRadioBox( itemPanel1, ID_rbDemosaicType, _( "Demosaic Type" ), wxDefaultPosition, wxDefaultSize, m_rbDemosaicTypeStrings, 1, wxRA_SPECIFY_COLS );
   m_rbDemosaicType->SetSelection( 0 );
-  itemBoxSizer2->Add( m_rbDemosaicType, 0, wxALIGN_CENTER_VERTICAL | wxALL, 2 );
+  itemBoxSizer2->Add( m_rbDemosaicType, 0, wxALIGN_TOP | wxALL, 2 );
 
   wxBoxSizer* itemBoxSizer4 = new wxBoxSizer( wxVERTICAL );
   itemBoxSizer2->Add( itemBoxSizer4, 0, wxALIGN_TOP | wxALL, 0 );

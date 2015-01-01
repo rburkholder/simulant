@@ -24,15 +24,20 @@ public:
 protected:
 private:
 
-  //PanelLibRawOptions::eInterpolation_t m_user_qual;
+  enum {
+    ID_Null = wxID_HIGHEST, ID_frameMain,
+    ID_panelLibRawOptions, ID_panelPicture, ID_panelLogging,
+    ID_swMain, ID_panelSplitterTop
+  };
+
   PanelLibRawOptions::options_t m_options;
 
   RawImage m_ri;
 
-  wxFrame* frameMain;
-  PanelPicture* panelPicture;
-  PanelLibRawOptions* panelLibRawOptions;
-  ou::PanelLogging* panelLogging;
+  wxFrame* m_frameMain;
+  PanelPicture* m_panelPicture;
+  PanelLibRawOptions* m_panelLibRawOptions;
+  ou::PanelLogging* m_panelLogging;
 
   void SetLibRawOutputParams( libraw_output_params_t& params );
 

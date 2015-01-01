@@ -17,6 +17,8 @@
 #include <string>
 #include <iostream>
 
+#include <wx/splitter.h>
+
 #include "test5.h"
 
 IMPLEMENT_APP( AppTest5 )
@@ -28,34 +30,42 @@ bool AppTest5::OnInit() {
   if (!wxApp::OnInit( ))
     return false;
 
-  frameMain = new wxFrame( (wxFrame *)NULL, wxID_HIGHEST + 1000, wxT( "Test5" ), wxPoint( 300, 50 ), wxSize( 1000, 800 ), wxDEFAULT_FRAME_STYLE );
-  wxApp::SetTopWindow( frameMain );
+  m_frameMain = new wxFrame( (wxFrame *)NULL, ID_frameMain, wxT( "Test5" ), wxPoint( 300, 50 ), wxSize( 1000, 800 ), wxDEFAULT_FRAME_STYLE );
+  wxApp::SetTopWindow( m_frameMain );
+
+  wxBoxSizer* sizerMain = new wxBoxSizer( wxVERTICAL );
+  m_frameMain->SetSizer( sizerMain );
+
+  wxSplitterWindow* swMain = new wxSplitterWindow( m_frameMain, ID_swMain, wxDefaultPosition, wxSize( 100, 100 ), wxSP_3DSASH | wxNO_BORDER );
+  // wxSP_3DBORDER | wxSP_3DSASH | wxSUNKEN_BORDER
+  swMain->SetMinimumPaneSize( 20 );
+  swMain->SetSashGravity( 0.9 );
+
+  wxPanel* panelSplitterUpper = new wxPanel( swMain, ID_panelSplitterTop, wxDefaultPosition, wxDefaultSize, wxNO_BORDER | wxTAB_TRAVERSAL );
+  wxBoxSizer* sizerSplitterUpper = new wxBoxSizer( wxHORIZONTAL );
+  panelSplitterUpper->SetSizer( sizerSplitterUpper );
+
+  m_panelLibRawOptions = new PanelLibRawOptions( panelSplitterUpper, ID_panelLibRawOptions, wxDefaultPosition, wxDefaultSize, wxNO_BORDER | wxTAB_TRAVERSAL );
+  sizerSplitterUpper->Add( m_panelLibRawOptions, 0, wxGROW |wxALIGN_LEFT | wxALIGN_TOP | wxALL, 2 );
+
+  m_panelPicture = new PanelPicture( panelSplitterUpper, ID_panelPicture, wxDefaultPosition, wxDefaultSize, wxNO_BORDER );
+  sizerSplitterUpper->Add( m_panelPicture, 1, wxGROW|wxEXPAND | wxALL, 0 );
+
+  m_panelLogging = new ou::PanelLogging( swMain, ID_panelLogging, wxDefaultPosition, wxDefaultSize, wxNO_BORDER );
+
+  swMain->SplitHorizontally( panelSplitterUpper, m_panelLogging, 600 );
+  sizerMain->Add( swMain, 1, wxGROW | wxALL | wxEXPAND, 0 );
+  
+  m_panelLibRawOptions->SetOptionHandler(
+    fastdelegate::MakeDelegate( this, &AppTest5::HandleDemosaicSelection ) );
+  m_ri.SetLibRawOutputParams( fastdelegate::MakeDelegate( this, &AppTest5::SetLibRawOutputParams ) );
+
+  m_frameMain->SetAutoLayout( true );
 
   Bind( wxEVT_MOUSEWHEEL, &AppTest5::OnMouseWheel1, this );
   //frameMain->Bind( wxEVT_MOUSEWHEEL, &AppTest5::OnMouseWheel2, this );
 
-  panelLibRawOptions = new PanelLibRawOptions( frameMain, wxID_HIGHEST + 1001, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE );
-  panelPicture = new PanelPicture( frameMain, wxID_HIGHEST + 1002, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE );
-  panelLogging = new ou::PanelLogging( frameMain, wxID_HIGHEST + 1003, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE ); 
-
-  panelLibRawOptions->SetOptionHandler(
-    fastdelegate::MakeDelegate( this, &AppTest5::HandleDemosaicSelection ) );
-  m_ri.SetLibRawOutputParams( fastdelegate::MakeDelegate( this, &AppTest5::SetLibRawOutputParams ) );
-
-  wxBoxSizer* sizerVertical = new wxBoxSizer( wxVERTICAL );
-
-  wxBoxSizer* sizerPictureStuff = new wxBoxSizer( wxHORIZONTAL );
-  sizerVertical->Add( sizerPictureStuff, 8, wxEXPAND, 0 );
-
-  sizerPictureStuff->Add( panelLibRawOptions, 1, wxALIGN_LEFT | wxALIGN_TOP | wxALL, 2 );
-  sizerPictureStuff->Add( panelPicture, 4, wxEXPAND | wxALL, 2 );
-
-  sizerVertical->Add( panelLogging, 1, wxEXPAND, 0 );
-
-  frameMain->SetSizer( sizerVertical );
-  frameMain->SetAutoLayout( true );
-
-  frameMain->Show();
+  m_frameMain->Show( );
 
   try {
     m_ri.LoadImage( sFileName );
@@ -70,8 +80,8 @@ bool AppTest5::OnInit() {
 }
 
 void AppTest5::OnMouseWheel1( wxMouseEvent& event ) {
-  if (panelPicture->IsMouseInWindow()) {
-    panelPicture->OnMouseWheel( event );
+  if (m_panelPicture->IsMouseInWindow( )) {
+    m_panelPicture->OnMouseWheel( event );
   }
   else {
     event.Skip( true );
@@ -102,7 +112,7 @@ void AppTest5::LoadImage( void ) {
       wxImage imageTemp( image->width, image->height, image->data, true );  // static data is true
       boost::shared_ptr<wxImage> pImage( new wxImage( imageTemp.GetWidth(), imageTemp.GetHeight(), false ) );
       pImage->Paste( imageTemp, 0, 0 );   // create a copy of the image
-      panelPicture->SetPicture( pImage );
+      m_panelPicture->SetPicture( pImage );
     }
     m_ri.FreeImage( image );
   }
@@ -125,7 +135,7 @@ int AppTest5::OnExit( void ) {
 }
 
 void AppTest5::OnClose( wxCloseEvent& event ) {
-  panelLibRawOptions->SetOptionHandler( 0 );
+  m_panelLibRawOptions->SetOptionHandler( 0 );
   event.Skip( true );  // auto followed by Destroy();
 }
 
