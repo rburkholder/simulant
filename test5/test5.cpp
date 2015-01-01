@@ -38,8 +38,6 @@ bool AppTest5::OnInit() {
   panelPicture = new PanelPicture( frameMain, wxID_HIGHEST + 1002, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE );
   panelLogging = new ou::PanelLogging( frameMain, wxID_HIGHEST + 1003, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE ); 
 
-  //m_user_qual = PanelLibRawOptions::Unknown;
-
   panelLibRawOptions->SetOptionHandler(
     fastdelegate::MakeDelegate( this, &AppTest5::HandleDemosaicSelection ) );
   m_ri.SetLibRawOutputParams( fastdelegate::MakeDelegate( this, &AppTest5::SetLibRawOutputParams ) );
@@ -47,9 +45,8 @@ bool AppTest5::OnInit() {
   wxBoxSizer* sizerVertical = new wxBoxSizer( wxVERTICAL );
 
   wxBoxSizer* sizerPictureStuff = new wxBoxSizer( wxHORIZONTAL );
-  sizerVertical->Add( sizerPictureStuff, 6, wxEXPAND, 0 );
+  sizerVertical->Add( sizerPictureStuff, 8, wxEXPAND, 0 );
 
-  //sizer->Add( panelLibRawOptions, 1, wxEXPAND | wxALL, 2 );
   sizerPictureStuff->Add( panelLibRawOptions, 1, wxALIGN_LEFT | wxALIGN_TOP | wxALL, 2 );
   sizerPictureStuff->Add( panelPicture, 4, wxEXPAND | wxALL, 2 );
 
@@ -59,6 +56,15 @@ bool AppTest5::OnInit() {
   frameMain->SetAutoLayout( true );
 
   frameMain->Show();
+
+  try {
+    m_ri.LoadImage( sFileName );
+    std::cout << std::endl;  // clears the auto timer
+    m_ri.FileInfo();
+  }
+  catch ( std::runtime_error& e ) {
+    std::cout << e.what() << std::endl;
+  }
 
   return 1;
 }
@@ -77,10 +83,10 @@ void AppTest5::OnMouseWheel1( wxMouseEvent& event ) {
 //}
 
 void AppTest5::SetLibRawOutputParams( libraw_output_params_t& params ) {
-
   //RawProcessor.imgdata.params.no_auto_scale = 1; //disables scaling from camera maximum to 64k
+  params.output_tiff = 1;
   params.no_auto_bright = 1; //disables auto brighten
-  params.no_auto_scale = 1;
+  //params.no_auto_scale = 1;  // turns green cast
   params.use_auto_wb = 0;
   params.use_camera_wb = 1;
   params.user_qual = m_options.eInterpolation;
@@ -88,21 +94,19 @@ void AppTest5::SetLibRawOutputParams( libraw_output_params_t& params ) {
   params.output_color = m_options.eColourSpace;
   params.threshold = (float)m_options.intNoiseThreshold;
   params.med_passes = m_options.nMedianFilterPasses;
-
 }
 
 void AppTest5::LoadImage( void ) {
 
-  //libraw_output_params_t& params( m_ri.Params() );
-
   try {
-    libraw_processed_image_t* image = m_ri.ObtainImage( sFileName );   // todo: cache the image when possible
+    libraw_processed_image_t* image = m_ri.CalcImage(); 
     if ((LIBRAW_IMAGE_BITMAP == image->type) && (3 == image->colors) && (8 == image->bits)) {
-      wxImage* pImage( new wxImage( image->width, image->height, image->data, true ) );
-      //wxBitmap* pBitmap( new wxBitmap( *pImage ) );
+      wxImage imageTemp( image->width, image->height, image->data, true );  // static data is true
+      boost::shared_ptr<wxImage> pImage( new wxImage( imageTemp.GetWidth(), imageTemp.GetHeight(), false ) );
+      pImage->Paste( imageTemp, 0, 0 );   // create a copy of the image
       panelPicture->SetPicture( pImage );
-      // todo: need to do significant memory clean up here
     }
+    m_ri.FreeImage( image );
   }
   catch (...) {
     std::cout << "failed image" << std::endl;
@@ -138,6 +142,7 @@ void AppTest5::HandleDemosaicSelection( const PanelLibRawOptions::options_t& opt
   //m_user_qual = options.eInterpolation;
   m_options = options;
   LoadImage( );
+  std::cout << std::endl;  // clears the auto timer
 }
 
 int AppTest5::OnExit( void ) {
