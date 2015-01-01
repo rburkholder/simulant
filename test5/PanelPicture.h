@@ -12,21 +12,45 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include <wx/wx.h>
+//#include <wx/wx.h>
 #include <wx/image.h>
 
-class FramePicture: public wxFrame {
+#define SYMBOL_PANELPICTURE_STYLE wxTAB_TRAVERSAL
+#define SYMBOL_PANELPICTURE_TITLE _("PanelLibRawOptions")
+#define SYMBOL_PANELPICTURE_IDNAME ID_PANELPICTURE
+#define SYMBOL_PANELPICTURE_SIZE wxSize(400, 300)
+#define SYMBOL_PANELPICTURE_POSITION wxDefaultPosition
+
+class PanelPicture : public wxPanel {
 public:
 
-  FramePicture::FramePicture(
-    wxWindow *parent, const wxWindowID id, const wxString& title,
-    const wxPoint& pos, const wxSize& size, const long style );
-  ~FramePicture( ) {};
+  PanelPicture(
+    wxWindow* parent,
+    wxWindowID id = SYMBOL_PANELPICTURE_IDNAME,
+    const wxPoint& pos = SYMBOL_PANELPICTURE_POSITION,
+    const wxSize& size = SYMBOL_PANELPICTURE_SIZE,
+    long style = SYMBOL_PANELPICTURE_STYLE );
+
+  bool Create(
+    wxWindow* parent,
+    wxWindowID id = SYMBOL_PANELPICTURE_IDNAME,
+    const wxPoint& pos = SYMBOL_PANELPICTURE_POSITION,
+    const wxSize& size = SYMBOL_PANELPICTURE_SIZE,
+    long style = SYMBOL_PANELPICTURE_STYLE );
+
+  ~PanelPicture( ) {};
 
   void SetPicture( wxImage* pImage );
 
+  void OnMouseWheel( wxMouseEvent& event );
+
+
 protected:
 private:
+
+  enum {
+    ID_Null = wxID_HIGHEST, ID_PANELPICTURE
+  };
 
   boost::shared_ptr<wxImage> m_pimageOriginal;  // todo:  need to use LibRaw::dcraw_clear_mem
   boost::shared_ptr<wxImage> m_pimageSubset; // used for subset of original image
@@ -73,7 +97,6 @@ private:
   void OnSizing( wxSizeEvent& event );
   void OnSize( wxSizeEvent& event );
   void OnEraseBackground( wxEraseEvent& event );
-  void OnMouseWheel( wxMouseEvent& event );
   void OnMouseMotion( wxMouseEvent& event );
   void OnPaint( wxPaintEvent& event );
   void OnMouseLeftDown( wxMouseEvent& event );

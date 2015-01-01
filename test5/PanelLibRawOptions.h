@@ -7,49 +7,58 @@ Contact:  raymond@burkholder.net
 
 #pragma once
 
-#include <map>
-
-#include <wx/frame.h>
-#include <wx/radiobut.h>
+//#include <map>
 
 #include <FastDelegate.h>
 
-#define SYMBOL_FRAMELIBRAWOPTIONS_STYLE wxCAPTION|wxRESIZE_BORDER|wxSYSTEM_MENU|wxCLOSE_BOX
-#define SYMBOL_FRAMELIBRAWOPTIONS_TITLE _("FrameLibRawOptions")
-#define SYMBOL_FRAMELIBRAWOPTIONS_IDNAME ID_FRAMELIBRAWOPTIONS
-#define SYMBOL_FRAMELIBRAWOPTIONS_SIZE wxSize(150, 300)
-#define SYMBOL_FRAMELIBRAWOPTIONS_POSITION wxDefaultPosition
+#define SYMBOL_PANELLIBRAWOPTIONS_STYLE wxTAB_TRAVERSAL
+#define SYMBOL_PANELLIBRAWOPTIONS_TITLE _("PanelLibRawOptions")
+#define SYMBOL_PANELLIBRAWOPTIONS_IDNAME ID_PANELLIBRAWOPTIONS
+#define SYMBOL_PANELLIBRAWOPTIONS_SIZE wxSize(400, 300)
+#define SYMBOL_PANELLIBRAWOPTIONS_POSITION wxDefaultPosition
 
-class FrameLibRawOptions: public wxFrame {
+class PanelLibRawOptions : public wxPanel {
 public:
 
   enum eInterpolation_t {
     Unknown = -1, Linear = 0, VNG, PPG, AHD, DCB, ModAHD, AFD, VCD, VCDAHD, LMMSE, AMaZE
   };
 
-  typedef fastdelegate::FastDelegate1<eInterpolation_t, void> SelectInterpolationHandler_t;
+  enum eColourSpace_t {
+    RawColour = 0, sRGB, Adobe, WideGamut, KodakProPhoto, XYZ
+  };
 
-  FrameLibRawOptions( void );
-  virtual ~FrameLibRawOptions();
+  struct options_t {
+    eInterpolation_t eInterpolation;
+    eColourSpace_t eColourSpace;
+    unsigned int intNoiseThreshold; // change to float
+    unsigned int nMedianFilterPasses;
+    options_t( void )
+      : eInterpolation( Linear ), eColourSpace( sRGB ), intNoiseThreshold( 0 ),
+      nMedianFilterPasses( 0 ) {}
+  };
 
-  FrameLibRawOptions(
-    wxWindow* parent,
-    wxWindowID id = SYMBOL_FRAMELIBRAWOPTIONS_IDNAME,
-    const wxString& caption = SYMBOL_FRAMELIBRAWOPTIONS_TITLE,
-    const wxPoint& pos = SYMBOL_FRAMELIBRAWOPTIONS_POSITION,
-    const wxSize& size = SYMBOL_FRAMELIBRAWOPTIONS_SIZE,
-    long style = SYMBOL_FRAMELIBRAWOPTIONS_STYLE );
+  typedef fastdelegate::FastDelegate1<const options_t&, void> OptionHandler_t;
+
+  PanelLibRawOptions( void );
+  virtual ~PanelLibRawOptions( );
+
+  PanelLibRawOptions(
+    wxWindow* parent, 
+    wxWindowID id = SYMBOL_PANELLIBRAWOPTIONS_IDNAME, 
+    const wxPoint& pos = SYMBOL_PANELLIBRAWOPTIONS_POSITION, 
+    const wxSize& size = SYMBOL_PANELLIBRAWOPTIONS_SIZE, 
+    long style = SYMBOL_PANELLIBRAWOPTIONS_STYLE );
 
   bool Create(
     wxWindow* parent,
-    wxWindowID id = SYMBOL_FRAMELIBRAWOPTIONS_IDNAME,
-    const wxString& caption = SYMBOL_FRAMELIBRAWOPTIONS_TITLE,
-    const wxPoint& pos = SYMBOL_FRAMELIBRAWOPTIONS_POSITION,
-    const wxSize& size = SYMBOL_FRAMELIBRAWOPTIONS_SIZE,
-    long style = SYMBOL_FRAMELIBRAWOPTIONS_STYLE );
+    wxWindowID id = SYMBOL_PANELLIBRAWOPTIONS_IDNAME,
+    const wxPoint& pos = SYMBOL_PANELLIBRAWOPTIONS_POSITION,
+    const wxSize& size = SYMBOL_PANELLIBRAWOPTIONS_SIZE,
+    long style = SYMBOL_PANELLIBRAWOPTIONS_STYLE );
 
-  void SetSelectInteropolationHandler( SelectInterpolationHandler_t handler ) {
-    m_OnSelectInterpolation = handler;
+  void SetOptionHandler( OptionHandler_t handler ) {
+    m_OnOption = handler;
   }
 
   static bool ShowToolTips( ) { return true; };
@@ -60,32 +69,30 @@ protected:
 private:
 
   enum {
-    ID_Null = wxID_HIGHEST, ID_FRAMELIBRAWOPTIONS, ID_PANEL, wxID_staticInterpLabel, 
-    ID_rbInterpLinear, ID_rbInterpVNG, ID_rbInterpPPG, ID_rbInterpAHD, ID_rbInterpDCB, 
-    ID_rbInterpModAHD, ID_rbInterpAFD, ID_rbInterpVCD, ID_rbInterpVCDAHD, ID_rbInterpLMMSE,
-    ID_rbInterpAMaZE
+    ID_Null = wxID_HIGHEST, ID_PANELLIBRAWOPTIONS, 
+    ID_rbDemosaicType, ID_SliderNoiseThreshold, ID_choiceColourSpace,
+    ID_txtMedianFilterPasses, ID_btnProcess
   };
 
-  typedef std::map<int, eInterpolation_t> mapLUInterpolation_t;
-  mapLUInterpolation_t m_mapLUInterpolation;
+  options_t m_options;
 
-  wxRadioButton* m_rbInterpLinear;
-  wxRadioButton* m_rbInterpVNG;
-  wxRadioButton* m_rbInterpPPG;
-  wxRadioButton* m_rbInterpAHD;
-  wxRadioButton* m_rbInterpDCB;
-  wxRadioButton* m_rbInterpModAHD;
-  wxRadioButton* m_rbInterpAFD;
-  wxRadioButton* m_rbInterpVCD;
-  wxRadioButton* m_rbInterpVCDAHD;
-  wxRadioButton* m_rbInterpLMMSE;
-  wxRadioButton* m_rbInterpAMaZE;
+//  typedef std::map<int, eInterpolation_t> mapLUInterpolation_t;
+//  mapLUInterpolation_t m_mapLUInterpolation;
+
+  wxRadioBox* m_rbDemosaicType;
+  wxSlider* m_sliderNoiseThreshold;
+  wxChoice* m_choiceColourSpace;
+  wxStaticBox* m_boxMedianFilterPasses;
+  wxStaticBoxSizer* m_sizerMedianFilterPasses;
+  wxTextCtrl* m_txtMedianFilterPasses;
+  wxButton* m_btnProcess;
 
   void Init( );
   void CreateControls( );
 
-  SelectInterpolationHandler_t m_OnSelectInterpolation;
-  void OnRbInterpSelected( wxCommandEvent& event );
+  OptionHandler_t m_OnOption;
+  //void OnRbInterpSelected( wxCommandEvent& event );
+  virtual void OnBtnProcessClick( wxCommandEvent& event );
 
   void OnClose( wxCloseEvent& event );
 

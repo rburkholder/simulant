@@ -95,7 +95,7 @@ Global
 		{82570206-587C-48CA-9280-054D97E0A417}.Release|Mixed Platforms.Build.0 = Release|Win32
 		{82570206-587C-48CA-9280-054D97E0A417}.Release|Win32.ActiveCfg = Release|Win32
 		{82570206-587C-48CA-9280-054D97E0A417}.Release|Win32.Build.0 = Release|Win32
-		{82570206-587C-48CA-9280-054D97E0A417}.Release|x64.ActiveCfg = Release|Win32
+		{82570206-587C-48CA-9280-054D97E0A417}.Release|x64.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

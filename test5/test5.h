@@ -17,23 +17,30 @@
 #include "RawImage.h"
 #include "PanelPicture.h"
 #include "PanelLibRawOptions.h"
+#include <PanelLogging.h>
 
 class AppTest5 : public wxApp {
 public:
 protected:
 private:
 
-  FrameLibRawOptions::eInterpolation_t m_user_qual;
+  //PanelLibRawOptions::eInterpolation_t m_user_qual;
+  PanelLibRawOptions::options_t m_options;
 
   RawImage m_ri;
 
-  FramePicture* framePicture;
-  FrameLibRawOptions* frameLibRawOptions;
+  wxFrame* frameMain;
+  PanelPicture* panelPicture;
+  PanelLibRawOptions* panelLibRawOptions;
+  ou::PanelLogging* panelLogging;
 
   void SetLibRawOutputParams( libraw_output_params_t& params );
 
-  void HandleDemosaicSelection( FrameLibRawOptions::eInterpolation_t );
-  void DemosaicImage( void );
+  void HandleDemosaicSelection( const PanelLibRawOptions::options_t& );
+  void LoadImage( void );
+
+  void OnMouseWheel1( wxMouseEvent& event );
+  //void OnMouseWheel2( wxMouseEvent& event );
 
   virtual bool OnInit( void );
   virtual int OnExit( void );

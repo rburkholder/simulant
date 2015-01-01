@@ -23,21 +23,31 @@ using namespace boost::assign;
 
 #include "PanelPicture.h"
 
-FramePicture::FramePicture( 
+PanelPicture::PanelPicture(
   wxWindow *parent,
   const wxWindowID id,
-  const wxString& title,
   const wxPoint& pos,
   const wxSize& size,
   const long style ) 
-: wxFrame( parent, id, title, pos, size, style | wxFULL_REPAINT_ON_RESIZE ),
-m_pimageOriginal( 0 ),
-m_bSizeChanged( false ), m_bImageChanged( false ), m_bMouseLeftDown( false ), m_bCanPaint( false )
+  : m_pimageOriginal( 0 ),
+    m_bSizeChanged( false ), m_bImageChanged( false ), m_bMouseLeftDown( false ), m_bCanPaint( false )
 {
-  Init();
+  Init( );
+  Create( parent, id, pos, size, style | wxFULL_REPAINT_ON_RESIZE );
 };
 
-void FramePicture::Init( void ) {
+bool PanelPicture::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) {
+
+  wxPanel::Create( parent, id, pos, size, style );
+
+  //CreateControls( );
+  if (GetSizer( )) {
+    GetSizer( )->SetSizeHints( this );
+  }
+  return true;
+}
+
+void PanelPicture::Init( void ) {
 
   //www.boost.org / doc / libs / 1_57_0 / libs / assign / doc / index.html
   m_vScalingFactor +=
@@ -59,20 +69,20 @@ void FramePicture::Init( void ) {
 
   m_iterScalingFactor = m_vScalingFactor.begin( );
 
-  Bind( wxEVT_PAINT, &FramePicture::OnPaint, this );
-  Bind( wxEVT_ERASE_BACKGROUND, &FramePicture::OnEraseBackground, this );
-  Bind( wxEVT_MOUSEWHEEL, &FramePicture::OnMouseWheel, this );
-  Bind( wxEVT_MOTION, &FramePicture::OnMouseMotion, this );
-  Bind( wxEVT_SIZE, &FramePicture::OnSize, this );
-  Bind( wxEVT_SIZING, &FramePicture::OnSizing, this );
-  Bind( wxEVT_LEFT_DOWN, &FramePicture::OnMouseLeftDown, this );
-  Bind( wxEVT_LEFT_UP, &FramePicture::OnMouseLeftUp, this );
+  Bind( wxEVT_PAINT, &PanelPicture::OnPaint, this );
+  Bind( wxEVT_ERASE_BACKGROUND, &PanelPicture::OnEraseBackground, this );
+  Bind( wxEVT_MOUSEWHEEL, &PanelPicture::OnMouseWheel, this );
+  Bind( wxEVT_MOTION, &PanelPicture::OnMouseMotion, this );
+  Bind( wxEVT_SIZE, &PanelPicture::OnSize, this );
+  Bind( wxEVT_SIZING, &PanelPicture::OnSizing, this );
+  Bind( wxEVT_LEFT_DOWN, &PanelPicture::OnMouseLeftDown, this );
+  Bind( wxEVT_LEFT_UP, &PanelPicture::OnMouseLeftUp, this );
 
-  Bind( wxEVT_CLOSE_WINDOW, &FramePicture::OnClose, this );
+  Bind( wxEVT_CLOSE_WINDOW, &PanelPicture::OnClose, this );
 
 }
 
-void FramePicture::SetPicture( wxImage* pImage ) {
+void PanelPicture::SetPicture( wxImage* pImage ) {
 
   // todo:  if image parameters not changed, just refresh the image with existing scale/translation
   bool bSizesMatch = false;
@@ -96,46 +106,47 @@ void FramePicture::SetPicture( wxImage* pImage ) {
   }
   m_bCanPaint = true;
   m_bImageChanged = true;
-  FramePicture::Refresh();
+  PanelPicture::Refresh( );
 }
 
-void FramePicture::OnSizing( wxSizeEvent& event ) {
+void PanelPicture::OnSizing( wxSizeEvent& event ) {
+  // isn't called in MSW
   ReSize( event );
 }
 
-void FramePicture::OnSize( wxSizeEvent& event ) {
+void PanelPicture::OnSize( wxSizeEvent& event ) {
   ReSize( event );
 }
 
-void FramePicture::ReSize( wxSizeEvent& event ) {
+void PanelPicture::ReSize( wxSizeEvent& event ) {
   wxRect rect = GetClientRect();
   if (rect != m_rectClient) {
     m_bSizeChanged = true;
     m_rectClient = rect;
-    //FramePicture::Refresh( false );  // redundant call?
+    //PanelPicture::Refresh( false );  // redundant call?
   }
   else {
 
   }
 }
 
-void FramePicture::OnEraseBackground( wxEraseEvent& event ) {
+void PanelPicture::OnEraseBackground( wxEraseEvent& event ) {
   event.Skip( false );  // say we have performed the operation, don't need the flash
 }
 
-int FramePicture::TranslateX1FromScaledImageToSubSampledImage( int x1 ) {
+int PanelPicture::TranslateX1FromScaledImageToSubSampledImage( int x1 ) {
   return ((x1 - m_rectLocationOfScaledImage.GetX( ))
     * m_rectLocationOfSubsetImage.GetWidth( ))
     / m_rectLocationOfScaledImage.GetWidth( );
 }
 
-int FramePicture::TranslateY1FromScaledImageToSubSampledImage( int y1 ) {
+int PanelPicture::TranslateY1FromScaledImageToSubSampledImage( int y1 ) {
   return ((y1 - m_rectLocationOfScaledImage.GetY( ))
     * m_rectLocationOfSubsetImage.GetHeight( ))
     / m_rectLocationOfScaledImage.GetHeight( );
 }
 
-void FramePicture::NormalizeSubSampledImage( void ) {
+void PanelPicture::NormalizeSubSampledImage( void ) {
   // ensure sub sampled image is within bounds of original image
 
   int xSubSet = m_rectLocationOfSubsetImage.GetX( );
@@ -157,7 +168,7 @@ void FramePicture::NormalizeSubSampledImage( void ) {
   m_rectLocationOfSubsetImage.SetY( ySubSet );
 }
 
-void FramePicture::ScaleSubImage( void ) {
+void PanelPicture::ScaleSubImage( void ) {
 
   // x1, y1: offset into SubImage
   int X1old = TranslateX1FromScaledImageToSubSampledImage( m_pointMouse.x );
@@ -188,7 +199,7 @@ void FramePicture::ScaleSubImage( void ) {
 
 }
 
-void FramePicture::TranslateSubImage( void ) {
+void PanelPicture::TranslateSubImage( void ) {
 
   // x1, y1: offset into SubImage
   int X1 = TranslateX1FromScaledImageToSubSampledImage( m_pointMouse.x );
@@ -207,7 +218,7 @@ void FramePicture::TranslateSubImage( void ) {
 
 }
 
-void FramePicture::OnMouseWheel( wxMouseEvent& event ) {
+void PanelPicture::OnMouseWheel( wxMouseEvent& event ) {
   //event.GetWheelDelta;
   int intRotation = event.GetWheelRotation( );
   bool bNewScale( false );
@@ -225,38 +236,39 @@ void FramePicture::OnMouseWheel( wxMouseEvent& event ) {
       }
     }
 
-    if (bNewScale) {
+    if (bNewScale && (0 != m_pimageSubset.get())) {
       ScaleSubImage( );
-      FramePicture::Refresh( false );
+      PanelPicture::Refresh( false );
     }
   }
+  event.Skip(false);
 }
 
-void FramePicture::OnMouseMotion( wxMouseEvent& event ) {
+void PanelPicture::OnMouseMotion( wxMouseEvent& event ) {
   // need to track further with mouse button for translation events
   wxPoint point( event.GetX(), event.GetY() );
   if (point != m_pointMouse) {
     m_pointMouse = point;
-    if (m_bMouseLeftDown) {
+    if (m_bMouseLeftDown && (0 != m_pimageSubset.get( ))) {
       if (m_pointMouse != m_pointMouseOrigin) {
         TranslateSubImage();
         m_pointMouseOrigin = m_pointMouse;
       }
     }
-    FramePicture::Refresh( false );
+    PanelPicture::Refresh( false );
   }
 }
 
-void FramePicture::OnMouseLeftDown( wxMouseEvent& event ) {
+void PanelPicture::OnMouseLeftDown( wxMouseEvent& event ) {
   m_pointMouseOrigin = wxPoint( event.GetX( ), event.GetY( ) );
   m_bMouseLeftDown = true;
 }
 
-void FramePicture::OnMouseLeftUp( wxMouseEvent& event ) {
+void PanelPicture::OnMouseLeftUp( wxMouseEvent& event ) {
   m_bMouseLeftDown = false;
 }
 
-void FramePicture::DrawSubImage( ) {
+void PanelPicture::DrawSubImage( ) {
 
   wxBrush brushGray( wxColour( 128, 128, 128 ) );
   wxPen penGray( wxColour( 128, 128, 128 ) );
@@ -305,7 +317,7 @@ void FramePicture::DrawSubImage( ) {
   }
 }
 
-void FramePicture::OnPaint( wxPaintEvent& event )   {
+void PanelPicture::OnPaint( wxPaintEvent& event )   {
 
   wxPaintDC dcPaint( this );
 
@@ -338,8 +350,8 @@ void FramePicture::OnPaint( wxPaintEvent& event )   {
   }
 }
 
-void FramePicture::OnClose( wxCloseEvent& event ) {
-  Unbind( wxEVT_CLOSE_WINDOW, &FramePicture::OnClose, this );
+void PanelPicture::OnClose( wxCloseEvent& event ) {
+  Unbind( wxEVT_CLOSE_WINDOW, &PanelPicture::OnClose, this );
   event.Skip( );
 }
 
