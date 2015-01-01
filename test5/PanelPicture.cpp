@@ -82,7 +82,7 @@ void PanelPicture::Init( void ) {
 
 }
 
-void PanelPicture::SetPicture( wxImage* pImage ) {
+void PanelPicture::SetPicture( pwxImage_t pImage ) {
 
   // todo:  if image parameters not changed, just refresh the image with existing scale/translation
   bool bSizesMatch = false;
@@ -91,7 +91,7 @@ void PanelPicture::SetPicture( wxImage* pImage ) {
       (pImage->GetWidth() == m_pimageOriginal->GetWidth()) &&
       (pImage->GetHeight() == m_pimageOriginal->GetHeight());
   }
-  m_pimageOriginal.reset( pImage );
+  m_pimageOriginal = pImage;
   if (bSizesMatch) {
     // reuse existing subset parameters
     m_pimageSubset.reset( new wxImage( m_pimageOriginal->GetSubImage( m_rectLocationOfSubsetImage ) ) );
@@ -131,7 +131,8 @@ void PanelPicture::ReSize( wxSizeEvent& event ) {
 }
 
 void PanelPicture::OnEraseBackground( wxEraseEvent& event ) {
-  event.Skip( false );  // say we have performed the operation, don't need the flash
+  bool skip = 0 == m_pimageOriginal.get( );
+  event.Skip( skip );  // say we have performed the operation, don't need the flash
 }
 
 int PanelPicture::TranslateX1FromScaledImageToSubSampledImage( int x1 ) {
@@ -193,6 +194,7 @@ void PanelPicture::ScaleSubImage( void ) {
   NormalizeSubSampledImage( );
 
   if ((1 < widthSubSampledNew) && (1 < heightSubSampledNew)) {
+    // suggestion:  use bool wxDC::StretchBlit  instead, may require rework of image use and device context use
     m_pimageSubset.reset( new wxImage( m_pimageOriginal->GetSubImage( m_rectLocationOfSubsetImage ) ) );
     m_bImageChanged = true;
   }

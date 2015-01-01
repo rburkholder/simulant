@@ -46,29 +46,14 @@ bool PanelLibRawOptions::Create( wxWindow* parent, wxWindowID id, const wxPoint&
   return true;
 }
 
-void PanelLibRawOptions::Init( ) {
+void PanelLibRawOptions::Init() {
 
   m_rbDemosaicType = NULL;
   m_sliderNoiseThreshold = NULL;
   m_choiceColourSpace = NULL;
   m_txtMedianFilterPasses = NULL;
 
-  wxPanel::InitDialog( );
-
-
-/*  boost::assign::insert( m_mapLUInterpolation )
-    (ID_rbInterpLinear, Linear)
-    (ID_rbInterpVNG, VNG)
-    (ID_rbInterpPPG, PPG)
-    (ID_rbInterpAHD, AHD)
-    (ID_rbInterpDCB, DCB)
-    (ID_rbInterpModAHD, ModAHD)
-    (ID_rbInterpAFD, AFD)
-    (ID_rbInterpVCD, VCD)
-    (ID_rbInterpVCDAHD, VCDAHD)
-    (ID_rbInterpLMMSE, LMMSE)
-    (ID_rbInterpAMaZE, AMaZE)
-    ; */
+  wxPanel::InitDialog();
 }
 
 void PanelLibRawOptions::CreateControls( void ) {

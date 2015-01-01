@@ -23,15 +23,21 @@ public:
     m_OnLibRawOutputParams = handler;
   }
 
-  //libraw_output_params_t& Params( void ) { return m_raw.imgdata.params; };
-  libraw_processed_image_t* ObtainImage( const std::string& sFileName );
+  void LoadImage( const std::string& sFileName );
+  libraw_processed_image_t* CalcImage( void );
+  void FreeImage( libraw_processed_image_t* pImage );
+
+  void FileInfo( void );
 
 protected:
 private:
 
-  LibRawOutputParamsHandler_t m_OnLibRawOutputParams;
+  bool m_bImageLoaded;
+  std::string m_sFileName;
 
-  //LibRaw m_raw;
+  LibRawOutputParamsHandler_t m_OnLibRawOutputParams;  // called just prior to post processing
+
+  LibRaw m_raw;
 
 };
 

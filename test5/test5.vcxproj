@@ -96,14 +96,18 @@
     <ClCompile>
       <AdditionalIncludeDirectories>..\include;..\Library</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>LIBRAW_DEMOSAIC_PACK_GPL3;LIBRAW_DEMOSAIC_PACK_GPL2;_CRT_SECURE_NO_WARNINGS;LIBRAW_NODLL;_WIN32_WINNT=0x0502;WINVER=0x0502;WIN32;_DEBUG;__WXMSW__;_WINDOWS;wxUSE_GUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;LIBRAW_NODLL;_WIN32_WINNT=0x0502;WINVER=0x0502;WIN32;_DEBUG;__WXMSW__;_WINDOWS;wxUSE_GUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>
+      </FunctionLevelLinking>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <FloatingPointExceptions>true</FloatingPointExceptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Create</PrecompiledHeader>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <OpenMPSupport>
+      </OpenMPSupport>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

@@ -12,7 +12,6 @@
 
 #include <boost/shared_ptr.hpp>
 
-//#include <wx/wx.h>
 #include <wx/image.h>
 
 #define SYMBOL_PANELPICTURE_STYLE wxTAB_TRAVERSAL
@@ -23,6 +22,8 @@
 
 class PanelPicture : public wxPanel {
 public:
+
+  typedef boost::shared_ptr<wxImage> pwxImage_t;
 
   PanelPicture(
     wxWindow* parent,
@@ -40,7 +41,7 @@ public:
 
   ~PanelPicture( ) {};
 
-  void SetPicture( wxImage* pImage );
+  void SetPicture( pwxImage_t pImage );
 
   void OnMouseWheel( wxMouseEvent& event );
 
@@ -52,8 +53,8 @@ private:
     ID_Null = wxID_HIGHEST, ID_PANELPICTURE
   };
 
-  boost::shared_ptr<wxImage> m_pimageOriginal;  // todo:  need to use LibRaw::dcraw_clear_mem
-  boost::shared_ptr<wxImage> m_pimageSubset; // used for subset of original image
+  pwxImage_t m_pimageOriginal;  // todo:  need to use LibRaw::dcraw_clear_mem
+  pwxImage_t m_pimageSubset; // used for subset of original image
   boost::shared_ptr<wxBitmap> m_pBitmapMemory;  // in memory device context for caching virgin output image
   boost::shared_ptr<wxMemoryDC> m_pdc;
   wxRect m_rectLocationOfSubsetImage; // in original image
