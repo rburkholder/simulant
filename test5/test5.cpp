@@ -23,7 +23,9 @@
 
 IMPLEMENT_APP( AppTest5 )
 
-std::string sFileName( "D:\\Data\\Projects\\VC++\\Graphics\\_DSC4256.NEF" );
+std::string sPath( "D:\\Data\\Projects\\VC++\\Graphics" );
+std::string sFile( "_DSC4256.NEF" );
+std::string sFileName( sPath + "\\" + sFile );
 
 bool AppTest5::OnInit() {
 
@@ -32,6 +34,13 @@ bool AppTest5::OnInit() {
 
   m_frameMain = new wxFrame( (wxFrame *)NULL, ID_frameMain, wxT( "Test5" ), wxPoint( 300, 50 ), wxSize( 1000, 800 ), wxDEFAULT_FRAME_STYLE );
   wxApp::SetTopWindow( m_frameMain );
+
+  m_mbMain = new wxMenuBar;
+  m_menuFile = new wxMenu;
+  m_menuFile->Append( ID_menuFileOpen, _( "&Open" ), wxEmptyString, wxITEM_NORMAL );
+  m_menuFile->Append( ID_menuFileExit, _( "e&Xit" ), wxEmptyString, wxITEM_NORMAL );
+  m_mbMain->Append( m_menuFile, _( "&File" ) );
+  m_frameMain->SetMenuBar( m_mbMain );
 
   wxBoxSizer* sizerMain = new wxBoxSizer( wxVERTICAL );
   m_frameMain->SetSizer( sizerMain );
@@ -56,27 +65,47 @@ bool AppTest5::OnInit() {
   swMain->SplitHorizontally( panelSplitterUpper, m_panelLogging, 600 );
   sizerMain->Add( swMain, 1, wxGROW | wxALL | wxEXPAND, 0 );
   
+  m_sbMain = new wxStatusBar( m_frameMain, ID_sbMain, wxST_SIZEGRIP | wxNO_BORDER );
+  m_sbMain->SetFieldsCount( 2 );
+  sizerMain->Add( m_sbMain, 0, wxGROW | wxALL, 0 );
+
   m_panelLibRawOptions->SetOptionHandler(
     fastdelegate::MakeDelegate( this, &AppTest5::HandleDemosaicSelection ) );
   m_ri.SetLibRawOutputParams( fastdelegate::MakeDelegate( this, &AppTest5::SetLibRawOutputParams ) );
 
   m_frameMain->SetAutoLayout( true );
 
+  Bind( wxEVT_CLOSE_WINDOW, &AppTest5::OnClose, this );
+
+  Bind( wxEVT_MENU, &AppTest5::OnMenuFileOpenClick, this, ID_menuFileOpen );
+  Bind( wxEVT_MENU, &AppTest5::OnMenuFileExitClick, this, ID_menuFileExit );
   Bind( wxEVT_MOUSEWHEEL, &AppTest5::OnMouseWheel1, this );
   //frameMain->Bind( wxEVT_MOUSEWHEEL, &AppTest5::OnMouseWheel2, this );
 
   m_frameMain->Show( );
 
+  return 1;
+}
+
+void AppTest5::OnMenuFileOpenClick( wxCommandEvent& event ) {
+  wxFileDialog openFileDialog( m_frameMain, _( "Open File ..." ), sPath, sFile, "", wxFD_OPEN | wxFD_FILE_MUST_EXIST );
+  if (wxID_CANCEL == openFileDialog.ShowModal()) return;
+  wxString wxsFilePath( openFileDialog.GetPath() );
+  std::string sFilePath( wxsFilePath );
   try {
-    m_ri.LoadImage( sFileName );
+    m_ri.LoadImage( sFilePath );
     std::cout << std::endl;  // clears the auto timer
-    m_ri.FileInfo();
+    m_ri.FileInfo( );
   }
-  catch ( std::runtime_error& e ) {
-    std::cout << e.what() << std::endl;
+  catch (std::runtime_error& e) {
+    std::cout << e.what( ) << std::endl;
   }
 
-  return 1;
+}
+
+void AppTest5::OnMenuFileExitClick( wxCommandEvent& event ) {
+  // Exit Steps:  #1 -> Appxxx::OnClose
+  m_frameMain->Close( );
 }
 
 void AppTest5::OnMouseWheel1( wxMouseEvent& event ) {
@@ -135,8 +164,15 @@ int AppTest5::OnExit( void ) {
 }
 
 void AppTest5::OnClose( wxCloseEvent& event ) {
+
+  // isn't called, needs to be in main frame
   m_panelLibRawOptions->SetOptionHandler( 0 );
-  event.Skip( true );  // auto followed by Destroy();
+
+  // Exit Steps: #3 -> Appxxx::OnExit
+  Unbind( wxEVT_CLOSE_WINDOW, &AppTest5::OnClose, this );
+  //  Unbind( wxEVT_COMMAND_MENU_SELECTED, &FrameMain::OnMenuExitClick, this, ID_MENUEXIT );  // causes crash
+  // http://docs.wxwidgets.org/trunk/classwx_close_event.html
+  event.Skip( );  // continue with base class stuff
 }
 
 

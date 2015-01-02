@@ -25,7 +25,9 @@ protected:
 private:
 
   enum {
-    ID_Null = wxID_HIGHEST, ID_frameMain,
+    ID_Null = wxID_HIGHEST, ID_frameMain, 
+    ID_menuFileOpen, ID_menuFileExit,
+    ID_sbMain,
     ID_panelLibRawOptions, ID_panelPicture, ID_panelLogging,
     ID_swMain, ID_panelSplitterTop
   };
@@ -39,6 +41,11 @@ private:
   PanelLibRawOptions* m_panelLibRawOptions;
   ou::PanelLogging* m_panelLogging;
 
+  wxMenuBar* m_mbMain;
+  wxMenu* m_menuFile;
+
+  wxStatusBar* m_sbMain;
+
   void SetLibRawOutputParams( libraw_output_params_t& params );
 
   void HandleDemosaicSelection( const PanelLibRawOptions::options_t& );
@@ -46,6 +53,9 @@ private:
 
   void OnMouseWheel1( wxMouseEvent& event );
   //void OnMouseWheel2( wxMouseEvent& event );
+
+  virtual void OnMenuFileOpenClick( wxCommandEvent& event );
+  virtual void OnMenuFileExitClick( wxCommandEvent& event );
 
   virtual bool OnInit( void );
   virtual int OnExit( void );
