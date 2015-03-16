@@ -1,0 +1,41 @@
+h.264 test media:  http://dash-mse-test.appspot.com/decoder-test.html
+
+better:
+sample working h.264 file at:
+https://github.com/raspberrypi/userland/blob/master/host_applications/linux/apps/hello_pi/hello_video/test.h264
+
+need more flexible decoding for other files.
+
+
+
+tinylib: https://github.com/roxlu/tinylib.git
+example h.264 player with tinylib and libav:  http://roxlu.com/2014/039/decoding-h264-and-yuv420p-playback
+
+opengl tutorial:  http://www.arcsynthesis.org/gltut/index.html
+
+=====
+libav build:
+git clone git://git.libav.org/libav.git
+apt-get install nasm
+mkdir buildNormal
+#../configure --enable-libfaac --enable-libfdk-aac --enable-libopenh264 --enable-libopus --enable-libvpx --enable-nonfree
+../configure --host-cppflags=-Ofast
+make
+make install
+
+
+=====
+
+wxWidgets
+
+mkdir buildNormal
+cd buildNormal
+../configure --enable-threads --with-gtk=3 --enable-stl  --with-opengl    CXXFLAGS=-Ofast
+
+=====
+ 2015/03/15
+
+need to run the pipeline so that decode, scale, transform are computed
+then special stuff can be performed on final perspective
+scaling may not be needed if performed within opengl.
+looks like opengl is our next stop to handle final transformations and placements within the view
