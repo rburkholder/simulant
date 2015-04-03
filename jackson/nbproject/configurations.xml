@@ -17,6 +17,7 @@
       <itemPath>frameMain.h</itemPath>
       <itemPath>frameProjection.h</itemPath>
       <itemPath>panelSurfaceSources.h</itemPath>
+      <itemPath>structures.h</itemPath>
       <itemPath>tex1.h</itemPath>
       <itemPath>tex2.h</itemPath>
       <itemPath>tut1.h</itemPath>
@@ -145,6 +146,8 @@
       </item>
       <item path="panelSurfaceSources.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="structures.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="tex1.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="tex1.h" ex="false" tool="3" flavor2="0">
@@ -250,6 +253,8 @@
       <item path="panelSurfaceSources.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="panelSurfaceSources.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="structures.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="tex1.cpp" ex="false" tool="1" flavor2="0">
       </item>

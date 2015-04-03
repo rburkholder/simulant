@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <vector>
+//#include <vector>
 
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
@@ -16,8 +16,10 @@
 #include <wx/image.h>
 
 #include "frameMain.h"
-#include "frameProjection.h"
+//#include "frameProjection.h"
 #include "eventImage.h"
+
+#include "structures.h"
 
 #include "tut1.h"
 #include "tex2.h"
@@ -29,7 +31,7 @@ public:
 protected:
 private:
   
-  typedef std::vector<FrameProjection*> vFrameProjection_t;
+  //typedef std::vector<FrameProjection*> vFrameProjection_t;
   
   FrameMain *m_pFrameMain;
   //BasicGLPane * glPane;
@@ -47,7 +49,7 @@ private:
   boost::asio::io_service m_Srvc;
   boost::asio::io_service::work* m_pWork;
   
-  vFrameProjection_t m_vFrameProjection; // objects destroyed by wx
+  vVisualPresentation_t m_vVisualPresentation; // objects destroyed by wx
   
   virtual bool OnInit( );
   virtual void OnClose( wxCloseEvent& event );

@@ -65,28 +65,21 @@ bool AppProjection::OnInit( ) {
   unsigned int nDisplays = wxDisplay::GetCount();
   std::cout << "#connected displays: " << nDisplays << std::endl;
   
+  //m_vFrameProjection.size( nDisplays );
+  m_vVisualPresentation.clear();
+  m_vVisualPresentation.resize( nDisplays );
+  
   for ( int ix = 0; ix < nDisplays; ++ix ) {
     
-    // for reference
     wxDisplay display( ix );
     wxRect rectClientArea = display.GetClientArea();
-    wxVideoMode vmDisplay = display.GetCurrentMode();
-    wxRect rectGeometry = display.GetGeometry();
-    wxArrayVideoModes modes = display.GetModes();
-    wxString sName = display.GetName();
-    bool bPrimary = display.IsPrimary();
 
     std::cout << "building on " << rectClientArea.x << ", " << rectClientArea.y << std::endl;
     
     // need to keep track of projection frames, so can iconize them sometime for visual reference in the gui
-    FrameProjection* pProjection = 
-      new FrameProjection( m_pFrameMain, -1, "", wxPoint( 10, 10 ), wxSize( 100, 200 ) );
-    pProjection->SetSize( wxSize( 1920, 1080 ) );  // forced to a smaller size for now
-    pProjection->Move( rectClientArea.x, rectClientArea.y );  // bug work around in gtk3, chooses different location on primary display
+    // force frame size for the time being
+    m_vVisualPresentation[ ix ].reset( new VisualPresentation( ix, m_pFrameMain, wxPoint( rectClientArea.x, rectClientArea.y ), wxSize( 1920, 1080 ) ) );
     
-    pProjection->Show();
-    m_vFrameProjection.push_back( pProjection );  // keep a reference to the projection surfaces
-      
   }
   
   FrameMain::vpMenuItems_t vMenuItems;
@@ -114,7 +107,7 @@ bool AppProjection::OnInit( ) {
   
 //  int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_CORE_PROFILE, WX_GL_DEPTH_SIZE, 16, 0 };
   int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
-  m_pTut1 = new tut1( m_vFrameProjection[1], argsCanvas );
+  m_pTut1 = new tut1( m_vVisualPresentation[1]->GetFrame(), argsCanvas );
   m_pTut1->SetSize( 400, 400 );
   m_pTut1->Move( 100, 100 );
   
@@ -173,7 +166,7 @@ void AppProjection::LoadPicture( void ) {
     std::cout << "dir " << m_sPictureDirectory << std::endl;
     assert( m_image.LoadFile( dialogOpenFile.GetPath(), wxBITMAP_TYPE_JPEG ) );
     wxBitmap bitmap( m_image );
-    FrameProjection* pfp = m_vFrameProjection[0];
+    FrameProjection* pfp = m_vVisualPresentation[0]->GetFrame();
     wxClientDC dc( pfp );
     dc.DrawBitmap( bitmap, wxPoint( 0, 0 ) );
     Image2OpenGL();
@@ -192,7 +185,7 @@ void AppProjection::Image2OpenGL( void ) {
     }
     if ( 0 == m_pTex ) {
       int argsCanvas[] = { WX_GL_CORE_PROFILE, WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
-      m_pTex = new tex2( m_vFrameProjection[1], argsCanvas );
+      m_pTex = new tex2( m_vVisualPresentation[1]->GetFrame(), argsCanvas );
       //m_pTex->SetSize( m_image.GetWidth(), m_image.GetHeight() );
       m_pTex->SetSize( 300, 600 );
       m_pTex->Move( 500, 100 );
@@ -328,7 +321,7 @@ void AppProjection::LoadVideo( void ) {
     std::cout << "dir " << m_sVideoDirectory << std::endl;
     //assert( m_image.LoadFile( dialogOpenFile.GetPath(), wxBITMAP_TYPE_JPEG ) );
 
-    boost::shared_ptr<DecodeH264> pDecoder( new DecodeH264 ( m_vFrameProjection[0] ) );
+    boost::shared_ptr<DecodeH264> pDecoder( new DecodeH264 ( m_vVisualPresentation[0]->GetFrame() ) );
     pDecoder->m_OnFrame.connect( 
       boost::phoenix::bind( &AppProjection::HandleOnFrame, this, args::arg1, args::arg2, args::arg3, args::arg4, args::arg5 ) );
 
