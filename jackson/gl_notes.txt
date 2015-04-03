@@ -1,0 +1,36 @@
+
+Vertex Shaders:
+
+Vertex shaders operate on vertices. E
+ach invocation of a vertex shader operates on a single vertex. 
+These shaders must output, among any other user-defined outputs, a clip-space position for that vertex.
+
+gl_Position is the clip-space position of the vertex
+
+* an attribute index allows matching between data buffers and the shaders
+*  hardware-based limit on the number of attribute indices = 16
+
+window coordinates are in a lower-left coordinate system
+
+gl_FragCoord built-in GLSL variable can be used in fragment shaders to get the window-space coordinates of the current fragment.
+
+Variables at global scope in GLSL can be defined with certain storage qualifiers: const, uniform, in, and out. A const value works like it does in C99 and C++: the value does not change, period. It must have an initializer. An unqualified variable works like one would expect in C/C++; it is a global value that can be changed. GLSL shaders can call functions, and globals can be shared between functions. However, unlike in, out, and uniforms, non-const and const variables are not shared between stages.
+
+frustum; essentially, a pyramid with the tip chopped off.
+
+matrices with more than 2 dimensions are called “tensors”)
+
+the transformation from space A to space B is what space A looks like from an observer in space B
+
+a rotation matrix is not really a “rotation” matrix; it is an orientation matrix. It defines the orientation of one space relative to another space. 
+
+The ability to linearly interpolate values in pre-projection space is called perspective-correct interpolation. And we now get to the final reason why our vertex shader provides values in clip-space rather than having the shader perform the perspective divide. The W term of clip-space is vital for performing perspective-correct interpolation.
+
+The DDS image format is one of the few image formats that actually supports storing all of the mipmaps for a texture in the same file.
+
+sRGB textures to store gamma-corrected images
+
+Projective Textures:  [something for which I was looking]
+file:///home/rpb/data/Tutorial%200.3.8/html/Texturing/Tut17%20Projective%20Texture.html
+
+

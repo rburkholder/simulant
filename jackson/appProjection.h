@@ -19,6 +19,9 @@
 #include "frameProjection.h"
 #include "eventImage.h"
 
+#include "tut1.h"
+#include "tex2.h"
+
 class AppProjection : public wxApp {
 public:
   
@@ -30,6 +33,9 @@ private:
   
   FrameMain *m_pFrameMain;
   //BasicGLPane * glPane;
+  
+  tut1* m_pTut1;
+  tex2* m_pTex;
   
   wxString m_sPictureDirectory;
   wxString m_sVideoDirectory;
@@ -49,6 +55,7 @@ private:
 
   void LoadPicture( void );
   void LoadVideo( void );
+  void Image2OpenGL( void );
   
   void Workers( void );
   
@@ -58,5 +65,13 @@ private:
   
   void ProcessVideoFile( boost::shared_ptr<DecodeH264> pDecoder );
   
+  void HandleMouseMoved( wxMouseEvent& event ) {} // EVT_MOTION
+  void HandleMouseWheel( wxMouseEvent& event ) {} // EVT_MOUSEWHEEL
+  void HandleMouseLeftDown( wxMouseEvent& event ) {} // EVT_LEFT_DOWN
+  void HandleMouseLeftUp( wxMouseEvent& event ) {}  // EVT_LEFT_UP
+  void HandleMouseRightDown( wxMouseEvent& event ) {} // EVT_RIGHT_DOWN
+//  void HandleMouseLeaveWindow( wxMouseEvent& event ) {} // EVT_LEAVE_WINDOW
+  void HandleKeyDown( wxKeyEvent& event ) {} // EVT_KEY_DOWN
+  void HandleKeyUp( wxKeyEvent& event ) {}  // EVT_KEY_UP
+  
 };
-

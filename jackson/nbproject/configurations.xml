@@ -17,6 +17,9 @@
       <itemPath>frameMain.h</itemPath>
       <itemPath>frameProjection.h</itemPath>
       <itemPath>panelSurfaceSources.h</itemPath>
+      <itemPath>tex1.h</itemPath>
+      <itemPath>tex2.h</itemPath>
+      <itemPath>tut1.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -35,6 +38,9 @@
       <itemPath>frameMain.cpp</itemPath>
       <itemPath>frameProjection.cpp</itemPath>
       <itemPath>panelSurfaceSources.cpp</itemPath>
+      <itemPath>tex1.cpp</itemPath>
+      <itemPath>tex2.cpp</itemPath>
+      <itemPath>tut1.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -48,6 +54,7 @@
       <itemPath>Makefile</itemPath>
       <itemPath>notes.txt</itemPath>
     </logicalFolder>
+    <itemPath>gl_notes.txt</itemPath>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -85,6 +92,7 @@
             <linkerLibLibItem>GL</linkerLibLibItem>
             <linkerLibLibItem>wx_gtk3u_gl-3.1</linkerLibLibItem>
             <linkerLibLibItem>GLU</linkerLibLibItem>
+            <linkerLibLibItem>SOIL</linkerLibLibItem>
           </linkerLibItems>
           <commandLine>`/usr/local/bin/wx-config --libs`</commandLine>
         </linkerTool>
@@ -131,9 +139,23 @@
       </item>
       <item path="frameProjection.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="gl_notes.txt" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="panelSurfaceSources.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="panelSurfaceSources.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="tex1.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="tex1.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="tex2.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="tex2.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="tut1.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="tut1.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="1">
@@ -223,9 +245,23 @@
       </item>
       <item path="frameProjection.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="gl_notes.txt" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="panelSurfaceSources.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="panelSurfaceSources.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="tex1.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="tex1.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="tex2.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="tex2.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="tut1.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="tut1.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>

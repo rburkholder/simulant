@@ -44,6 +44,9 @@ IMPLEMENT_APP( AppProjection )
 
 bool AppProjection::OnInit( ) {
   
+  m_pTut1 = 0;  
+  m_pTex = 0;
+  
   m_sPictureDirectory = wxT( "~/Pictures/");
   m_sVideoDirectory = wxT( "~/Videos/");
   
@@ -90,6 +93,7 @@ bool AppProjection::OnInit( ) {
   typedef FrameMain::structMenuItem mi;  // vxWidgets takes ownership of the objects
   vMenuItems.push_back( new mi( "select picture", boost::phoenix::bind( &AppProjection::LoadPicture, this ) ) );
   vMenuItems.push_back( new mi( "select video", boost::phoenix::bind( &AppProjection::LoadVideo, this ) ) );
+  vMenuItems.push_back( new mi( "image->opengl", boost::phoenix::bind( &AppProjection::Image2OpenGL, this ) ) ) ;
   m_pFrameMain->AddDynamicMenu( "Actions", vMenuItems );
   
   wxPanel* tools = new panelSurfaceSources( m_pFrameMain, -1 );
@@ -101,13 +105,30 @@ bool AppProjection::OnInit( ) {
   m_pFrameMain->Show( );
   m_pFrameMain->Move( wxPoint( 2000, 150 ) );
   
+  // workers for the movie action
   m_pWork = new boost::asio::io_service::work(m_Srvc);  // keep the asio service running 
   //m_thrdWorkers = boost::thread( boost::phoenix::bind( &AppProjection::Workers, this ) );
   for ( std::size_t ix = 0; ix < 2; ix++ ) {
     m_threadsWorkers.create_thread( boost::phoenix::bind( &boost::asio::io_service::run, &m_Srvc ) );
   }
   
+//  int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_CORE_PROFILE, WX_GL_DEPTH_SIZE, 16, 0 };
+  int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
+  m_pTut1 = new tut1( m_vFrameProjection[1], argsCanvas );
+  m_pTut1->SetSize( 400, 400 );
+  m_pTut1->Move( 100, 100 );
+  
   wxApp::Bind( EVENT_IMAGE, &AppProjection::HandleEventImage, this );
+  wxApp::Bind( wxEVT_MOTION, &AppProjection::HandleMouseMoved, this );
+  wxApp::Bind( wxEVT_MOUSEWHEEL, &AppProjection::HandleMouseWheel, this );
+  wxApp::Bind( wxEVT_LEFT_DOWN, &AppProjection::HandleMouseLeftDown, this );
+  wxApp::Bind( wxEVT_LEFT_UP, &AppProjection::HandleMouseLeftUp, this );
+  wxApp::Bind( wxEVT_RIGHT_DOWN, &AppProjection::HandleMouseRightDown, this );
+  wxApp::Bind( wxEVT_KEY_DOWN, &AppProjection::HandleKeyDown, this );
+  wxApp::Bind( wxEVT_KEY_UP, &AppProjection::HandleKeyUp, this );
+  //wxApp::Bind( wxEVT_ENTER_WINDOW, &AppProjection::HandleEnterWindow, this );  // window specific
+  //wxApp::Bind( wxEVT_LEAVE_WINDOW, &AppProjection::HandleLeaveWindow, this );  // window specific
+  //wxApp::Bind( wxEVT_SIZE, &AppProjection::HandleMouseMoved, this );  // window specific
   
   return true;
 }
@@ -155,9 +176,31 @@ void AppProjection::LoadPicture( void ) {
     FrameProjection* pfp = m_vFrameProjection[0];
     wxClientDC dc( pfp );
     dc.DrawBitmap( bitmap, wxPoint( 0, 0 ) );
+    Image2OpenGL();
   }
   else {
   }
+}
+
+void AppProjection::Image2OpenGL( void ) {
+  
+  if ( m_image.IsOk() ) {
+    //std::cout << "is ok" << std::endl;
+    if ( 0 != m_pTex ) {
+      delete m_pTex;
+      m_pTex = 0;
+    }
+    if ( 0 == m_pTex ) {
+      int argsCanvas[] = { WX_GL_CORE_PROFILE, WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
+      m_pTex = new tex2( m_vFrameProjection[1], argsCanvas );
+      //m_pTex->SetSize( m_image.GetWidth(), m_image.GetHeight() );
+      m_pTex->SetSize( 300, 600 );
+      m_pTex->Move( 500, 100 );
+      m_pTex->SetImage( &m_image );
+    }
+
+  }
+  
 }
 
 //int nFrame=0;
@@ -222,7 +265,7 @@ void AppProjection::HandleFrameTransform( AVFrame* pRgb, uint8_t* buf, void* use
       pDest.Green() = *pSrc; ++pSrc;
       pDest.Red() = *pSrc; ++pSrc;
       ++pDest;
-      ++pSrc;
+      ++pSrc; // skip alpha?
     }
   }
 

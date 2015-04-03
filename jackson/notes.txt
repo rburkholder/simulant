@@ -1,3 +1,16 @@
+2015/03/22
+
+Apparently, wxWidgets requires that the first OpenGL or GLEW call be placed inside the OnPaint event handler function. 
+Look for EVT_PAINT to find this function. Once I did that, the error disappeared and OpenGL worked.
+http://choorucode.com/2014/07/22/segmentation-fault-at-glcreateshader-in-wxwidgets/
+
+2015/03/15
+
+opengl tutorial files:  https://bitbucket.org/alfonse/gltut/downloads
+main site (currently offline): http://arcsynthesis.org
+
+2015/03/xx
+
 h.264 test media:  http://dash-mse-test.appspot.com/decoder-test.html
 
 better:

@@ -44,7 +44,10 @@ OBJECTFILES= \
 	${OBJECTDIR}/eventImage.o \
 	${OBJECTDIR}/frameMain.o \
 	${OBJECTDIR}/frameProjection.o \
-	${OBJECTDIR}/panelSurfaceSources.o
+	${OBJECTDIR}/panelSurfaceSources.o \
+	${OBJECTDIR}/tex1.o \
+	${OBJECTDIR}/tex2.o \
+	${OBJECTDIR}/tut1.o
 
 
 # C Compiler Flags
@@ -61,7 +64,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-lavdevice -lavcodec -lavresample -lavfilter -lavformat -lavutil -lswscale -lz -lpthread -lpng -lboost_system -lboost_thread -lboost_chrono -lGL -lwx_gtk3u_gl-3.1 -lGLU
+LDLIBSOPTIONS=-lavdevice -lavcodec -lavresample -lavfilter -lavformat -lavutil -lswscale -lz -lpthread -lpng -lboost_system -lboost_thread -lboost_chrono -lGL -lwx_gtk3u_gl-3.1 -lGLU -lSOIL
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -120,6 +123,21 @@ ${OBJECTDIR}/panelSurfaceSources.o: panelSurfaceSources.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/panelSurfaceSources.o panelSurfaceSources.cpp
+
+${OBJECTDIR}/tex1.o: tex1.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/tex1.o tex1.cpp
+
+${OBJECTDIR}/tex2.o: tex2.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/tex2.o tex2.cpp
+
+${OBJECTDIR}/tut1.o: tut1.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/tut1.o tut1.cpp
 
 # Subprojects
 .build-subprojects:
