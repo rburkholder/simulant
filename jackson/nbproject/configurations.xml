@@ -4,6 +4,8 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>Cue.h</itemPath>
+      <itemPath>CueList.h</itemPath>
       <itemPath>DecodeH264.h</itemPath>
       <itemPath>DndDropTarget.h</itemPath>
       <itemPath>DndSourceButton.h</itemPath>
@@ -29,6 +31,8 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <itemPath>Cue.cpp</itemPath>
+      <itemPath>CueList.cpp</itemPath>
       <itemPath>DecodeH264.cpp</itemPath>
       <itemPath>DndDropTarget.cpp</itemPath>
       <itemPath>DndSourceButton.cpp</itemPath>
@@ -98,6 +102,14 @@
           <commandLine>`/usr/local/bin/wx-config --libs`</commandLine>
         </linkerTool>
       </compileType>
+      <item path="Cue.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Cue.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="CueList.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="CueList.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="DecodeH264.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="DecodeH264.h" ex="false" tool="3" flavor2="0">
@@ -206,6 +218,14 @@
           <commandLine>`/usr/local/bin/wx-config --libs`</commandLine>
         </linkerTool>
       </compileType>
+      <item path="Cue.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Cue.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="CueList.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="CueList.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="DecodeH264.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="DecodeH264.h" ex="false" tool="3" flavor2="0">
