@@ -11,9 +11,6 @@
 #include <string>
 #include <map>
 
-#include <boost/shared_ptr.hpp>
-#include <boost/chrono.hpp>
-
 #include "Cue.h"
 
 class CueList {

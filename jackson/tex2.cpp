@@ -134,10 +134,6 @@ void tex2::display() {
   //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 10, 10, 0, GL_RGB, GL_UNSIGNED_BYTE, col );
 
   glm::vec2 vtxWindowCoords[] = { // elements natural order for this (model coordinates map to texture)
-//    glm::vec2( -1.0f, -1.0f ), // Bottom-left
-//    glm::vec2( -1.0f,  1.0f ), // Top-left
-//    glm::vec2(  1.0f,  1.0f ), // Top-right
-//    glm::vec2(  1.0f, -1.0f )  // Bottom-right
        glm::vec2( 0.0f,  0.0f ),  // Bottom-left
        glm::vec2( 0.0f,  1.0f ),  // Top-left
        glm::vec2( 1.0f,  1.0f ),  // Top-right

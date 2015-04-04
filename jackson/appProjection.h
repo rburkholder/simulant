@@ -49,7 +49,7 @@ private:
   boost::asio::io_service m_Srvc;
   boost::asio::io_service::work* m_pWork;
   
-  vVisualPresentation_t m_vVisualPresentation; // objects destroyed by wx
+  vScreenFrame_t m_vScreenFrame; // objects destroyed by wx
   
   virtual bool OnInit( );
   virtual void OnClose( wxCloseEvent& event );
@@ -58,6 +58,9 @@ private:
   void LoadPicture( void );
   void LoadVideo( void );
   void Image2OpenGL( void );
+  
+  void CreateCanvas( void ) {};
+  void CreateMovieScreen( void ) {};
   
   void Workers( void );
   

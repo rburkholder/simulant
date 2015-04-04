@@ -8,6 +8,11 @@
 #ifndef CUE_H
 #define	CUE_H
 
+#include <string>
+
+#include <boost/shared_ptr.hpp>
+#include <boost/chrono.hpp>
+
 class Cue {
 public:
   typedef float CueNumber_t;
