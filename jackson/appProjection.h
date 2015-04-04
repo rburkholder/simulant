@@ -35,6 +35,7 @@ private:
   
   FrameMain *m_pFrameMain;
   //BasicGLPane * glPane;
+  panelSurfaceSources* m_pSurfaceSources;
   
   tut1* m_pTut1;
   tex2* m_pTex;
@@ -63,7 +64,7 @@ private:
   void LoadVideo( void );
   void Image2OpenGL( void );
   
-  void CreateCanvas( void ) {};
+  void CreateCanvas( void );
   void CreateMovieScreen( void ) {};
   
   void Workers( void );
@@ -74,13 +75,13 @@ private:
   
   void ProcessVideoFile( boost::shared_ptr<DecodeH264> pDecoder );
   
-  void HandleMouseMoved( wxMouseEvent& event ) {} // EVT_MOTION
-  void HandleMouseWheel( wxMouseEvent& event ) {} // EVT_MOUSEWHEEL
-  void HandleMouseLeftDown( wxMouseEvent& event ) {} // EVT_LEFT_DOWN
-  void HandleMouseLeftUp( wxMouseEvent& event ) {}  // EVT_LEFT_UP
-  void HandleMouseRightDown( wxMouseEvent& event ) {} // EVT_RIGHT_DOWN
-//  void HandleMouseLeaveWindow( wxMouseEvent& event ) {} // EVT_LEAVE_WINDOW
-  void HandleKeyDown( wxKeyEvent& event ) {} // EVT_KEY_DOWN
-  void HandleKeyUp( wxKeyEvent& event ) {}  // EVT_KEY_UP
+  void HandleMouseMoved( wxMouseEvent& event ) { event.Skip(); } // EVT_MOTION
+  void HandleMouseWheel( wxMouseEvent& event ) { event.Skip(); } // EVT_MOUSEWHEEL
+  void HandleMouseLeftDown( wxMouseEvent& event ) { event.Skip(); } // EVT_LEFT_DOWN
+  void HandleMouseLeftUp( wxMouseEvent& event ) { event.Skip(); }  // EVT_LEFT_UP
+  void HandleMouseRightDown( wxMouseEvent& event ) { event.Skip(); } // EVT_RIGHT_DOWN
+//  void HandleMouseLeaveWindow( wxMouseEvent& event ) { event.Skip(); } // EVT_LEAVE_WINDOW
+  void HandleKeyDown( wxKeyEvent& event ) { event.Skip(); } // EVT_KEY_DOWN
+  void HandleKeyUp( wxKeyEvent& event ) { event.Skip(); }  // EVT_KEY_UP
   
 };

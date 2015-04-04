@@ -83,7 +83,7 @@ void panelSurfaceSources::CreateControls() {
   wxBoxSizer* itemBoxSizer10 = new wxBoxSizer(wxVERTICAL);
   itemBoxSizer2->Add(itemBoxSizer10, 0, wxGROW|wxALL, 0);
   
-  m_btnEditMode = new wxToggleButton( itemPanel1, ID_BTN_EDITMODE, _("Edit Mode"), wxDefaultPosition, wxDefaultSize, 0 );
+  m_btnEditMode = new wxToggleButton( itemPanel1, ID_BTN_EDITMODE, _("Editing Off"), wxDefaultPosition, wxDefaultSize, 0 );
   itemBoxSizer10->Add(m_btnEditMode, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
 
 

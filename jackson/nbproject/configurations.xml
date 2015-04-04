@@ -11,7 +11,7 @@
       <itemPath>DndSourceButton.h</itemPath>
       <itemPath>DndTargetButton.h</itemPath>
       <itemPath>Network.h</itemPath>
-      <itemPath>Outlining.h</itemPath>
+      <itemPath>Outline.h</itemPath>
       <itemPath>SpinLock.h</itemPath>
       <itemPath>appProjection.h</itemPath>
       <itemPath>canvasOpenGL.h</itemPath>
@@ -38,7 +38,7 @@
       <itemPath>DndDropTarget.cpp</itemPath>
       <itemPath>DndSourceButton.cpp</itemPath>
       <itemPath>DndTargetButton.cpp</itemPath>
-      <itemPath>Outlining.cpp</itemPath>
+      <itemPath>Outline.cpp</itemPath>
       <itemPath>appProjection.cpp</itemPath>
       <itemPath>canvasOpenGL.cpp</itemPath>
       <itemPath>eventImage.cpp</itemPath>
@@ -130,9 +130,9 @@
       </item>
       <item path="Network.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="Outlining.cpp" ex="false" tool="1" flavor2="0">
+      <item path="Outline.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="Outlining.h" ex="false" tool="3" flavor2="0">
+      <item path="Outline.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="SpinLock.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -250,9 +250,9 @@
       </item>
       <item path="Network.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="Outlining.cpp" ex="false" tool="1" flavor2="0">
+      <item path="Outline.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="Outlining.h" ex="false" tool="3" flavor2="0">
+      <item path="Outline.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="SpinLock.h" ex="false" tool="3" flavor2="0">
       </item>

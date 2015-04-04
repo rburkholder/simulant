@@ -11,6 +11,8 @@
 #include <wx/wx.h>
 #include <wx/frame.h>
 
+#include "Outline.h"
+
 #define SYMBOL_FRAMEPROJECTION_STYLE wxNO_BORDER
 #define SYMBOL_FRAMEPROJECTION_TITLE _("Black Projection Background")
 #define SYMBOL_FRAMEPROJECTION_IDNAME ID_FRAMEPROJECTION
@@ -39,18 +41,34 @@ public:
 
   virtual ~FrameProjection( );
   
+  void SetOutline( Outline* pOutline ) { m_pOutline = pOutline; };
+  Outline* GetOutline( void ) { return m_pOutline; };
+  
+protected:
+private:
+  
+  enum { ID_Null=wxID_HIGHEST, ID_FRAMEPROJECTION
+  };
+  
+  bool m_bMouseDown;
+  Outline* m_pOutline;  // need to turn into shared ptr
+  
+  void Init();
+  void CreateControls();
+  
+  void HandlePaint( wxPaintEvent& event );
+  void HandleEraseBackground( wxEraseEvent& event );
+  void HandleSize( wxSizeEvent& event );
+  void HandleMouseMoved( wxMouseEvent& event );
+  void HandleMouseLeftDown( wxMouseEvent& event );
+  void HandleMouseLeftUp( wxMouseEvent& event );
+  
+  void Render( wxDC& dc ); // actual DC independent render
+    
   static bool ShowToolTips() { return true; };
   wxBitmap GetBitmapResource( const wxString& name );
   wxIcon GetIconResource( const wxString& name );
 
-  private:
-
-  enum { ID_Null=wxID_HIGHEST, ID_FRAMEPROJECTION
-  };
-  
-  void Init();
-  void CreateControls();
-    
 };
 
 #endif	/* FRAMEPROJECTION_H */

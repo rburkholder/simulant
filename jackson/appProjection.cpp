@@ -94,13 +94,14 @@ bool AppProjection::OnInit( ) {
   vMenuItems.push_back( new mi( "Movie Screen", boost::phoenix::bind( &AppProjection::CreateMovieScreen, this ) ) );
   m_pFrameMain->AddDynamicMenu( "Create", vMenuItems );
   
-  wxPanel* tools = new panelSurfaceSources( m_pFrameMain, -1 );
-  sizer->Add( tools, 1, wxEXPAND );
+  m_pSurfaceSources = new panelSurfaceSources( m_pFrameMain, -1 );
+  sizer->Add( m_pSurfaceSources, 1, wxEXPAND );
 
   m_pFrameMain->SetSizer( sizer );
   m_pFrameMain->SetAutoLayout( true );
 
   m_pFrameMain->Show( );
+  // serialize the following for session to session persistence
   m_pFrameMain->Move( wxPoint( 2000, 150 ) );
   
   // workers for the movie action
@@ -110,25 +111,26 @@ bool AppProjection::OnInit( ) {
     m_threadsWorkers.create_thread( boost::phoenix::bind( &boost::asio::io_service::run, &m_Srvc ) );
   }
   
+  // WX_GL_CORE_PROFILE limits to older 3.x version
 //  int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_CORE_PROFILE, WX_GL_DEPTH_SIZE, 16, 0 };
   int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
   m_pTut1 = new tut1( m_vScreenFrame[1]->GetFrame(), argsCanvas );
   m_pTut1->SetSize( 400, 400 );
   m_pTut1->Move( 100, 100 );
   
-  wxApp::Bind( EVENT_IMAGE, &AppProjection::HandleEventImage, this );
-  wxApp::Bind( wxEVT_MOTION, &AppProjection::HandleMouseMoved, this );
-  wxApp::Bind( wxEVT_MOUSEWHEEL, &AppProjection::HandleMouseWheel, this );
-  wxApp::Bind( wxEVT_LEFT_DOWN, &AppProjection::HandleMouseLeftDown, this );
-  wxApp::Bind( wxEVT_LEFT_UP, &AppProjection::HandleMouseLeftUp, this );
-  wxApp::Bind( wxEVT_RIGHT_DOWN, &AppProjection::HandleMouseRightDown, this );
-  wxApp::Bind( wxEVT_KEY_DOWN, &AppProjection::HandleKeyDown, this );
-  wxApp::Bind( wxEVT_KEY_UP, &AppProjection::HandleKeyUp, this );
-  //wxApp::Bind( wxEVT_ENTER_WINDOW, &AppProjection::HandleEnterWindow, this );  // window specific
-  //wxApp::Bind( wxEVT_LEAVE_WINDOW, &AppProjection::HandleLeaveWindow, this );  // window specific
-  //wxApp::Bind( wxEVT_SIZE, &AppProjection::HandleMouseMoved, this );  // window specific
+//  wxApp::Bind( EVENT_IMAGE, &AppProjection::HandleEventImage, this );
+//  wxApp::Bind( wxEVT_MOTION, &AppProjection::HandleMouseMoved, this );
+//  wxApp::Bind( wxEVT_MOUSEWHEEL, &AppProjection::HandleMouseWheel, this );
+//  wxApp::Bind( wxEVT_LEFT_DOWN, &AppProjection::HandleMouseLeftDown, this );
+//  wxApp::Bind( wxEVT_LEFT_UP, &AppProjection::HandleMouseLeftUp, this );
+//  wxApp::Bind( wxEVT_RIGHT_DOWN, &AppProjection::HandleMouseRightDown, this );
+//  wxApp::Bind( wxEVT_KEY_DOWN, &AppProjection::HandleKeyDown, this );
+//  wxApp::Bind( wxEVT_KEY_UP, &AppProjection::HandleKeyUp, this );
+  //wxApp::Bind( wxEVT_ENTER_WINDOW, &AppProjection::HandleEnterWindow, this );  // window specific, not in app
+  //wxApp::Bind( wxEVT_LEAVE_WINDOW, &AppProjection::HandleLeaveWindow, this );  // window specific, not in app
+  //wxApp::Bind( wxEVT_SIZE, &AppProjection::HandleMouseMoved, this );  // window specific, not in app
   
-  tools->Bind( wxEVT_TOGGLEBUTTON, &AppProjection::HandleToggleEditMode, this );
+  m_pSurfaceSources->Bind( wxEVT_TOGGLEBUTTON, &AppProjection::HandleToggleEditMode, this, panelSurfaceSources::ID_BTN_EDITMODE );
   m_bInEditMode = false;
   
   return true;
@@ -157,8 +159,20 @@ int AppProjection::OnExit( void ) {
   return 0;
 }
 
+void AppProjection::CreateCanvas( void ) {
+  m_vScreenFrame[0]->GetFrame()->SetOutline( new Outline( wxRect( 300, 300, 600, 600 ) ) );
+  m_vScreenFrame[0]->GetFrame()->Refresh();
+}
+
 void AppProjection::HandleToggleEditMode( wxCommandEvent& event ) {
-  
+  if ( m_bInEditMode ) {
+    m_bInEditMode = false;
+    m_pSurfaceSources->m_btnEditMode->SetLabel( "Editing Off" );
+  }
+  else {
+    m_bInEditMode = true;
+    m_pSurfaceSources->m_btnEditMode->SetLabel( "Editing On" );
+  }
 }
 
 void AppProjection::Workers( void ) {
