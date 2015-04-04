@@ -44,7 +44,7 @@ public:
 private:
   enum Selection { tl = 0, tr, br, bl, count, top, right, bottom, left, all, none };
   enum MouseState { unknown, up, down };
-  static const int bounding = 1;
+  static const int bounding = 2;
   const float m_epsilon;
   bool m_bMouseDown;
   bool m_bUndoPrevious;

@@ -20,7 +20,7 @@
 Outline::Outline( const wxRect& rect, bool bSelectByEdge, bool bSelectByVertex )
 : m_bUndoPrevious( false ), m_bMouseDown( false ), m_bClean( true ),
   m_selectionHit( none ), m_stateMouse( unknown ),
-  m_epsilon( 0.001 ),
+  m_epsilon( 0.01 ),
   m_bSelectByEdge( bSelectByEdge ), m_bSelectByVertex( bSelectByVertex ),
   m_penWhite( wxColor( 255, 255,255 ), 1, wxPENSTYLE_SOLID ),  // white
   m_penBlack( wxColor( 0, 0, 0 ), 1, wxPENSTYLE_SOLID ),  // white
@@ -56,41 +56,43 @@ wxCursor Outline::TrackMouse( wxPoint point, bool bDown, wxDC& dc ) {
       }
       break;
     case up:
-      if ( HitTest( point ) ) {
-        switch ( m_selectionHit ) {
-          case tl:
-          case br:
-            cursor = wxCursor( wxCURSOR_SIZENWSE );
-            std::cout << "tl, br" << std::endl;
-            break;
-          case bl:
-          case tr:
-            cursor = wxCursor( wxCURSOR_SIZENESW );
-            std::cout << "bl tr" << std::endl;
-            break;
-          case top:
-          case bottom:
-            cursor = wxCursor( wxCURSOR_SIZENS );
-            std::cout << "top, bottom" << std::endl;
-            break;
-          case left:
-          case right:
-            cursor = wxCursor( wxCURSOR_SIZEWE );
-            std::cout << "left right" << std::endl;
-            break;
-          case all:
-            cursor = wxCursor( wxCURSOR_SIZING );
-            std::cout << "all" << std::endl;
-            break;
-          case none:
-            break;
-        }
-      }
       if ( bDown && ( none != m_selectionHit ) ) { 
         cursor = wxCursor( wxCURSOR_LEFT_BUTTON );
         m_pointMouseDown = point;
         m_pointMousePrevious = point;
         m_stateMouse = down;
+      }
+      else {
+        if ( HitTest( point ) ) {
+          switch ( m_selectionHit ) {
+            case tl:
+            case br:
+              cursor = wxCursor( wxCURSOR_SIZENWSE );
+              std::cout << "tl, br" << std::endl;
+              break;
+            case bl:
+            case tr:
+              cursor = wxCursor( wxCURSOR_SIZENESW );
+              std::cout << "bl tr" << std::endl;
+              break;
+            case top:
+            case bottom:
+              cursor = wxCursor( wxCURSOR_SIZENS );
+              std::cout << "top, bottom" << std::endl;
+              break;
+            case left:
+            case right:
+              cursor = wxCursor( wxCURSOR_SIZEWE );
+              std::cout << "left right" << std::endl;
+              break;
+            case all:
+              cursor = wxCursor( wxCURSOR_SIZING );
+              std::cout << "all" << std::endl;
+              break;
+            case none:
+              break;
+          }
+        }
       }
       break;
     case down:
@@ -179,16 +181,17 @@ void Outline::Render( wxDC& dc ) {
   
   dc.SetBrush( m_brush );
   if ( m_bUndoPrevious && !m_bClean ) {  // this is going to be a problem if we have a clean slate
-    //dc.SetLogicalFunction( wxXOR );
+    dc.SetLogicalFunction( wxXOR );
     //dc.SetLogicalFunction( wxINVERT );
-    dc.SetPen( m_penBlack );
+    dc.SetPen( m_penWhite );
+    //dc.SetPen( m_penBlack );
     dc.DrawPolygon( count, m_polyOriginal );
     BOOST_FOREACH( Selection ix, m_setCorners ) {
       m_polyOriginal[ ix ] = m_polyNew[ ix ];
     }
     m_bUndoPrevious = false;
   }
-  //dc.SetLogicalFunction( wxCOPY );
+  dc.SetLogicalFunction( wxCOPY );
   dc.SetPen( m_penWhite );
   dc.DrawPolygon( count, m_polyOriginal );
   m_bClean = false;
@@ -209,7 +212,8 @@ bool Outline::HitTest( wxPoint point ) {
         }
       }
     }
-    if ( ( none == m_selectionHit ) && m_bSelectByEdge ) { // try selecting edges
+    // if no selection yet, try selecting edges
+    if ( ( none == m_selectionHit ) && m_bSelectByEdge ) { 
       double dif;
       dif = PointToSegmentDistanceSquared( m_polyOriginal[bl], m_polyOriginal[tl], point );
       if ( m_epsilon > dif ) m_selectionHit = left;
@@ -226,12 +230,14 @@ bool Outline::HitTest( wxPoint point ) {
         }
       }
     }
-    if ( ( none == m_selectionHit ) && !m_bSelectByVertex ) {  // check bounding box, only if rectangular
+    // check bounding box, only if rectangular
+    if ( ( none == m_selectionHit ) && !m_bSelectByVertex ) {
       if ( m_rectBoundingBox[0].Contains( point ) ) {
         m_selectionHit = all;
       }
     }
-    if ( none == m_selectionHit ) { // check interior of quad
+    // check for interior of quad
+    if ( none == m_selectionHit ) {
       if ( PointInTriangle( m_polyOriginal[bl], m_polyOriginal[tl], m_polyOriginal[tr], point )
         || PointInTriangle( m_polyOriginal[bl], m_polyOriginal[tr], m_polyOriginal[br], point )
         || ( m_epsilon > PointToSegmentDistanceSquared( m_polyOriginal[bl], m_polyOriginal[tr], point ) ) // common edge of triangles
@@ -248,6 +254,7 @@ void Outline::UpdateBoundingBox( wxPoint a, wxPoint b, wxPoint c, wxRect& rect )
   rect.SetRight(  std::max<int>( a.x, std::max<int>( b.x, c.x ) ) );
   rect.SetTop(    std::min<int>( a.y, std::min<int>( b.y, c.y ) ) );
   rect.SetBottom( std::max<int>( a.y, std::max<int>( b.y, c.y ) ) );
+  rect.Inflate( wxCoord( bounding ) );
 }
 
 

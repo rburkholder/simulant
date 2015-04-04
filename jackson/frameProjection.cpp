@@ -65,6 +65,7 @@ void FrameProjection::HandleMouseLeftDown( wxMouseEvent& event ) {
 }
 
 void FrameProjection::HandleMouseLeftUp( wxMouseEvent& event ) {
+  this->Refresh();
   m_bMouseDown = false;
   event.Skip();
 }
