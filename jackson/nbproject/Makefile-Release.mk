@@ -41,6 +41,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/DndDropTarget.o \
 	${OBJECTDIR}/DndSourceButton.o \
 	${OBJECTDIR}/DndTargetButton.o \
+	${OBJECTDIR}/Outlining.o \
 	${OBJECTDIR}/appProjection.o \
 	${OBJECTDIR}/canvasOpenGL.o \
 	${OBJECTDIR}/eventImage.o \
@@ -105,6 +106,11 @@ ${OBJECTDIR}/DndTargetButton.o: DndTargetButton.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/DndTargetButton.o DndTargetButton.cpp
+
+${OBJECTDIR}/Outlining.o: Outlining.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Outlining.o Outlining.cpp
 
 ${OBJECTDIR}/appProjection.o: appProjection.cpp 
 	${MKDIR} -p ${OBJECTDIR}

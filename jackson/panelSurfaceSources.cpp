@@ -45,6 +45,7 @@ void panelSurfaceSources::Init() {
 
   m_btnPoly4Side = NULL;
   m_btnDisplay = NULL;
+  m_btnEditMode = NULL;
 
 }
 
@@ -78,6 +79,13 @@ void panelSurfaceSources::CreateControls() {
 
   wxButton* itemButton9 = new wxButton( itemPanel1, ID_BUTTON3, _("Button"), wxDefaultPosition, wxDefaultSize, 0 );
   itemBoxSizer7->Add(itemButton9, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
+
+  wxBoxSizer* itemBoxSizer10 = new wxBoxSizer(wxVERTICAL);
+  itemBoxSizer2->Add(itemBoxSizer10, 0, wxGROW|wxALL, 0);
+  
+  m_btnEditMode = new wxToggleButton( itemPanel1, ID_BTN_EDITMODE, _("Edit Mode"), wxDefaultPosition, wxDefaultSize, 0 );
+  itemBoxSizer10->Add(m_btnEditMode, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
+
 
 }
 

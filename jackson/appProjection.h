@@ -44,6 +44,8 @@ private:
   
   wxImage m_image;
   
+  bool m_bInEditMode;
+  
   //boost::thread m_thrdWorkers;
   boost::thread_group m_threadsWorkers;
   boost::asio::io_service m_Srvc;
@@ -54,6 +56,8 @@ private:
   virtual bool OnInit( );
   virtual void OnClose( wxCloseEvent& event );
   virtual int OnExit( void );
+  
+  void HandleToggleEditMode( wxCommandEvent& event );
 
   void LoadPicture( void );
   void LoadVideo( void );

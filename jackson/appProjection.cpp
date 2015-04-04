@@ -128,6 +128,9 @@ bool AppProjection::OnInit( ) {
   //wxApp::Bind( wxEVT_LEAVE_WINDOW, &AppProjection::HandleLeaveWindow, this );  // window specific
   //wxApp::Bind( wxEVT_SIZE, &AppProjection::HandleMouseMoved, this );  // window specific
   
+  tools->Bind( wxEVT_TOGGLEBUTTON, &AppProjection::HandleToggleEditMode, this );
+  m_bInEditMode = false;
+  
   return true;
 }
 
@@ -152,6 +155,10 @@ int AppProjection::OnExit( void ) {
   // stuff to do on program exit
   std::cout << "OnExit" << std::endl;
   return 0;
+}
+
+void AppProjection::HandleToggleEditMode( wxCommandEvent& event ) {
+  
 }
 
 void AppProjection::Workers( void ) {

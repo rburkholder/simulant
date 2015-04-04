@@ -10,6 +10,7 @@
 
 #include <wx/wx.h>
 #include <wx/panel.h>
+#include <wx/tglbtn.h>
 
 #define SYMBOL_PANELSURFACESOURCES_STYLE wxTAB_TRAVERSAL
 #define SYMBOL_PANELSURFACESOURCES_TITLE _("sources")
@@ -60,6 +61,7 @@ public:
 ////@begin panelSurfaceSources member variables
   wxButton* m_btnPoly4Side;
   wxButton* m_btnDisplay;
+  wxToggleButton* m_btnEditMode;
   
   /// Control identifiers
   enum {
@@ -71,7 +73,8 @@ public:
     ID_BTN_DISPLAY,
     ID_BUTTON3,
     ID_BTN_DNDTARGET,
-    ID_BTN_DNDSOURCE
+    ID_BTN_DNDSOURCE, 
+    ID_BTN_EDITMODE
   };
   
 };
