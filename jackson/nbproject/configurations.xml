@@ -81,6 +81,7 @@
           <standard>8</standard>
           <commandLine>`/usr/local/bin/wx-config --cxxflags`</commandLine>
           <preprocessorList>
+            <Elem>BOOST_FILESYSTEM_NO_DEPRECATED</Elem>
             <Elem>_DEBUG</Elem>
             <Elem>wxUSE_GUI</Elem>
           </preprocessorList>

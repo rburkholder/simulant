@@ -10,24 +10,12 @@
 #include <boost/chrono/chrono_io.hpp>
 
 #include <wx/wx.h>
-
 #include <wx/display.h>
 #include <wx/bitmap.h>
 #include <wx/rawbmp.h>
-
 #include <wx/sizer.h>
-//#include <wx/glcanvas.h>
 
 #include <wx/filedlg.h>
-
-// include OpenGL
-//#ifdef __WXMAC__
-//#include "OpenGL/glu.h"
-//#include "OpenGL/gl.h"
-//#else
-//#include <GL/glu.h>
-//#include <GL/gl.h>
-//#endif
 
 extern "C" {
 #include <libswscale/swscale.h>
@@ -60,12 +48,6 @@ bool AppProjection::OnInit( ) {
   m_pFrameMain = new FrameMain( (wxFrame *)NULL, -1, wxT( "Projection Demo" ), wxPoint( 2000, 150 ), wxSize( 400, 200 ) );
   m_pFrameMain->Bind( wxEVT_CLOSE_WINDOW, &AppProjection::OnClose, this );  // start close of windows and controls
 
-
-//  int args[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
-
-  //glPane = new BasicGLPane( (wxFrame*)frame, args );
-  //sizer->Add( glPane, 1, wxEXPAND );
-  
   unsigned int nDisplays = wxDisplay::GetCount();
   std::cout << "#connected displays: " << nDisplays << std::endl;
   
@@ -122,6 +104,7 @@ bool AppProjection::OnInit( ) {
 //  m_pTut1->SetSize( 400, 400 );
 //  m_pTut1->Move( 100, 100 );
   
+  // templates for windows requiring them
 //  wxApp::Bind( EVENT_IMAGE, &AppProjection::HandleEventImage, this );
 //  wxApp::Bind( wxEVT_MOTION, &AppProjection::HandleMouseMoved, this );
 //  wxApp::Bind( wxEVT_MOUSEWHEEL, &AppProjection::HandleMouseWheel, this );
@@ -337,7 +320,6 @@ void AppProjection::HandleFrameTransform( AVFrame* pRgb, uint8_t* buf, void* use
   av_free( pRgb );  
   
 }
- 
 
 void AppProjection::HandleEventImage( EventImage& event ) {
 

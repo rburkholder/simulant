@@ -9,12 +9,14 @@
 #define	CANVASBASE_H
 
 #include <string>
+#include <vector>
 
 #include <boost/shared_ptr.hpp>
 
 #include <wx/wx.h>
-
 #include <wx/glcanvas.h>
+
+#define GL_GLEXT_PROTOTYPES
 
 #ifdef __WXMAC__
 #include "OpenGL/glu.h"
@@ -22,6 +24,7 @@
 #else
 #include <GL/glu.h>
 #include <GL/gl.h>
+#include <GL/glext.h>
 #endif
 
 #include <glm/glm.hpp>
@@ -37,24 +40,35 @@ public:
   
   typedef boost::shared_ptr<CanvasBase> pCanvas_t;
   
-//  CanvasBase( void ) 
   CanvasBase(  wxFrame* parent, int* args  )
   : wxGLCanvas( parent, wxID_ANY, args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE )
   {
-//    vtxCoordsScreenFrame[ 0 ] = glm::vec2( 0.0f, 0.0f ); // default to full ScreenFrame
-//    vtxCoordsScreenFrame[ 1 ] = glm::vec2( 0.0f, 1.0f );
-//    vtxCoordsScreenFrame[ 2 ] = glm::vec2( 1.0f, 1.0f );
-//    vtxCoordsScreenFrame[ 3 ] = glm::vec2( 1.0f, 0.0f );
   };
   virtual ~CanvasBase( void ) {};
   
   void SetName( const std::string& sName ) { m_sName = sName; }
   const std::string GetName( void ) { return m_sName; }
   
+  // GL_VERTEX_SHADER, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER
+  void AddShader( GLenum eShaderType, const std::string& strShaderCode );
+  void LoadShader( GLenum eShaderType, const std::string& strShaderFileName );
+  void InitializeProgram();
+  
 protected:
+  
+  typedef std::vector<GLuint> vShader_t;
+  
+  vShader_t m_vShader;
+  
+  GLuint m_program;
+  
 private:
+  
   std::string m_sName;
-//  glm::vec2 vtxCoordsScreenFrame[ 4 ]; // will be remapped/scaled/translated to suitable screen coords
+  
+  GLuint CreateShader( GLenum eShaderType, const std::string& strShaderCode );
+  GLuint CreateProgram( const vShader_t& shaderList);
+  
 };
 
 #endif	/* CANVASBASE_H */

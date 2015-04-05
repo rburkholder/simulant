@@ -16,28 +16,16 @@ public:
   tut1( wxFrame* parent, int* args ): canvasOpenGL<tut1>( parent, args ) {};
   virtual ~tut1() {};
   
-  void OnPaintInit() {
-    init();
-  }
-  void OnPaint() {
-    display();
-  }
-  void OnResize( int w, int h ) {
-    reshape( w, h );
-  }
+  void OnResize( int w, int h );
+  void OnPaintInit();
+  void OnPaint();
+  
 protected:
-  GLuint CreateShader(GLenum eShaderType, const std::string &strShaderFile);
-  GLuint CreateProgram(const std::vector<GLuint> &shaderList);
-  void InitializeProgram();
   void InitializeVertexBuffer();
 private:
-  GLuint m_program;
+  
   GLuint boPosition;
   GLuint m_vao;
-
-  void display();
-  void init();
-  void reshape (int w, int h);
 
 };
 
