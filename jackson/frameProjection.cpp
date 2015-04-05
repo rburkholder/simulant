@@ -40,6 +40,9 @@ void FrameProjection::Init() {
   wxFrame::Bind( wxEVT_MOTION, &FrameProjection::HandleMouseMoved, this );
   wxFrame::Bind( wxEVT_LEFT_DOWN, &FrameProjection::HandleMouseLeftDown, this );
   wxFrame::Bind( wxEVT_LEFT_UP, &FrameProjection::HandleMouseLeftUp, this );
+  //wxFrame::Bind( wxEVT_CHAR, &FrameProjection::HandleKey, this ); // doesn't work here, needs some sort of object attached
+  wxFrame::Bind( wxEVT_KEY_DOWN, &FrameProjection::HandleKey, this ); 
+  //wxFrame::Bind( wxEVT_KEY_UP, &FrameProjection::HandleKey, this );
 }
 
 void FrameProjection::CreateControls( void ) {
@@ -49,6 +52,11 @@ void FrameProjection::CreateControls( void ) {
    
 //    Bind( wxEVT_COMMAND_MENU_SELECTED, &FrameMain::OnMenuExitClick, this, ID_MENUEXIT );
 //    Bind( wxEVT_CLOSE_WINDOW, &FrameMain::OnClose, this );
+}
+
+void FrameProjection::HandleKey( wxKeyEvent& event ) {
+  //if ( event.GetKeyCode() = )
+  std::cout << event.GetKeyCode() << std::endl;
 }
 
 void FrameProjection::HandleMouseMoved( wxMouseEvent& event ) {
@@ -65,8 +73,9 @@ void FrameProjection::HandleMouseLeftDown( wxMouseEvent& event ) {
 }
 
 void FrameProjection::HandleMouseLeftUp( wxMouseEvent& event ) {
-  this->Refresh();
   m_bMouseDown = false;
+  this->SetCursor( *wxSTANDARD_CURSOR );
+  this->Refresh();
   event.Skip();
 }
 

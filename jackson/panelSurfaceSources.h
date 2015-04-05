@@ -62,6 +62,7 @@ public:
   wxButton* m_btnPoly4Side;
   wxButton* m_btnDisplay;
   wxToggleButton* m_btnEditMode;
+  wxButton* m_btnUndo;
   
   /// Control identifiers
   enum {
@@ -74,7 +75,8 @@ public:
     ID_BUTTON3,
     ID_BTN_DNDTARGET,
     ID_BTN_DNDSOURCE, 
-    ID_BTN_EDITMODE
+    ID_BTN_EDITMODE, 
+    ID_BTN_UNDO
   };
   
 };

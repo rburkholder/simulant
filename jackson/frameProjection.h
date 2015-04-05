@@ -62,6 +62,7 @@ private:
   void HandleMouseMoved( wxMouseEvent& event );
   void HandleMouseLeftDown( wxMouseEvent& event );
   void HandleMouseLeftUp( wxMouseEvent& event );
+  void HandleKey( wxKeyEvent& event );
   
   void Render( wxDC& dc ); // actual DC independent render
     

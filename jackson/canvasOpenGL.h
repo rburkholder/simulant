@@ -30,12 +30,12 @@ private:
   bool m_bFirstTime;
   wxGLContext*	m_context;
   
-  void OnPaint() {};
-  void OnPaintInit() {};
-  void OnResize( int w, int h ) {};
+  void OnPaint() {};  // empty placeholder for crtp
+  void OnPaintInit() {};  // empty placeholder for crtp
+  void OnResize( int w, int h ) {};  // empty placeholder for crtp
   
-  void Resized( wxSizeEvent& evt );
-  void Render( wxPaintEvent& evt );
+  void Resized( wxSizeEvent& event );
+  void Render( wxPaintEvent& event );
 };
 
 template <typename CRTP>
@@ -58,9 +58,7 @@ canvasOpenGL<CRTP>::~canvasOpenGL( ) {
 }
 
 template <typename CRTP>
-void canvasOpenGL<CRTP>::Render( wxPaintEvent& evt ) {
-  
-  //std::cout << "render" << std::endl;
+void canvasOpenGL<CRTP>::Render( wxPaintEvent& event ) {
   
   if (!IsShown( )) return;
 
@@ -103,11 +101,11 @@ void canvasOpenGL<CRTP>::Render( wxPaintEvent& evt ) {
 }
 
 template <typename CRTP>
-void canvasOpenGL<CRTP>::Resized( wxSizeEvent& evt ) {
+void canvasOpenGL<CRTP>::Resized( wxSizeEvent& event ) {
   //	wxGLCanvas::OnSize(evt);
   
   if ( &canvasOpenGL<CRTP>::OnResize != &CRTP::OnResize ) {
-    static_cast<CRTP*>( this )->OnResize( evt.GetSize().GetWidth(), evt.GetSize().GetWidth() );
+    static_cast<CRTP*>( this )->OnResize( event.GetSize().GetWidth(), event.GetSize().GetHeight() );
   }
   
   Refresh( );

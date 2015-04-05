@@ -63,19 +63,10 @@ private:
   wxPoint m_pointMouseDown; // origin at mouse down event
   wxPoint m_pointMousePrevious;  
   wxRect m_rectBoundingBox[ 2 ]; // bounding box for each triangle, solves point to line problem when not within endpoints
-  wxCursor m_cursorOriginal;  
+  //wxCursor m_cursorOriginal;  
 
   bool HitTest( wxPoint );
 
-  void SetTopLeft( wxPoint );
-  void SetTopRight( wxPoint );
-  void SetBottomLeft( wxPoint );
-  void SetBottomRight( wxPoint );
-  void OffsetTop( wxPoint ); // stores a delta
-  void OffsetRight( wxPoint ); // stores a delta
-  void OffsetBottom( wxPoint ); // stores a delta
-  void OffsetLeft( wxPoint ); // stores a delta
-  
   void UpdateBoundingBoxes( void );
   void UpdateBoundingBox( wxPoint a, wxPoint b, wxPoint c, wxRect& rect );
   double PointToSegmentDistanceSquared( wxPoint point1, wxPoint point2, wxPoint point );

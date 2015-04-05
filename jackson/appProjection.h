@@ -19,7 +19,8 @@
 //#include "frameProjection.h"
 #include "eventImage.h"
 
-#include "structures.h"
+//#include "structures.h"
+#include "ScreenFrame.h"
 
 #include "tut1.h"
 #include "tex2.h"
@@ -32,6 +33,8 @@ protected:
 private:
   
   //typedef std::vector<FrameProjection*> vFrameProjection_t;
+  typedef ScreenFrame::pScreenFrame_t pScreenFrame_t;
+  typedef std::vector<pScreenFrame_t> vScreenFrame_t;
   
   FrameMain *m_pFrameMain;
   //BasicGLPane * glPane;
@@ -59,6 +62,7 @@ private:
   virtual int OnExit( void );
   
   void HandleToggleEditMode( wxCommandEvent& event );
+  void HandleUndo( wxCommandEvent& event );
 
   void LoadPicture( void );
   void LoadVideo( void );
@@ -83,5 +87,5 @@ private:
 //  void HandleMouseLeaveWindow( wxMouseEvent& event ) { event.Skip(); } // EVT_LEAVE_WINDOW
   void HandleKeyDown( wxKeyEvent& event ) { event.Skip(); } // EVT_KEY_DOWN
   void HandleKeyUp( wxKeyEvent& event ) { event.Skip(); }  // EVT_KEY_UP
-  
+  void HandleKey( wxKeyEvent& event );
 };

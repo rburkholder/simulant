@@ -7,6 +7,8 @@
 
 // todo:  setup vertex lists for triangles, will allow generalized polygon hit test
 // todo:  use doubles for a bunch of stuff?
+// todo:  provide multi-level undo
+// todo:  use control key to constrain x or y
 
 #include <algorithm>
 
@@ -20,7 +22,7 @@
 Outline::Outline( const wxRect& rect, bool bSelectByEdge, bool bSelectByVertex )
 : m_bUndoPrevious( false ), m_bMouseDown( false ), m_bClean( true ),
   m_selectionHit( none ), m_stateMouse( unknown ),
-  m_epsilon( 0.01 ),
+  m_epsilon( 0.1 ),
   m_bSelectByEdge( bSelectByEdge ), m_bSelectByVertex( bSelectByVertex ),
   m_penWhite( wxColor( 255, 255,255 ), 1, wxPENSTYLE_SOLID ),  // white
   m_penBlack( wxColor( 0, 0, 0 ), 1, wxPENSTYLE_SOLID ),  // white
@@ -43,8 +45,7 @@ Outline::~Outline( void ) {
 
 wxCursor Outline::TrackMouse( wxPoint point, bool bDown, wxDC& dc ) {
   
-  wxCursor cursor( wxNullCursor );
-
+  wxCursor cursor( *wxSTANDARD_CURSOR );
 
   switch ( m_stateMouse ) {
     case unknown:
@@ -68,26 +69,26 @@ wxCursor Outline::TrackMouse( wxPoint point, bool bDown, wxDC& dc ) {
             case tl:
             case br:
               cursor = wxCursor( wxCURSOR_SIZENWSE );
-              std::cout << "tl, br" << std::endl;
+              //std::cout << "tl, br" << std::endl;
               break;
             case bl:
             case tr:
               cursor = wxCursor( wxCURSOR_SIZENESW );
-              std::cout << "bl tr" << std::endl;
+              //std::cout << "bl tr" << std::endl;
               break;
             case top:
             case bottom:
               cursor = wxCursor( wxCURSOR_SIZENS );
-              std::cout << "top, bottom" << std::endl;
+              //std::cout << "top, bottom" << std::endl;
               break;
             case left:
             case right:
               cursor = wxCursor( wxCURSOR_SIZEWE );
-              std::cout << "left right" << std::endl;
+              //std::cout << "left right" << std::endl;
               break;
             case all:
               cursor = wxCursor( wxCURSOR_SIZING );
-              std::cout << "all" << std::endl;
+              //std::cout << "all" << std::endl;
               break;
             case none:
               break;
@@ -262,26 +263,6 @@ void Outline::UpdateBoundingBoxes( void ) {
   // optimization: if bSelectByVertex is false, then this does not need to be called
   UpdateBoundingBox( m_polyOriginal[bl], m_polyOriginal[tl], m_polyOriginal[tr], m_rectBoundingBox[ 0 ] );
   UpdateBoundingBox( m_polyOriginal[bl], m_polyOriginal[tr], m_polyOriginal[br], m_rectBoundingBox[ 1 ] );
-}
-
-void Outline::SetTopLeft( wxPoint point ) {
-  m_polyNew[tl] = point;
-  m_bUndoPrevious = true;
-}
-
-void Outline::SetTopRight( wxPoint point ) {
-  m_polyNew[tr] = point;
-  m_bUndoPrevious = true;
-}
-
-void Outline::SetBottomLeft( wxPoint point ) {
-  m_polyNew[bl] = point;
-  m_bUndoPrevious = true;
-}
-
-void Outline::SetBottomRight( wxPoint point ) {
-  m_polyNew[br] = point;
-  m_bUndoPrevious = true;
 }
 
 // http://totologic.blogspot.fr/2014/01/accurate-point-in-triangle-test.html

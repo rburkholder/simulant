@@ -113,10 +113,10 @@ bool AppProjection::OnInit( ) {
   
   // WX_GL_CORE_PROFILE limits to older 3.x version
 //  int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_CORE_PROFILE, WX_GL_DEPTH_SIZE, 16, 0 };
-  int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
-  m_pTut1 = new tut1( m_vScreenFrame[1]->GetFrame(), argsCanvas );
-  m_pTut1->SetSize( 400, 400 );
-  m_pTut1->Move( 100, 100 );
+//  int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
+//  m_pTut1 = new tut1( m_vScreenFrame[1]->GetFrame(), argsCanvas );
+//  m_pTut1->SetSize( 400, 400 );
+//  m_pTut1->Move( 100, 100 );
   
 //  wxApp::Bind( EVENT_IMAGE, &AppProjection::HandleEventImage, this );
 //  wxApp::Bind( wxEVT_MOTION, &AppProjection::HandleMouseMoved, this );
@@ -124,16 +124,26 @@ bool AppProjection::OnInit( ) {
 //  wxApp::Bind( wxEVT_LEFT_DOWN, &AppProjection::HandleMouseLeftDown, this );
 //  wxApp::Bind( wxEVT_LEFT_UP, &AppProjection::HandleMouseLeftUp, this );
 //  wxApp::Bind( wxEVT_RIGHT_DOWN, &AppProjection::HandleMouseRightDown, this );
-//  wxApp::Bind( wxEVT_KEY_DOWN, &AppProjection::HandleKeyDown, this );
-//  wxApp::Bind( wxEVT_KEY_UP, &AppProjection::HandleKeyUp, this );
+  //wxApp::Bind( wxEVT_KEY_DOWN, &AppProjection::HandleKey, this );
+  //wxApp::Bind( wxEVT_KEY_UP, &AppProjection::HandleKey, this );
+  //wxApp::Bind( wxEVT_CHAR, &AppProjection::HandleKey, this ); 
+  //wxApp::Bind( wxEVT_CHAR_HOOK, &AppProjection::HandleKey, this ); 
   //wxApp::Bind( wxEVT_ENTER_WINDOW, &AppProjection::HandleEnterWindow, this );  // window specific, not in app
   //wxApp::Bind( wxEVT_LEAVE_WINDOW, &AppProjection::HandleLeaveWindow, this );  // window specific, not in app
   //wxApp::Bind( wxEVT_SIZE, &AppProjection::HandleMouseMoved, this );  // window specific, not in app
   
   m_pSurfaceSources->Bind( wxEVT_TOGGLEBUTTON, &AppProjection::HandleToggleEditMode, this, panelSurfaceSources::ID_BTN_EDITMODE );
+  m_pSurfaceSources->Bind( wxEVT_BUTTON, &AppProjection::HandleUndo, this, panelSurfaceSources::ID_BTN_UNDO );
   m_bInEditMode = false;
   
   return true;
+}
+
+// http://docs.wxwidgets.org/trunk/classwx_key_event.html
+void AppProjection::HandleKey( wxKeyEvent& event ) {
+  //if ( event.GetKeyCode() = )
+  std::cout << event.GetKeyCode() << std::endl;
+  event.Skip();
 }
 
 void AppProjection::OnClose( wxCloseEvent& event ) {
@@ -157,6 +167,10 @@ int AppProjection::OnExit( void ) {
   // stuff to do on program exit
   std::cout << "OnExit" << std::endl;
   return 0;
+}
+
+void AppProjection::HandleUndo( wxCommandEvent& event ) {
+  event.Skip();
 }
 
 void AppProjection::CreateCanvas( void ) {

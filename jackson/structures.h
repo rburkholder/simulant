@@ -16,13 +16,9 @@
 #include <string>
 #include <vector>
 
-#include <boost/shared_ptr.hpp>
-
 #include <wx/display.h>
 
 #include <glm/glm.hpp>
-
-#include "frameProjection.h"
 
 class TextureBase {
   // maybe one or more textures per model
@@ -72,12 +68,16 @@ private:
   glm::vec3 vtxCoords[ 4 ]; // will be transformed to match projection surface on the wall
 };
 
-class Canvas {  // basically the opengl viewport via the projector
+class Canvas {  
+  // basically the opengl viewport via the projector
   // rough rectangular area of an opengl canvas surface in the VisualRepresentation
   // in screen coords now, but should be relative coords so can use any screen area
   // and thus auto adjusts resolution based upon screen area available
   // ie, dual use:  the real projection, preview projections on controller
 public:
+  
+  typedef boost::shared_ptr<Canvas> pCanvas_t;
+  
   Canvas( void ) {
     vtxCoords[ 0 ] = glm::vec2( 0.0f, 0.0f ); // default to full ScreenFrame
     vtxCoords[ 1 ] = glm::vec2( 0.0f, 1.0f );
@@ -89,49 +89,6 @@ private:
   std::string m_sDescription;
   glm::vec2 vtxCoords[ 4 ]; // will be remapped/scaled/translated to suitable screen coords
 };
-
-class ScreenFrame {  // maybe subset of multi-monitor setup, or an individual remote monitor
-  // maps to the pixels emitted by a single projector
-  // remote controller may be used to populate the resolution here
-  // will need to add remote machine information here to represent remote displays
-public:
-  ScreenFrame( unsigned int nDisplay, wxWindow* parent ): 
-      ScreenFrame( nDisplay, parent, wxPoint( 0, 0 ), wxSize( 100, 200 ) ) {
-  }
-  ScreenFrame( unsigned int nDisplay, wxWindow* parent, wxPoint point_, wxSize size_ ): 
-    display( nDisplay ), point( point_ ), size( size_ ) 
-  {
-    // for debugging purposes
-    wxVideoMode vmDisplay = display.GetCurrentMode();
-    wxRect rectGeometry = display.GetGeometry();
-    wxArrayVideoModes modes = display.GetModes();
-    wxString sName = display.GetName();
-    bool bPrimary = display.IsPrimary();
-    
-    // do the frame for projection display
-    pFrame = new FrameProjection( parent, -1, "", wxPoint( 10, 10 ), wxSize( 10, 10 ) );  // use default point and size to for redraw to bypass bug
-    pFrame->SetSize( size );
-    pFrame->Move( point );
-    pFrame->Show();
-  }
-  ScreenFrame( void ): display( 0 ), point( 0, 0 ), size( 100, 200 ) {
-  }
-  FrameProjection* GetFrame( void ) { return pFrame; }
-protected:
-private:
-  
-  typedef std::vector<Canvas> vCanvas_t;
-  
-  std::string m_sDescription;
-  wxDisplay display;  // non copyable
-  wxPoint point;     // location in client area, bug work around in gtk3, chooses different location on primary display
-  wxSize size;  // use default, but may override
-  FrameProjection* pFrame;  // windowing system takes care of destruction
-  vCanvas_t vCanvas;  
-};
-
-typedef boost::shared_ptr<ScreenFrame> pScreenFrame_t;
-typedef std::vector<pScreenFrame_t> vScreenFrame_t;
 
 
 

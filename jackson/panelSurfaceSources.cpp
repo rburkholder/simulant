@@ -46,6 +46,7 @@ void panelSurfaceSources::Init() {
   m_btnPoly4Side = NULL;
   m_btnDisplay = NULL;
   m_btnEditMode = NULL;
+  m_btnUndo = NULL;
 
 }
 
@@ -85,6 +86,9 @@ void panelSurfaceSources::CreateControls() {
   
   m_btnEditMode = new wxToggleButton( itemPanel1, ID_BTN_EDITMODE, _("Editing Off"), wxDefaultPosition, wxDefaultSize, 0 );
   itemBoxSizer10->Add(m_btnEditMode, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
+
+  m_btnUndo = new wxButton( itemPanel1, ID_BTN_UNDO, _("Undo"), wxDefaultPosition, wxDefaultSize, 0 );
+  itemBoxSizer10->Add(m_btnUndo, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
 
 
 }
