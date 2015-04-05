@@ -16,8 +16,6 @@
 #include <string>
 #include <vector>
 
-#include <wx/display.h>
-
 #include <glm/glm.hpp>
 
 class TextureBase {
@@ -66,28 +64,6 @@ public:
 protected:
 private:
   glm::vec3 vtxCoords[ 4 ]; // will be transformed to match projection surface on the wall
-};
-
-class Canvas {  
-  // basically the opengl viewport via the projector
-  // rough rectangular area of an opengl canvas surface in the VisualRepresentation
-  // in screen coords now, but should be relative coords so can use any screen area
-  // and thus auto adjusts resolution based upon screen area available
-  // ie, dual use:  the real projection, preview projections on controller
-public:
-  
-  typedef boost::shared_ptr<Canvas> pCanvas_t;
-  
-  Canvas( void ) {
-    vtxCoords[ 0 ] = glm::vec2( 0.0f, 0.0f ); // default to full ScreenFrame
-    vtxCoords[ 1 ] = glm::vec2( 0.0f, 1.0f );
-    vtxCoords[ 2 ] = glm::vec2( 1.0f, 1.0f );
-    vtxCoords[ 3 ] = glm::vec2( 1.0f, 0.0f );
-  }
-protected:
-private:
-  std::string m_sDescription;
-  glm::vec2 vtxCoords[ 4 ]; // will be remapped/scaled/translated to suitable screen coords
 };
 
 

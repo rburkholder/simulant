@@ -43,6 +43,20 @@ Outline::Outline( const wxRect& rect, bool bSelectByEdge, bool bSelectByVertex )
 Outline::~Outline( void ) {
 }
 
+void Outline::GetCoords( std::vector<wxPoint>& vPoints ) {
+  vPoints.clear();
+  BOOST_FOREACH( Selection ix, m_setCorners ) {
+    vPoints.push_back( m_polyOriginal[ix] );
+  }  
+}
+
+wxRect Outline::GetBoundingBox( void ) {
+  wxRect rect1;
+  wxRect rect2;
+  GetBoundingBoxes( rect1, rect2 );
+  return rect1.Union( rect2 );
+}
+
 wxCursor Outline::TrackMouse( wxPoint point, bool bDown, wxDC& dc ) {
   
   wxCursor cursor( *wxSTANDARD_CURSOR );
@@ -250,19 +264,23 @@ bool Outline::HitTest( wxPoint point ) {
   return ( none != m_selectionHit );
 }
 
-void Outline::UpdateBoundingBox( wxPoint a, wxPoint b, wxPoint c, wxRect& rect ) {
+void Outline::GetBoundingBox( wxPoint a, wxPoint b, wxPoint c, wxRect& rect ) {
   rect.SetLeft(   std::min<int>( a.x, std::min<int>( b.x, c.x ) ) );
   rect.SetRight(  std::max<int>( a.x, std::max<int>( b.x, c.x ) ) );
   rect.SetTop(    std::min<int>( a.y, std::min<int>( b.y, c.y ) ) );
   rect.SetBottom( std::max<int>( a.y, std::max<int>( b.y, c.y ) ) );
-  rect.Inflate( wxCoord( bounding ) );
 }
 
+void Outline::GetBoundingBoxes( wxRect& box1, wxRect& box2 ) {
+  GetBoundingBox( m_polyOriginal[bl], m_polyOriginal[tl], m_polyOriginal[tr], box1 );
+  GetBoundingBox( m_polyOriginal[bl], m_polyOriginal[tr], m_polyOriginal[br], box2 );
+}
 
 void Outline::UpdateBoundingBoxes( void ) {
   // optimization: if bSelectByVertex is false, then this does not need to be called
-  UpdateBoundingBox( m_polyOriginal[bl], m_polyOriginal[tl], m_polyOriginal[tr], m_rectBoundingBox[ 0 ] );
-  UpdateBoundingBox( m_polyOriginal[bl], m_polyOriginal[tr], m_polyOriginal[br], m_rectBoundingBox[ 1 ] );
+  GetBoundingBoxes( m_rectBoundingBox[ 0 ], m_rectBoundingBox[ 1 ] );
+  m_rectBoundingBox[ 0 ].Inflate( wxCoord( bounding ) );
+  m_rectBoundingBox[ 1 ].Inflate( wxCoord( bounding ) );
 }
 
 // http://totologic.blogspot.fr/2014/01/accurate-point-in-triangle-test.html

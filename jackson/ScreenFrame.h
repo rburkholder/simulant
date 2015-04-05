@@ -10,9 +10,13 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include "frameProjection.h"
+#include <wx/wx.h>
+#include <wx/display.h>
 
-#include "structures.h"
+#include "frameProjection.h"
+#include "CanvasBase.h"
+
+//#include "structures.h"
 
 class ScreenFrame {  
   // maybe subset of multi-monitor setup, or an individual remote monitor
@@ -23,7 +27,7 @@ class ScreenFrame {
   //   and then transmit to remote monitor
 public:
   
-  typedef Canvas::pCanvas_t pCanvas_t;
+  typedef CanvasBase::pCanvas_t pCanvas_t;
   
   typedef boost::shared_ptr<ScreenFrame> pScreenFrame_t;
   //typedef std::vector<pScreenFrame_t> vScreenFrame_t;
@@ -52,7 +56,7 @@ private:
   wxPoint point;     // location in client area, bug work around in gtk3, chooses different location on primary display
   wxSize size;  // use default, but may override
   FrameProjection* pFrame;  // windowing system takes care of destruction
-  vCanvas_t vCanvas;  
+  //vCanvas_t vCanvas;  
 };
 
 

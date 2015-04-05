@@ -8,6 +8,8 @@
 #ifndef FRAMEPROJECTION_H
 #define	FRAMEPROJECTION_H
 
+#include <boost/shared_ptr.hpp>
+
 #include <wx/wx.h>
 #include <wx/frame.h>
 
@@ -21,6 +23,8 @@
 
 class FrameProjection: public wxFrame {
 public:
+  
+  typedef boost::shared_ptr<Outline> pOutline_t;
   
   FrameProjection(void);
   FrameProjection( 
@@ -41,8 +45,8 @@ public:
 
   virtual ~FrameProjection( );
   
-  void SetOutline( Outline* pOutline ) { m_pOutline = pOutline; };
-  Outline* GetOutline( void ) { return m_pOutline; };
+  void SetOutline( pOutline_t pOutline ) { m_pOutline = pOutline; };
+  pOutline_t GetOutline( void ) { return m_pOutline; };
   
 protected:
 private:
@@ -51,7 +55,7 @@ private:
   };
   
   bool m_bMouseDown;
-  Outline* m_pOutline;  // need to turn into shared ptr
+  pOutline_t m_pOutline;  // need to turn into shared ptr
   
   void Init();
   void CreateControls();

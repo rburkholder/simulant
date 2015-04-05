@@ -35,6 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/CanvasBase.o \
 	${OBJECTDIR}/Cue.o \
 	${OBJECTDIR}/CueList.o \
 	${OBJECTDIR}/DecodeH264.o \
@@ -77,6 +78,11 @@ LDLIBSOPTIONS=-lavdevice -lavcodec -lavresample -lavfilter -lavformat -lavutil -
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/jackson: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/jackson ${OBJECTFILES} ${LDLIBSOPTIONS} `/usr/local/bin/wx-config --libs`
+
+${OBJECTDIR}/CanvasBase.o: CanvasBase.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/CanvasBase.o CanvasBase.cpp
 
 ${OBJECTDIR}/Cue.o: Cue.cpp 
 	${MKDIR} -p ${OBJECTDIR}

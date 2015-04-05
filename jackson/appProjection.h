@@ -11,6 +11,7 @@
 
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include <wx/wx.h>
 #include <wx/image.h>
@@ -47,6 +48,8 @@ private:
   wxString m_sVideoDirectory;
   
   wxImage m_image;
+  
+  boost::shared_ptr<Outline> m_pOutline;
   
   bool m_bInEditMode;
   

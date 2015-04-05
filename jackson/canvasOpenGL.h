@@ -7,20 +7,12 @@
 
 #pragma once
 
-#include <wx/wx.h>
-#include <wx/glcanvas.h>
+#include "CanvasBase.h"
 
-#ifdef __WXMAC__
-#include "OpenGL/glu.h"
-#include "OpenGL/gl.h"
-#else
-#include <GL/glu.h>
-#include <GL/gl.h>
-#endif
-
+// ===============================
 
 template <typename CRTP>
-class canvasOpenGL: public wxGLCanvas  {
+class canvasOpenGL: public CanvasBase  {
 public:
   canvasOpenGL( wxFrame* parent, int* args );
   virtual ~canvasOpenGL( );
@@ -40,7 +32,8 @@ private:
 
 template <typename CRTP>
 canvasOpenGL<CRTP>::canvasOpenGL( wxFrame* parent, int* args )
-: wxGLCanvas( parent, wxID_ANY, args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE ),
+: CanvasBase( parent, args ), 
+//  wxGLCanvas( parent, wxID_ANY, args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE ), 
   m_bFirstTime( true ), m_context( 0 )
 {
   m_context = new wxGLContext( this );
@@ -65,6 +58,11 @@ void canvasOpenGL<CRTP>::Render( wxPaintEvent& event ) {
   wxGLCanvas::SetCurrent( *m_context );
   wxPaintDC( this ); // only to be used in paint events. use wxClientDC to paint outside the paint event
 
+  // Enable depth test
+  glEnable(GL_DEPTH_TEST);
+  // Accept fragment if it closer to the camera than the former one
+  glDepthFunc(GL_LESS);  
+  
   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
   glEnable(GL_DEBUG_OUTPUT);
   

@@ -4,6 +4,7 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>CanvasBase.h</itemPath>
       <itemPath>Cue.h</itemPath>
       <itemPath>CueList.h</itemPath>
       <itemPath>DecodeH264.h</itemPath>
@@ -33,6 +34,7 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <itemPath>CanvasBase.cpp</itemPath>
       <itemPath>Cue.cpp</itemPath>
       <itemPath>CueList.cpp</itemPath>
       <itemPath>DecodeH264.cpp</itemPath>
@@ -106,6 +108,10 @@
           <commandLine>`/usr/local/bin/wx-config --libs`</commandLine>
         </linkerTool>
       </compileType>
+      <item path="CanvasBase.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="CanvasBase.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Cue.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Cue.h" ex="false" tool="3" flavor2="0">
@@ -230,6 +236,10 @@
           <commandLine>`/usr/local/bin/wx-config --libs`</commandLine>
         </linkerTool>
       </compileType>
+      <item path="CanvasBase.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="CanvasBase.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Cue.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Cue.h" ex="false" tool="3" flavor2="0">

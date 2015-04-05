@@ -1,3 +1,13 @@
+Texture coordinates:  lower left = 0.0, upper right = 1,1
+Screen coordinates:  lower left = -1, -1, upper right = 1, 1
+
+
+    If w == 1, then the vector (x,y,z,1) is a position in space.
+    If w == 0, then the vector (x,y,z,0) is a direction.
+
+// last transform on identity is first applied to vector
+
+for game characters and other items : Scale it first if needed; then set its direction, then translate it.
 
 Vertex Shaders:
 

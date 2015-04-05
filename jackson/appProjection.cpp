@@ -16,22 +16,26 @@
 #include <wx/rawbmp.h>
 
 #include <wx/sizer.h>
-#include <wx/glcanvas.h>
+//#include <wx/glcanvas.h>
 
 #include <wx/filedlg.h>
 
 // include OpenGL
-#ifdef __WXMAC__
-#include "OpenGL/glu.h"
-#include "OpenGL/gl.h"
-#else
-#include <GL/glu.h>
-#include <GL/gl.h>
-#endif
+//#ifdef __WXMAC__
+//#include "OpenGL/glu.h"
+//#include "OpenGL/gl.h"
+//#else
+//#include <GL/glu.h>
+//#include <GL/gl.h>
+//#endif
 
 extern "C" {
 #include <libswscale/swscale.h>
 }
+
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
+
 
 #include "common.h"
 #include "DecodeH264.h"
@@ -174,7 +178,8 @@ void AppProjection::HandleUndo( wxCommandEvent& event ) {
 }
 
 void AppProjection::CreateCanvas( void ) {
-  m_vScreenFrame[0]->GetFrame()->SetOutline( new Outline( wxRect( 300, 300, 600, 600 ) ) );
+  m_pOutline.reset( new Outline( wxRect( 300, 300, 600, 600 ) ) );
+  m_vScreenFrame[0]->GetFrame()->SetOutline( m_pOutline );
   m_vScreenFrame[0]->GetFrame()->Refresh();
 }
 
@@ -225,10 +230,32 @@ void AppProjection::Image2OpenGL( void ) {
     }
     if ( 0 == m_pTex ) {
       int argsCanvas[] = { WX_GL_CORE_PROFILE, WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
-      m_pTex = new tex2( m_vScreenFrame[1]->GetFrame(), argsCanvas );
+      m_pTex = new tex2( m_vScreenFrame[0]->GetFrame(), argsCanvas );
       //m_pTex->SetSize( m_image.GetWidth(), m_image.GetHeight() );
-      m_pTex->SetSize( 300, 600 );
-      m_pTex->Move( 500, 100 );
+      wxRect rect( 500, 100, 300, 600 );
+      if ( 0 != m_pOutline.use_count() ) {
+        rect = m_pOutline->GetBoundingBox();
+      }
+      m_pTex->SetSize( rect.GetSize() );
+      m_pTex->Move( rect.GetTopLeft() );
+      if ( 0 != m_pOutline.use_count() ) {
+        Outline::vPoints_t vPoints;
+        m_pOutline->GetCoords( vPoints );
+        assert( 4 == vPoints.size() );
+        
+        // last transform on identity is first applied to vector
+        glm::mat4 mat4Transform = glm::mat4( 1.0f ); // identity matrix
+        mat4Transform *= glm::translate( glm::vec3( -1.0, +1.0 , 0.0 ) );
+        mat4Transform *= glm::scale( glm::vec3( 2.0, -2.0, 1.0f ) );  // invert image and expand to window coordinates
+        mat4Transform *= glm::scale( glm::vec3( 1.0 / rect.GetWidth(), 1.0 / rect.GetHeight(), 1.0f ) );  // invert image and expand to window coordinates
+        mat4Transform *= glm::translate( glm::vec3( -rect.GetLeft(), -rect.GetTop(), 0.0f ) );  // translate to window coordinates
+        
+        std::vector<glm::vec4> vCoords;
+        for ( size_t ix = 0; ix < vPoints.size(); ++ix ) {
+          vCoords.push_back( mat4Transform * glm::vec4( vPoints[ix].x, vPoints[ix].y, 0.0, 1.0 ) );
+        }
+        m_pTex->SetWindowCoords( vCoords );
+      }
       m_pTex->SetImage( &m_image );
     }
 

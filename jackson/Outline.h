@@ -9,6 +9,7 @@
 #define	OUTLINING_H
 
 #include <set>
+#include <vector>
 
 #include <wx/wx.h>
 
@@ -35,17 +36,28 @@
 
 class Outline {
 public:
+  
+  typedef std::vector<wxPoint> vPoints_t;
+  
   Outline( const wxRect& rect, bool bSelectByEdge = true, bool bSelectByVertex = true );  // top-left, bottom-right by default
   virtual ~Outline( void );
+  
   void Erase( wxDC& dc ); // need to know when background has been erased
   void Render( wxDC& dc ); // handle the outline
   wxCursor TrackMouse( wxPoint, bool bDown, wxDC& dc );  // deals with cursor
-  //void CancelMouse( void );
+  
+  
+  void GetCoords( vPoints_t& vPoints );
+  wxRect GetBoundingBox( void );
+  
 private:
-  enum Selection { tl = 0, tr, br, bl, count, top, right, bottom, left, all, none };
+  
+  enum Selection { bl = 0, br, tr, tl, count, top, right, bottom, left, all, none };
   enum MouseState { unknown, up, down };
+  
   static const int bounding = 2;
   const float m_epsilon;
+  
   bool m_bMouseDown;
   bool m_bUndoPrevious;
   bool m_bSelectByEdge;
@@ -63,12 +75,12 @@ private:
   wxPoint m_pointMouseDown; // origin at mouse down event
   wxPoint m_pointMousePrevious;  
   wxRect m_rectBoundingBox[ 2 ]; // bounding box for each triangle, solves point to line problem when not within endpoints
-  //wxCursor m_cursorOriginal;  
 
   bool HitTest( wxPoint );
 
-  void UpdateBoundingBoxes( void );
-  void UpdateBoundingBox( wxPoint a, wxPoint b, wxPoint c, wxRect& rect );
+  void UpdateBoundingBoxes( void ); // performs inflation
+  void GetBoundingBoxes( wxRect& box1, wxRect& box2 );  // no inflation
+  void GetBoundingBox( wxPoint a, wxPoint b, wxPoint c, wxRect& rect ); 
   double PointToSegmentDistanceSquared( wxPoint point1, wxPoint point2, wxPoint point );
   bool PointInTriangle( wxPoint a, wxPoint b, wxPoint c, wxPoint p );
 };
