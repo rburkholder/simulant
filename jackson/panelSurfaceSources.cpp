@@ -57,6 +57,12 @@ void panelSurfaceSources::CreateControls() {
   wxBoxSizer* itemBoxSizer2 = new wxBoxSizer(wxHORIZONTAL);
   itemPanel1->SetSizer(itemBoxSizer2);
 
+  wxBoxSizer* itemBoxSizerForTree = new wxBoxSizer(wxVERTICAL);
+  itemBoxSizer2->Add(itemBoxSizerForTree, 0, 0, 0);
+  
+  m_treeDisplays = new TreeDisplayManager( itemPanel1, ID_TREE_DISPLAYS, wxDefaultPosition, wxDefaultSize, wxTR_HAS_BUTTONS | wxTR_SINGLE );
+  itemBoxSizerForTree->Add( m_treeDisplays, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
+
   wxBoxSizer* itemBoxSizer3 = new wxBoxSizer(wxVERTICAL);
   itemBoxSizer2->Add(itemBoxSizer3, 0, 0, 0);
 

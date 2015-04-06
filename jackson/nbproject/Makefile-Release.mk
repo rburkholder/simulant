@@ -44,6 +44,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/DndTargetButton.o \
 	${OBJECTDIR}/Outline.o \
 	${OBJECTDIR}/ScreenFrame.o \
+	${OBJECTDIR}/TreeDisplayManager.o \
 	${OBJECTDIR}/appProjection.o \
 	${OBJECTDIR}/canvasOpenGL.o \
 	${OBJECTDIR}/eventImage.o \
@@ -123,6 +124,11 @@ ${OBJECTDIR}/ScreenFrame.o: ScreenFrame.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/ScreenFrame.o ScreenFrame.cpp
+
+${OBJECTDIR}/TreeDisplayManager.o: TreeDisplayManager.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/TreeDisplayManager.o TreeDisplayManager.cpp
 
 ${OBJECTDIR}/appProjection.o: appProjection.cpp 
 	${MKDIR} -p ${OBJECTDIR}

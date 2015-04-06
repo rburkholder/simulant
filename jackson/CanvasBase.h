@@ -40,11 +40,8 @@ public:
   
   typedef boost::shared_ptr<CanvasBase> pCanvas_t;
   
-  CanvasBase(  wxFrame* parent, int* args  )
-  : wxGLCanvas( parent, wxID_ANY, args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE )
-  {
-  };
-  virtual ~CanvasBase( void ) {};
+  CanvasBase(  wxFrame* parent, int* args  );
+  virtual ~CanvasBase( void );
   
   void SetName( const std::string& sName ) { m_sName = sName; }
   const std::string GetName( void ) { return m_sName; }
@@ -64,10 +61,12 @@ protected:
   
 private:
   
+  bool m_bProgramCreated;
+  
   std::string m_sName;
   
   GLuint CreateShader( GLenum eShaderType, const std::string& strShaderCode );
-  GLuint CreateProgram( const vShader_t& shaderList);
+  bool CreateProgram( const vShader_t& shaderList, GLuint& program );
   
 };
 

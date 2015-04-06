@@ -31,33 +31,33 @@
 // NDS Normalized Device Space: x,y: -1.0,-1.0 -> 1.0, 1.0 ; depth: 0.0 -> 1.0  pg 39
 
 // Shader sources
-const GLchar* sourceVertex = "\
-  \
-  #version 430 core \n \
-  layout(location=0) in vec2 vWindowCoords; \
-  layout(location=1) in vec2 vTextureCoords; \
-  uniform mat4 mTransform; \
-  out vec2 vUV; \
-  void main(void) { \
-    gl_Position = vec4(vWindowCoords,0,1); \
-    vUV = vTextureCoords; \
-  } \
-  ";
+//const GLchar* sourceVertex = "\
+//  \
+//  #version 430 core \n \
+//  layout(location=0) in vec2 vWindowCoords; \
+//  layout(location=1) in vec2 vTextureCoords; \
+//  uniform mat4 mTransform; \
+//  out vec2 vUV; \
+//  void main(void) { \
+//    gl_Position = vec4(vWindowCoords,0,1); \
+//    vUV = vTextureCoords; \
+//  } \
+//  ";
 //    gl_Position = vec4(vVertex*2.0-1,0,1); \
 //    gl_Position = mTransform * vec4(vWindowCoords,0,1);
 //    vUV = vVertex; \
 
-const GLchar* sourceFragment = "\
-  \
-#version 430 core \n \
-in vec2 vUV; \
-layout (location=0) out vec3 vFragColor; \
-uniform sampler2D textureMap; \
-\
-void main(void) { \
-  vFragColor = texture(textureMap, vUV).rgb; \
-}  \
-";
+//const GLchar* sourceFragment = "\
+//  \
+//#version 430 core \n \
+//in vec2 vUV; \
+//layout (location=0) out vec3 vFragColor; \
+//uniform sampler2D textureMap; \
+//\
+//void main(void) { \
+//  vFragColor = texture(textureMap, vUV).rgb; \
+//}  \
+//";
 
 // layout (binding=0) uniform sampler2D textureMap; \
 
@@ -87,35 +87,18 @@ void tex2::SetWindowCoords( std::vector<glm::vec4>&  vCoords ) {
   }
 }
 
-void tex2::init() {
+void tex2::OnPaintInit() {
   
   std::cout << "init start" << std::endl;
 
   glDebugMessageCallback( &callback, 0 );
   
-  // Create and compile the vertex shader
-  GLuint shaderVertex = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(shaderVertex, 1, &sourceVertex, NULL);
-  glCompileShader(shaderVertex);
-
-  // Create and compile the fragment shader
-  GLuint shaderFragment = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(shaderFragment, 1, &sourceFragment, NULL);
-  glCompileShader(shaderFragment);
-
-  // Link the vertex and fragment shader into a shader program
-  m_program = glCreateProgram();
-  glAttachShader(m_program, shaderVertex);
-  glAttachShader(m_program, shaderFragment);
-  glBindFragDataLocation(m_program, 0, "vFragColor");
-  glLinkProgram(m_program);
+  std::string prefix( "/home/rpb/projects/simulant/jackson/" );
+  CanvasBase::LoadShader( GL_VERTEX_SHADER, prefix + "tex2.shvert" );
+  CanvasBase::LoadShader( GL_FRAGMENT_SHADER, prefix + "tex2.shfrag" );
+	InitializeProgram();
   
   std::cout << "init linked" << std::endl;
-  
-  // uncomment after testing and clean up
-  glDeleteShader(shaderVertex);
-  glDeleteShader(shaderFragment);
-//  glDeleteProgram(m_program);
   
   glDebugMessageCallback( 0, 0 );
   
@@ -123,7 +106,7 @@ void tex2::init() {
   
 }
 
-void tex2::display() {
+void tex2::OnPaint() {
   
   std::cout << "display start" << std::endl;
   
@@ -150,6 +133,8 @@ void tex2::display() {
 //  mat4Transform *= glm::scale( glm::vec3( 2.0f, -2.0f, 1.0f ) );  // invert image and expand to window coordinates
 //  mat4Transform *= glm::translate( glm::vec3( 1.0f, 1.0f, 0.0f ) );  // translate to window coordinates
 //  mat4Transform *= glm::scale( glm::vec3( 1.0f, 1.0f, 1.0f ) );  // invert image and expand to window coordinates
+
+  glUseProgram(m_program);
 
   // Create a Vertex Buffer Object and copy the vertex data to it
   GLuint vbWindowCoords;  // vertices to be deprecated
@@ -206,8 +191,6 @@ void tex2::display() {
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);  // copy elements to opengl
 
-  glUseProgram(m_program);
-
   // Specify the layout of the vertex data
   GLint attribTextureCoords = glGetAttribLocation(m_program, "vTextureCoords");
   glEnableVertexAttribArray(attribTextureCoords);
@@ -241,6 +224,6 @@ void tex2::display() {
 
 //Called whenever the window is resized. The new window size is given, in pixels.
 //This is an opportunity to call glViewport or glScissor to keep up with the change in size.
-void tex2::reshape (int w, int h) {
-	//glViewport(0, 0, (GLsizei) w, (GLsizei) h);
+void tex2::OnResize (int w, int h) {
+	glViewport(0, 0, (GLsizei) w, (GLsizei) h);
 }

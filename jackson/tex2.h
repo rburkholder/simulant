@@ -25,28 +25,19 @@ public:
     m_pImage = pImage;
   }
   
-  void OnPaintInit() {
-    init();
-  }
-  void OnPaint() {
-    display();
-  }
-  void OnResize( int w, int h ) {
-    reshape( w, h );
-  }
+  void OnPaintInit();
+  void OnPaint();
+  void OnResize( int w, int h );
+  
 protected:
 private:
   
-  GLuint m_program;
+  //GLuint m_program;
   GLuint m_texture;
   
   std::vector<glm::vec2> m_vtxWindowCoords;
   
   wxImage* m_pImage;  // should be shared_ptr so can be overwritten and self delete
-
-  void display();
-  void init();
-  void reshape (int w, int h);
 
 };
 

@@ -1,0 +1,10 @@
+#version 430 core
+
+in vec2 vUV;
+
+layout (location=0) out vec3 vFragColor;
+uniform sampler2D textureMap;
+
+void main(void) {
+  vFragColor = texture(textureMap, vUV).rgb;
+}

@@ -14,6 +14,17 @@
 
 #include <GL/glext.h>
 
+CanvasBase::CanvasBase(  wxFrame* parent, int* args  )
+: wxGLCanvas( parent, wxID_ANY, args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE ), 
+  m_bProgramCreated( false )
+{
+}
+
+CanvasBase::~CanvasBase( void ) {
+  if (m_bProgramCreated) glDeleteProgram(m_program);
+  m_bProgramCreated = false;
+};
+
 
 GLuint CanvasBase::CreateShader( GLenum eShaderType, const std::string &strShaderCode ) {
   
@@ -48,9 +59,11 @@ GLuint CanvasBase::CreateShader( GLenum eShaderType, const std::string &strShade
 	return shader;
 }
 
-GLuint CanvasBase::CreateProgram( const vShader_t& vShader ) {
+bool CanvasBase::CreateProgram( const vShader_t& vShader, GLuint& program ) {
   
-	GLuint program = glCreateProgram();
+  bool bOk( true );
+  
+	program = glCreateProgram();
 
 	for(size_t iLoop = 0; iLoop < vShader.size(); iLoop++)
 		glAttachShader(program, vShader[iLoop]);
@@ -69,17 +82,21 @@ GLuint CanvasBase::CreateProgram( const vShader_t& vShader ) {
 		//fprintf(stderr, "Linker failure: %s\n", strInfoLog);
     std::cout << "Linker failure: " << strInfoLog << std::endl;
 		delete[] strInfoLog;
+    
+    bOk = false;
 	}
 
 	for(size_t iLoop = 0; iLoop < vShader.size(); iLoop++)
 		glDetachShader(program, vShader[iLoop]);
 
-	return program;
+	return bOk;
 }
 
 void CanvasBase::InitializeProgram() {
   
-  m_program = CreateProgram( m_vShader );
+  if ( m_bProgramCreated = CreateProgram( m_vShader, m_program ) ) {
+  };
+  
   std::for_each(m_vShader.begin(), m_vShader.end(), glDeleteShader);
   m_vShader.clear();
 }
@@ -95,6 +112,9 @@ void CanvasBase::LoadShader( GLenum eShaderType, const std::string& strShaderFil
   
   std::ifstream inFile;
   inFile.open(strShaderFileName);//open the input file
+  
+  if ( inFile.fail() ) 
+    throw std::runtime_error( "can't open " + strShaderFileName );
 
   std::stringstream ss;
   ss << inFile.rdbuf();//read the file

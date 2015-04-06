@@ -68,7 +68,7 @@ void FrameMain::OnMenuExitClick( wxCommandEvent& event ) {
   this->Close();
 }
 
-void FrameMain::AddDynamicMenu( const std::string& root, const vpMenuItems_t& vItems ) {
+void FrameMain::AddDynamicMenu( const std::string& sRootName, const vpMenuItems_t& vItems ) {
   assert( 0 != vItems.size() );
   wxMenu* itemMenuAction = new wxMenu;
   for ( vpMenuItems_t::const_iterator iter = vItems.begin(); vItems.end() != iter; ++iter ) {
@@ -79,7 +79,7 @@ void FrameMain::AddDynamicMenu( const std::string& root, const vpMenuItems_t& vI
     itemMenuAction->Append(ID_DYNAMIC_MENU_ACTIONS + p->ix, p->text, wxEmptyString, wxITEM_NORMAL);
     Bind( wxEVT_COMMAND_MENU_SELECTED, &FrameMain::OnDynamicActionClick, this, ID_DYNAMIC_MENU_ACTIONS + p->ix,-1, p );
   }
-  m_menuBar->Append(itemMenuAction, root );
+  m_menuBar->Append(itemMenuAction, sRootName );
 }
 
 void FrameMain::OnDynamicActionClick( wxCommandEvent& event ) {

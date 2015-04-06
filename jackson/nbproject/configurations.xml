@@ -15,6 +15,7 @@
       <itemPath>Outline.h</itemPath>
       <itemPath>ScreenFrame.h</itemPath>
       <itemPath>SpinLock.h</itemPath>
+      <itemPath>TreeDisplayManager.h</itemPath>
       <itemPath>appProjection.h</itemPath>
       <itemPath>canvasOpenGL.h</itemPath>
       <itemPath>common.h</itemPath>
@@ -30,6 +31,8 @@
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
                    projectFiles="true">
+      <itemPath>tex2.shfrag</itemPath>
+      <itemPath>tex2.shvert</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
@@ -43,6 +46,7 @@
       <itemPath>DndTargetButton.cpp</itemPath>
       <itemPath>Outline.cpp</itemPath>
       <itemPath>ScreenFrame.cpp</itemPath>
+      <itemPath>TreeDisplayManager.cpp</itemPath>
       <itemPath>appProjection.cpp</itemPath>
       <itemPath>canvasOpenGL.cpp</itemPath>
       <itemPath>eventImage.cpp</itemPath>
@@ -149,6 +153,10 @@
       </item>
       <item path="SpinLock.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="TreeDisplayManager.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="TreeDisplayManager.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="appProjection.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="appProjection.h" ex="false" tool="3" flavor2="0">
@@ -186,6 +194,10 @@
       <item path="tex2.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="tex2.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="tex2.shfrag" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="tex2.shvert" ex="false" tool="3" flavor2="0">
       </item>
       <item path="tut1.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -277,6 +289,10 @@
       </item>
       <item path="SpinLock.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="TreeDisplayManager.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="TreeDisplayManager.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="appProjection.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="appProjection.h" ex="false" tool="3" flavor2="0">
@@ -314,6 +330,10 @@
       <item path="tex2.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="tex2.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="tex2.shfrag" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="tex2.shvert" ex="false" tool="3" flavor2="0">
       </item>
       <item path="tut1.cpp" ex="false" tool="1" flavor2="0">
       </item>

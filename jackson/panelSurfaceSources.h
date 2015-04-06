@@ -11,13 +11,15 @@
 #include <wx/wx.h>
 #include <wx/panel.h>
 #include <wx/tglbtn.h>
+//#include <wx/treectrl.h>
+
+#include "TreeDisplayManager.h"
 
 #define SYMBOL_PANELSURFACESOURCES_STYLE wxTAB_TRAVERSAL
 #define SYMBOL_PANELSURFACESOURCES_TITLE _("sources")
 #define SYMBOL_PANELSURFACESOURCES_IDNAME ID_PANELSURFACESOURCES
 #define SYMBOL_PANELSURFACESOURCES_SIZE wxSize(400, 300)
 #define SYMBOL_PANELSURFACESOURCES_POSITION wxDefaultPosition
-
 
 class panelSurfaceSources: public wxPanel {    
   DECLARE_DYNAMIC_CLASS( panelSurfaceSources )
@@ -63,6 +65,7 @@ public:
   wxButton* m_btnDisplay;
   wxToggleButton* m_btnEditMode;
   wxButton* m_btnUndo;
+  TreeDisplayManager* m_treeDisplays;
   
   /// Control identifiers
   enum {
@@ -76,7 +79,8 @@ public:
     ID_BTN_DNDTARGET,
     ID_BTN_DNDSOURCE, 
     ID_BTN_EDITMODE, 
-    ID_BTN_UNDO
+    ID_BTN_UNDO, 
+    ID_TREE_DISPLAYS
   };
   
 };

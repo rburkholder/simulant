@@ -44,8 +44,7 @@ bool AppProjection::OnInit( ) {
   
   wxImage::AddHandler( new wxJPEGHandler );
 
-  wxBoxSizer* sizer = new wxBoxSizer( wxHORIZONTAL );
-  m_pFrameMain = new FrameMain( (wxFrame *)NULL, -1, wxT( "Projection Demo" ), wxPoint( 2000, 150 ), wxSize( 400, 200 ) );
+  m_pFrameMain = new FrameMain( (wxFrame *)NULL, -1, wxT( "Projection Demo" ), wxPoint( 10, 10 ), wxSize( 500, 250 ) );
   m_pFrameMain->Bind( wxEVT_CLOSE_WINDOW, &AppProjection::OnClose, this );  // start close of windows and controls
 
   unsigned int nDisplays = wxDisplay::GetCount();
@@ -80,6 +79,7 @@ bool AppProjection::OnInit( ) {
   vMenuItems.push_back( new mi( "Movie Screen", boost::phoenix::bind( &AppProjection::CreateMovieScreen, this ) ) );
   m_pFrameMain->AddDynamicMenu( "Create", vMenuItems );
   
+  wxBoxSizer* sizer = new wxBoxSizer( wxHORIZONTAL );
   m_pSurfaceSources = new panelSurfaceSources( m_pFrameMain, -1 );
   sizer->Add( m_pSurfaceSources, 1, wxEXPAND );
 
@@ -88,7 +88,7 @@ bool AppProjection::OnInit( ) {
 
   m_pFrameMain->Show( );
   // serialize the following for session to session persistence
-  m_pFrameMain->Move( wxPoint( 2000, 150 ) );
+  m_pFrameMain->Move( wxPoint( 1950, 150 ) );
   
   // workers for the movie action
   m_pWork = new boost::asio::io_service::work(m_Srvc);  // keep the asio service running 
