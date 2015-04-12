@@ -8,20 +8,20 @@
 #include "ScreenFrame.h"
 
 ScreenFrame::ScreenFrame( unsigned int nDisplay, wxWindow* parent, wxPoint point_, wxSize size_ ): 
-  display( nDisplay ), point( point_ ), size( size_ ) 
+  m_nDisplay( nDisplay ), m_display( nDisplay ), m_point( point_ ), m_size( size_ ) 
 {
   // for debugging purposes
-  wxVideoMode vmDisplay = display.GetCurrentMode();
-  wxRect rectGeometry = display.GetGeometry();
-  wxArrayVideoModes modes = display.GetModes();
-  wxString sName = display.GetName();
-  bool bPrimary = display.IsPrimary();
+  wxVideoMode vmDisplay = m_display.GetCurrentMode();
+  wxRect rectGeometry = m_display.GetGeometry();
+  wxArrayVideoModes modes = m_display.GetModes();
+  wxString sName = m_display.GetName();
+  bool bPrimary = m_display.IsPrimary();
 
   // do the frame for projection display
-  pFrame = new FrameProjection( parent, -1, "", wxPoint( 10, 10 ), wxSize( 10, 10 ) );  // use default point and size to for redraw to bypass bug
-  pFrame->SetSize( size );
-  pFrame->Move( point );
-  pFrame->Show();
+  m_pFrame = new FrameProjection( parent, -1, "", wxPoint( 10, 10 ), wxSize( 10, 10 ) );  // use default point and size to for redraw to bypass bug
+  m_pFrame->SetSize( size_ );
+  m_pFrame->Move( point_ );
+  m_pFrame->Show();
 }
   
 ScreenFrame::~ScreenFrame( ) {

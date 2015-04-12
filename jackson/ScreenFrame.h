@@ -30,7 +30,6 @@ public:
   typedef CanvasBase::pCanvas_t pCanvas_t;
   
   typedef boost::shared_ptr<ScreenFrame> pScreenFrame_t;
-  //typedef std::vector<pScreenFrame_t> vScreenFrame_t;
   
   ScreenFrame( unsigned int nDisplay, wxWindow* parent ): 
       ScreenFrame( nDisplay, parent, wxPoint( 0, 0 ), wxSize( 100, 200 ) ) {
@@ -39,24 +38,26 @@ public:
       
   virtual ~ScreenFrame( void );
   
-  FrameProjection* GetFrame( void ) { return pFrame; }
+  FrameProjection* GetFrame( void ) { return m_pFrame; }
   
   void Append( pCanvas_t pCanvas );
+  int GetId( void ) { return m_nDisplay; }
   
 protected:
 private:
 
   // disallow default constructor  
-  ScreenFrame( void ): display( 0 ), point( 0, 0 ), size( 100, 200 ) {  };
+  ScreenFrame( void ): m_display( 0 ), m_point( 0, 0 ), m_size( 100, 200 ) {  };
   
   typedef std::vector<pCanvas_t> vCanvas_t;
   
+  unsigned int m_nDisplay;
   std::string m_sDescription;
-  wxDisplay display;  // non copyable
-  wxPoint point;     // location in client area, bug work around in gtk3, chooses different location on primary display
-  wxSize size;  // use default, but may override
-  FrameProjection* pFrame;  // windowing system takes care of destruction
-  //vCanvas_t vCanvas;  
+  wxDisplay m_display;  // non copyable
+  wxPoint m_point;     // location in client area, bug work around in gtk3, chooses different location on primary display
+  wxSize m_size;  // use default, but may override
+  FrameProjection* m_pFrame;  // windowing system takes care of destruction
+  //vCanvas_t m_vCanvas;  
 };
 
 

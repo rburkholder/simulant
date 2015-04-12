@@ -109,6 +109,7 @@
             <linkerLibLibItem>wx_gtk3u_gl-3.1</linkerLibLibItem>
             <linkerLibLibItem>GLU</linkerLibLibItem>
             <linkerLibLibItem>SOIL</linkerLibLibItem>
+            <linkerLibLibItem>boost_filesystem</linkerLibLibItem>
           </linkerLibItems>
           <commandLine>`/usr/local/bin/wx-config --libs`</commandLine>
         </linkerTool>

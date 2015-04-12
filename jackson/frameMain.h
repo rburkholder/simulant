@@ -91,14 +91,14 @@ private:
 //    ID_MENUACTION1, ID_MENUACTION2, ID_MENUACTION3, ID_MENUACTION4, ID_MENUACTION5, ID_DYNAMIC_MENU_ACTIONS
 //  };
   enum { ID_Null=wxID_HIGHEST, ID_FRAMEGENERIC, ID_MENUEXIT, ID_STATUSBAR, ID_PANELMAIN,
-    ID_DYNAMIC_MENU_ACTIONS
+    ID_DYNAMIC_MENU_ACTIONS  // this should be last item in enumeration
   };
 
   wxMenuBar* m_menuBar;
   wxStatusBar* m_statusBar;
 
 //  typedef std::vector<structMenuItem*> vPtrItems_t;  // wxWidgets take ownership of object
-  vpMenuItems_t m_vPtrItems;
+  vpMenuItems_t m_vPtrItems;  // not appropriate for context based menus
 
   void Init();
   void CreateControls();

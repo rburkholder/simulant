@@ -24,7 +24,9 @@
 class panelSurfaceSources: public wxPanel {    
   DECLARE_DYNAMIC_CLASS( panelSurfaceSources )
 public:
-  /// Constructors
+  
+  typedef ScreenFrame::pScreenFrame_t pScreenFrame_t;
+  
   panelSurfaceSources();
   panelSurfaceSources( 
           wxWindow* parent, 
@@ -33,7 +35,6 @@ public:
           const wxSize& size = SYMBOL_PANELSURFACESOURCES_SIZE, 
           long style = SYMBOL_PANELSURFACESOURCES_STYLE );
 
-  /// Creation
   bool Create( 
     wxWindow* parent, 
           wxWindowID id = SYMBOL_PANELSURFACESOURCES_IDNAME, 
@@ -41,33 +42,13 @@ public:
           const wxSize& size = SYMBOL_PANELSURFACESOURCES_SIZE, 
           long style = SYMBOL_PANELSURFACESOURCES_STYLE );
 
-  /// Destructor
   ~panelSurfaceSources();
-
-  /// Initialises member variables
-  void Init();
-
-  /// Creates the controls and sizers
-  void CreateControls();
-
-  /// Retrieves bitmap resources
-  wxBitmap GetBitmapResource( const wxString& name );
-
-  /// Retrieves icon resources
-  wxIcon GetIconResource( const wxString& name );
-////@end panelSurfaceSources member function declarations
-
-  /// Should we show tooltips?
-  static bool ShowToolTips( void ) { return true; };
-
-////@begin panelSurfaceSources member variables
-  wxButton* m_btnPoly4Side;
-  wxButton* m_btnDisplay;
-  wxToggleButton* m_btnEditMode;
-  wxButton* m_btnUndo;
-  TreeDisplayManager* m_treeDisplays;
   
-  /// Control identifiers
+  void Append( pScreenFrame_t pScreenFrame );
+
+protected:  
+private:
+  
   enum {
     ID_Null = wxID_HIGHEST,
     ID_PANELSURFACESOURCES,
@@ -83,6 +64,24 @@ public:
     ID_TREE_DISPLAYS
   };
   
+  bool m_bInEditMode;
+  
+  wxButton* m_btnPoly4Side;
+  wxButton* m_btnDisplay;
+  wxToggleButton* m_btnEditMode;
+  wxButton* m_btnUndo;
+
+  TreeDisplayManager* m_treeDisplays;
+  
+  void HandleToggleEditMode( wxCommandEvent& event );
+  void HandleUndo( wxCommandEvent& event );
+
+  void Init();
+  void CreateControls();
+  wxBitmap GetBitmapResource( const wxString& name );
+  wxIcon GetIconResource( const wxString& name );
+
+  static bool ShowToolTips( void ) { return true; };
+
 };
 #endif	/* PANELSURFACESOURCES_H */
-

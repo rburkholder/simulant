@@ -3,6 +3,8 @@
 // https://open.gl/content/code/c3_basic.txt
 
 #include <boost/assign/std/vector.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
 
 #include <wx/rawbmp.h>
 
@@ -93,7 +95,11 @@ void tex2::OnPaintInit() {
 
   glDebugMessageCallback( &callback, 0 );
   
-  std::string prefix( "/home/rpb/projects/simulant/jackson/" );
+  boost::filesystem::path path;
+  path = boost::filesystem::current_path();
+  std::cout << "path: " << path << std::endl;
+  
+  std::string prefix( "../projects/simulant/jackson/" );
   CanvasBase::LoadShader( GL_VERTEX_SHADER, prefix + "tex2.shvert" );
   CanvasBase::LoadShader( GL_FRAGMENT_SHADER, prefix + "tex2.shfrag" );
 	InitializeProgram();

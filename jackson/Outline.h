@@ -11,6 +11,8 @@
 #include <set>
 #include <vector>
 
+#include <boost/shared_ptr.hpp>
+
 #include <wx/wx.h>
 
 /*
@@ -37,6 +39,7 @@
 class Outline {
 public:
   
+  typedef boost::shared_ptr<Outline> pOutline_t;
   typedef std::vector<wxPoint> vPoints_t;
   
   Outline( const wxRect& rect, bool bSelectByEdge = true, bool bSelectByVertex = true );  // top-left, bottom-right by default

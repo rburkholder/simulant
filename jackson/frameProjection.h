@@ -24,7 +24,7 @@
 class FrameProjection: public wxFrame {
 public:
   
-  typedef boost::shared_ptr<Outline> pOutline_t;
+  typedef Outline::pOutline_t pOutline_t;
   
   FrameProjection(void);
   FrameProjection( 
@@ -55,7 +55,7 @@ private:
   };
   
   bool m_bMouseDown;
-  pOutline_t m_pOutline;  // need to turn into shared ptr
+  pOutline_t m_pOutline;
   
   void Init();
   void CreateControls();

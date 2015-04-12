@@ -13,6 +13,8 @@
 #include <wx/wx.h>
 #include <wx/treectrl.h>
 
+#include "ScreenFrame.h"
+
 #define SYMBOL_TREEDISPLAYMANAGER_STYLE wxTR_HAS_BUTTONS | wxTR_SINGLE
 #define SYMBOL_TREEDISPLAYMANAGER_TITLE _("Displays")
 #define SYMBOL_TREEDISPLAYMANAGER_IDNAME ID_TREEDISPLAYMANAGER
@@ -24,7 +26,9 @@ class TreeDisplayManagerMenuItemDecoder;
 class TreeDisplayManager: public wxTreeCtrl {
   DECLARE_DYNAMIC_CLASS( TreeDisplayManager )
 public:
-  /// Constructors
+  
+  typedef ScreenFrame::pScreenFrame_t pScreenFrame_t;
+  
   TreeDisplayManager();
   TreeDisplayManager( 
           wxWindow* parent, 
@@ -33,7 +37,6 @@ public:
           const wxSize& size = SYMBOL_TREEDISPLAYMANAGER_SIZE, 
           long style = SYMBOL_TREEDISPLAYMANAGER_STYLE );
 
-  /// Creation
   bool Create( 
     wxWindow* parent, 
           wxWindowID id = SYMBOL_TREEDISPLAYMANAGER_IDNAME, 
@@ -41,28 +44,24 @@ public:
           const wxSize& size = SYMBOL_TREEDISPLAYMANAGER_SIZE, 
           long style = SYMBOL_TREEDISPLAYMANAGER_STYLE );
 
-  /// Destructor
   ~TreeDisplayManager();
-
-  /// Initializes member variables
-  void Init();
-
-  /// Creates the controls and sizers
-  void CreateControls();
+  
+  void Append( pScreenFrame_t pScreenFrame );
 
 protected:
 private:
-
+  
   typedef boost::shared_ptr<TreeDisplayManagerMenuItemDecoder> pDecoder_t;
   
-  /// Control identifiers
   enum {
     ID_Null = wxID_HIGHEST,
     ID_TREEDISPLAYMANAGER
   };
   
-  
   pDecoder_t m_pDecoder;
+  
+  void Init();
+  void CreateControls();
   
   void HandleContextMenu( wxTreeEvent& event );
   void HandleSelectionChanged( wxTreeEvent& event );
