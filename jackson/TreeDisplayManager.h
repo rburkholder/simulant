@@ -8,6 +8,8 @@
 #ifndef TREEDISPLAYMANAGER_H
 #define	TREEDISPLAYMANAGER_H
 
+#include <map>
+
 #include <boost/shared_ptr.hpp>
 
 #include <wx/wx.h>
@@ -21,13 +23,14 @@
 #define SYMBOL_TREEDISPLAYMANAGER_SIZE wxSize(100, 200)
 #define SYMBOL_TREEDISPLAYMANAGER_POSITION wxDefaultPosition
 
-class TreeDisplayManagerMenuItemDecoder;
+class TreeItemBase;
 
 class TreeDisplayManager: public wxTreeCtrl {
   DECLARE_DYNAMIC_CLASS( TreeDisplayManager )
 public:
   
   typedef ScreenFrame::pScreenFrame_t pScreenFrame_t;
+  typedef boost::shared_ptr<TreeItemBase> pTreeItem_t;
   
   TreeDisplayManager();
   TreeDisplayManager( 
@@ -47,18 +50,20 @@ public:
   ~TreeDisplayManager();
   
   void Append( pScreenFrame_t pScreenFrame );
+  
+  void Add( const wxTreeItemId& id, pTreeItem_t pTreeItem );
 
 protected:
 private:
-  
-  typedef boost::shared_ptr<TreeDisplayManagerMenuItemDecoder> pDecoder_t;
   
   enum {
     ID_Null = wxID_HIGHEST,
     ID_TREEDISPLAYMANAGER
   };
   
-  pDecoder_t m_pDecoder;
+  typedef std::map<void*,pTreeItem_t> mapDecoder_t;  // void* is from wxTreeItemId
+  typedef std::pair<void*,pTreeItem_t> mapDecoder_pair_t;
+  mapDecoder_t m_mapDecoder;
   
   void Init();
   void CreateControls();

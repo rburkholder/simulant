@@ -5,7 +5,7 @@
  * Created on April 5, 2015, 10:11 PM
  */
 
-#include <map>
+//#include <map>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/lexical_cast.hpp>
@@ -37,7 +37,7 @@ extern "C" {
 #include "common.h"
 #include "DecodeH264.h"
 
-#include "tut1.h"
+//#include "tut1.h"
 #include "tex2.h"
 
 #include "eventImage.h"
@@ -50,19 +50,25 @@ IMPLEMENT_DYNAMIC_CLASS( TreeDisplayManager, wxTreeCtrl )
 
 class TreeItemBase {
 public:
-  TreeItemBase( wxTreeCtrl* pTree_, wxTreeItemId id_ ): m_pTree( pTree_ ), m_id( id_ ) {};
+  
+  typedef boost::shared_ptr<TreeItemBase> pTreeItem_t;
+  
+  TreeItemBase( TreeDisplayManager* pTree_, wxTreeItemId id_ ): m_pTree( pTree_ ), m_id( id_ ) {};
   virtual ~TreeItemBase( void ) {};
   virtual void ShowContextMenu( void ) {}
+  virtual void SetSelected( void ) {}
 protected:
   wxTreeItemId m_id;  // identifier of this part of the tree control
-  wxTreeCtrl* m_pTree;  // used for assigning the popup, plus other base class functions, eg for Bind, etc
+  TreeDisplayManager* m_pTree;  // used for assigning the popup, plus other base class functions, eg for Bind, etc
 private:
 };
+
+// ================
 
 class TreeItemRoot: public TreeItemBase {
 public:
   // deals with constructing display surfaces
-  TreeItemRoot( wxTreeCtrl* pTree_, wxTreeItemId id_ ): TreeItemBase( pTree_, id_ ) {
+  TreeItemRoot( TreeDisplayManager* pTree_, wxTreeItemId id_ ): TreeItemBase( pTree_, id_ ) {
   };
   virtual void ShowContextMenu( void ) {
     //wxMenu* pMenu = new wxMenu( "Surfaces");
@@ -82,66 +88,103 @@ private:
   }
 };
 
-class TreeItemScreenFrame: public TreeItemBase {
+// ================
+
+class TreeItemCanvas: public TreeItemBase {
 public:
   
   typedef boost::shared_ptr<ScreenFrame> pScreenFrame_t;
+  typedef Outline::pOutline_t pOutline_t;
   
-  TreeItemScreenFrame( wxTreeCtrl* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame )
-  : TreeItemBase( pTree_, id_ ), m_pScreenFrame( pScreenFrame ) {
-    // add a right click pop up to add displayable objects and surfaces
-    // which are then serialized for session persistence
-    // use text or enum keys to register objects, for subsequent re-creation
-    
-    m_pTut1 = 0;  
-    m_pTex = 0;
-
-    wxImage::AddHandler( new wxJPEGHandler );
-
-    m_sPictureDirectory = wxT( "~/Pictures/");
-    m_sVideoDirectory = wxT( "~/Videos/");
-
-      // workers for the movie action
-    m_pWork = new boost::asio::io_service::work(m_Srvc);  // keep the asio service running 
-    //m_thrdWorkers = boost::thread( boost::phoenix::bind( &AppProjection::Workers, this ) );
-    for ( std::size_t ix = 0; ix < 2; ix++ ) {
-      m_threadsWorkers.create_thread( boost::phoenix::bind( &boost::asio::io_service::run, &m_Srvc ) );
-    }
-    
-    wxApp::GetInstance()->Bind( EVENT_IMAGE, &TreeItemScreenFrame::HandleEventImage, this );
-  }
+  TreeItemCanvas( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame, pOutline_t pOutline );
+  ~TreeItemCanvas( void );
   
-  ~TreeItemScreenFrame( void ) {
-    delete m_pWork;
-    m_pWork = 0;
-    m_threadsWorkers.join_all();
-  }
+  virtual void ShowContextMenu( void );
   
-  virtual void ShowContextMenu( void ) {
-    wxMenu* pMenu = new wxMenu();
-    
-    pMenu->Append( MIAddOutline, "&Add Outline" );
-    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScreenFrame::HandleAddOutline, this, MIAddOutline );
-    
-    pMenu->Append( MISelectPicture, "Select Picture" );
-    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScreenFrame::HandleLoadPicture, this, MISelectPicture );
-    
-    pMenu->Append( MISelectVideo, "Select Video" );
-    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScreenFrame::HandleLoadVideo, this, MISelectVideo );
-    
-    pMenu->Append( MIImageToOpenGL, "Image->OpenGL" );
-    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScreenFrame::HandleImage2OpenGL, this, MIImageToOpenGL );
-    
-    pMenu->Append( MIMovieScreen, "Movie Screen" );
-    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScreenFrame::HandleCreateMovieScreen, this, MIMovieScreen );
-    
-    m_pTree->PopupMenu( pMenu );
-  }
 protected:
 private:
   
   enum {
     ID_Null = wxID_HIGHEST,
+    MIAddPicture, MIAddVideo
+  };
+  
+  pScreenFrame_t m_pScreenFrame;
+  pOutline_t m_pOutline;
+  
+  void SetSelected( void );
+  
+  void HandleAddPicture( wxCommandEvent& event );
+  void HandleAddVideo( wxCommandEvent& event );
+  
+};
+
+TreeItemCanvas::TreeItemCanvas( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame, pOutline_t pOutline )
+: TreeItemBase( pTree_, id_ ), m_pScreenFrame( pScreenFrame ), m_pOutline( pOutline ) {
+  
+}
+
+TreeItemCanvas::~TreeItemCanvas( void ) {
+  
+}
+
+void TreeItemCanvas::ShowContextMenu( void ) {
+  
+  wxMenu* pMenu = new wxMenu();
+  
+  pMenu->Append( MIAddPicture, "Add &Picture" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemCanvas::HandleAddPicture, this, MIAddPicture );
+  
+  pMenu->Append( MIAddVideo, "Add &Video" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemCanvas::HandleAddVideo, this, MIAddVideo );
+  
+  m_pTree->PopupMenu( pMenu );
+}
+
+void TreeItemCanvas::SetSelected( void ) {
+  std::cout << "Tree Item Canvas Selected" << std::endl;
+  m_pScreenFrame->GetFrame()->SetOutline( m_pOutline );
+  m_pScreenFrame->GetFrame()->Refresh();
+}
+
+void TreeItemCanvas::HandleAddPicture( wxCommandEvent& event ) {
+  std::cout << "Tree Item Add Picture" << std::endl;
+}
+
+void TreeItemCanvas::HandleAddVideo( wxCommandEvent& event ) {
+  std::cout << "Tree Item Add Video" << std::endl;
+}
+
+// ================
+
+class TreeItemSurfaceWithPicture: public TreeItemBase {
+public:
+  
+  TreeItemSurfaceWithPicture( TreeDisplayManager* pTree_, wxTreeItemId id_ );
+  ~TreeItemSurfaceWithPicture( void );
+  
+  virtual void ShowContextMenu( void );
+  
+protected:
+private:
+};
+
+class TreeItemScreenFrame: public TreeItemBase {
+public:
+  
+  typedef boost::shared_ptr<ScreenFrame> pScreenFrame_t;
+  
+  TreeItemScreenFrame( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame );
+  ~TreeItemScreenFrame( void );
+  
+  virtual void ShowContextMenu( void );
+  
+protected:
+private:
+  
+  enum {
+    ID_Null = wxID_HIGHEST,
+    MIAddOpenGLCanvas,
     MIAddOutline, MISelectPicture, MISelectVideo, MIImageToOpenGL, MIMovieScreen
   };
   
@@ -158,7 +201,7 @@ private:
   
   pScreenFrame_t m_pScreenFrame;
   
-  tut1* m_pTut1;
+  //tut1* m_pTut1;
   tex2* m_pTex;
   
   void Workers( void );
@@ -166,13 +209,8 @@ private:
   void Image2OpenGL( void );
   void ProcessVideoFile( boost::shared_ptr<DecodeH264> pDecoder );
   
-  void HandleAddOutline(  wxCommandEvent& event  ) {  // for remote displays, will use wizard dialog
-    std::cout << "Add Outline" << std::endl;  
-    pOutline_t m_pOutline( new Outline( wxRect( 300, 300, 600, 600 ) ) );
-    m_pScreenFrame->GetFrame()->SetOutline( m_pOutline );
-    m_pScreenFrame->GetFrame()->Refresh();
-  }
-  
+  void HandleAddOutline( wxCommandEvent& event );
+  void HandleAddCanvas( wxCommandEvent& event );
   void HandleOnFrame( AVCodecContext* context, AVFrame* frame, AVPacket* pkt, void* user, structTimeSteps perf );
   void HandleFrameTransform( AVFrame* pRgb, uint8_t* buf, void* user, structTimeSteps perf, int srcX, int srcY );
   void HandleEventImage( EventImage& );
@@ -184,6 +222,87 @@ private:
   
 };
 
+TreeItemScreenFrame::TreeItemScreenFrame( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame )
+: TreeItemBase( pTree_, id_ ), m_pScreenFrame( pScreenFrame ) {
+  // add a right click pop up to add displayable objects and surfaces
+  // which are then serialized for session persistence
+  // use text or enum keys to register objects, for subsequent re-creation
+
+  //m_pTut1 = 0;  
+  m_pTex = 0;
+
+  wxImage::AddHandler( new wxJPEGHandler );
+
+  m_sPictureDirectory = wxT( "~/Pictures/");
+  m_sVideoDirectory = wxT( "~/Videos/");
+
+    // workers for the movie action
+  m_pWork = new boost::asio::io_service::work(m_Srvc);  // keep the asio service running 
+  //m_thrdWorkers = boost::thread( boost::phoenix::bind( &AppProjection::Workers, this ) );
+  for ( std::size_t ix = 0; ix < 2; ix++ ) {
+    m_threadsWorkers.create_thread( boost::phoenix::bind( &boost::asio::io_service::run, &m_Srvc ) );
+  }
+
+  // **** will need to set a specific instance id so that multiple frames can be run
+  wxApp::GetInstance()->Bind( EVENT_IMAGE, &TreeItemScreenFrame::HandleEventImage, this );
+}
+
+TreeItemScreenFrame::~TreeItemScreenFrame( void ) {
+  delete m_pWork;
+  m_pWork = 0;
+  m_threadsWorkers.join_all();
+}
+
+void TreeItemScreenFrame::HandleAddOutline(  wxCommandEvent& event  ) {  // for remote displays, will use wizard dialog
+  std::cout << "Add Outline" << std::endl;  
+  pOutline_t m_pOutline( new Outline( wxRect( 300, 300, 600, 600 ) ) );
+  m_pScreenFrame->GetFrame()->SetOutline( m_pOutline );
+  m_pScreenFrame->GetFrame()->Refresh();
+}
+
+void TreeItemScreenFrame::HandleAddCanvas( wxCommandEvent& event ) {
+  std::cout << "Add Canvas" << std::endl;  
+  // various stages:  
+  //   0) popup to get description
+  //   1) tree item added
+  //   2) outline added
+  //   3) outline changeable
+  //   4) handle selection event to turn outline back on for resizing events
+  //   5) add menu items to add pictures or movies
+  wxTreeItemId id = m_pTree->AppendItem( m_id, "Canvas" );
+  
+  pOutline_t pOutline( new Outline( wxRect( 300, 300, 600, 600 ), true, false ) );  // instead, use some ratio of the main window
+
+  pTreeItem_t pTreeItem( new TreeItemCanvas( m_pTree, id, m_pScreenFrame, pOutline ) );
+  m_pTree->Add( id, pTreeItem );
+}
+  
+void TreeItemScreenFrame::ShowContextMenu( void ) {
+  wxMenu* pMenu = new wxMenu();
+  
+  pMenu->Append( MIAddOpenGLCanvas, "Add Canvas" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScreenFrame::HandleAddCanvas, this, MIAddOpenGLCanvas );
+  
+  pMenu->AppendSeparator();
+
+  pMenu->Append( MIAddOutline, "&Add Outline" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScreenFrame::HandleAddOutline, this, MIAddOutline );
+
+  pMenu->Append( MISelectPicture, "wx Picture" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScreenFrame::HandleLoadPicture, this, MISelectPicture );
+
+  pMenu->Append( MISelectVideo, "wx Video" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScreenFrame::HandleLoadVideo, this, MISelectVideo );
+
+  pMenu->Append( MIImageToOpenGL, "Image->OpenGL" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScreenFrame::HandleImage2OpenGL, this, MIImageToOpenGL );
+
+  pMenu->Append( MIMovieScreen, "Movie Screen" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScreenFrame::HandleCreateMovieScreen, this, MIMovieScreen );
+
+  m_pTree->PopupMenu( pMenu );
+}
+  
 void TreeItemScreenFrame::HandleLoadPicture( wxCommandEvent& event ) {
   std::cout << "LoadPicture" << std::endl;  
   wxFileDialog dialogOpenFile( 
@@ -219,7 +338,7 @@ void TreeItemScreenFrame::Image2OpenGL( void ) {
       m_pTex = new tex2( m_pScreenFrame->GetFrame(), argsCanvas );
       //m_pTex->SetSize( m_image.GetWidth(), m_image.GetHeight() );
       wxRect rect( 500, 100, 300, 600 );
-      pOutline_t pOutline( m_pScreenFrame->GetFrame()->GetOutline() );  // need to do something if this doesn't exist, maybe requires exception
+      pOutline_t pOutline( m_pScreenFrame->GetFrame()->GetOutline() );
       if ( 0 != pOutline.use_count() ) {
         rect = pOutline->GetBoundingBox();
       }
@@ -320,7 +439,9 @@ void TreeItemScreenFrame::HandleFrameTransform( AVFrame* pRgb, uint8_t* buf, voi
 
   perf.copied = boost::chrono::high_resolution_clock::now();
   
-  wxApp::GetInstance()->QueueEvent( new EventImage( EVENT_IMAGE, -1, pImage, user, perf ) );
+  // may need to set a unique itemid if multiple events running simultaneously
+  // need to change this to the specific canvas into which the frame is going to be displayed
+  wxApp::GetInstance()->QueueEvent( new EventImage( EVENT_IMAGE, m_pScreenFrame->GetFrame()->GetId(), pImage, user, perf ) );
   //m_pScreenFrame->GetFrame()->QueueEvent( new EventImage( EVENT_IMAGE, -1, pImage, user, perf ) );
   //m_pScreenFrame->GetFrame()->get QueueEvent( new EventImage( EVENT_IMAGE, -1, pImage, user, perf ) );
   
@@ -401,17 +522,9 @@ void TreeItemScreenFrame::HandleLoadVideo( wxCommandEvent& event ) {
     
   }
 }
-    
-struct TreeDisplayManagerMenuItemDecoder {
-public:
-  typedef boost::shared_ptr<TreeItemBase> pTreeItem_t;
-  typedef std::map<void*,pTreeItem_t> mapDecoder_t;  // void* is from wxTreeItemId
-  typedef std::pair<void*,pTreeItem_t> mapDecoder_pair_t;
-  mapDecoder_t m_pmapDecoder;
-protected:
-private:
-};
 
+// ====================================
+    
 TreeDisplayManager::TreeDisplayManager() {
   Init();
 }
@@ -442,13 +555,16 @@ void TreeDisplayManager::Append( pScreenFrame_t pScreenFrame ) {
   std::string sId = boost::lexical_cast<std::string>( pScreenFrame->GetId() );
   wxTreeItemId id = wxTreeCtrl::AppendItem( idRoot, "Frame " + sId );
   
-  TreeDisplayManagerMenuItemDecoder::pTreeItem_t pTreeItem( new TreeItemScreenFrame( this, id, pScreenFrame ) );
-  m_pDecoder->m_pmapDecoder.insert( 
-    TreeDisplayManagerMenuItemDecoder::mapDecoder_pair_t( id.GetID(), pTreeItem ) );
+  pTreeItem_t pTreeItem( new TreeItemScreenFrame( this, id, pScreenFrame ) );
+  Add( id, pTreeItem );
+  //m_mapDecoder.insert( mapDecoder_pair_t( id.GetID(), pTreeItem ) );
+}
+
+void TreeDisplayManager::Add( const wxTreeItemId& id, pTreeItem_t pTreeItem ) {
+  m_mapDecoder.insert( mapDecoder_pair_t( id.GetID(), pTreeItem ) );
 }
 
 void TreeDisplayManager::Init() {
-  m_pDecoder.reset( new TreeDisplayManagerMenuItemDecoder );
 }
 
 void TreeDisplayManager::CreateControls() {    
@@ -460,19 +576,18 @@ void TreeDisplayManager::CreateControls() {
   wxTreeCtrl::Bind( wxEVT_TREE_ITEM_ACTIVATED, &TreeDisplayManager::HandleItemActivated, this );
   
   wxTreeItemId id = wxTreeCtrl::AddRoot( "Projections" );
-  TreeDisplayManagerMenuItemDecoder::pTreeItem_t pTreeItem( new TreeItemRoot( this, id ) );
-  m_pDecoder->m_pmapDecoder.insert( 
-    TreeDisplayManagerMenuItemDecoder::mapDecoder_pair_t( id.GetID(), pTreeItem ) );
+  pTreeItem_t pTreeItem( new TreeItemRoot( this, id ) );
+  m_mapDecoder.insert( mapDecoder_pair_t( id.GetID(), pTreeItem ) );
   
 }
 
 void TreeDisplayManager::HandleContextMenu( wxTreeEvent& event ) {
-  std::cout << "HandleContextMenu: " << event.GetId() << std::endl;
-  m_pDecoder->m_pmapDecoder[ event.GetItem().GetID() ]->ShowContextMenu();
+  m_mapDecoder[ event.GetItem().GetID() ]->ShowContextMenu();
 }
 
 void TreeDisplayManager::HandleSelectionChanged( wxTreeEvent& event ) {
   std::cout << "HandleSelectionChanged" << std::endl;
+  m_mapDecoder[ event.GetItem().GetID() ]->SetSelected();
 }
 
 void TreeDisplayManager::HandleItemActivated( wxTreeEvent& event ) {

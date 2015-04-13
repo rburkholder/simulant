@@ -40,7 +40,7 @@ public:
   
   FrameProjection* GetFrame( void ) { return m_pFrame; }
   
-  void Append( pCanvas_t pCanvas );
+  //void Append( pCanvas_t pCanvas );
   int GetId( void ) { return m_nDisplay; }
   
 protected:

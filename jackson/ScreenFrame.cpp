@@ -27,6 +27,6 @@ ScreenFrame::ScreenFrame( unsigned int nDisplay, wxWindow* parent, wxPoint point
 ScreenFrame::~ScreenFrame( ) {
 }
 
-void ScreenFrame::Append( pCanvas_t pCanvas ) {
-  
-}
+//void ScreenFrame::Append( pCanvas_t pCanvas ) {
+//  
+//}

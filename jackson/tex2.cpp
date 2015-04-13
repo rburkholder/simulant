@@ -32,37 +32,6 @@
 
 // NDS Normalized Device Space: x,y: -1.0,-1.0 -> 1.0, 1.0 ; depth: 0.0 -> 1.0  pg 39
 
-// Shader sources
-//const GLchar* sourceVertex = "\
-//  \
-//  #version 430 core \n \
-//  layout(location=0) in vec2 vWindowCoords; \
-//  layout(location=1) in vec2 vTextureCoords; \
-//  uniform mat4 mTransform; \
-//  out vec2 vUV; \
-//  void main(void) { \
-//    gl_Position = vec4(vWindowCoords,0,1); \
-//    vUV = vTextureCoords; \
-//  } \
-//  ";
-//    gl_Position = vec4(vVertex*2.0-1,0,1); \
-//    gl_Position = mTransform * vec4(vWindowCoords,0,1);
-//    vUV = vVertex; \
-
-//const GLchar* sourceFragment = "\
-//  \
-//#version 430 core \n \
-//in vec2 vUV; \
-//layout (location=0) out vec3 vFragColor; \
-//uniform sampler2D textureMap; \
-//\
-//void main(void) { \
-//  vFragColor = texture(textureMap, vUV).rgb; \
-//}  \
-//";
-
-// layout (binding=0) uniform sampler2D textureMap; \
-
 void  callback(GLenum source,GLenum type, GLuint id,
    GLenum severity, GLsizei length, const GLchar* message, const void* userParam ) {
   std::cout << "gl error:  " << message << std::endl;
