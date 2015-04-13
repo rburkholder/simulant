@@ -12,6 +12,7 @@
       <itemPath>DndSourceButton.h</itemPath>
       <itemPath>DndTargetButton.h</itemPath>
       <itemPath>Network.h</itemPath>
+      <itemPath>OglGrid.h</itemPath>
       <itemPath>Outline.h</itemPath>
       <itemPath>ScreenFrame.h</itemPath>
       <itemPath>SpinLock.h</itemPath>
@@ -31,6 +32,8 @@
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
                    projectFiles="true">
+      <itemPath>oglGrid.shfrag</itemPath>
+      <itemPath>oglGrid.shvert</itemPath>
       <itemPath>tex2.shfrag</itemPath>
       <itemPath>tex2.shvert</itemPath>
     </logicalFolder>
@@ -44,6 +47,7 @@
       <itemPath>DndDropTarget.cpp</itemPath>
       <itemPath>DndSourceButton.cpp</itemPath>
       <itemPath>DndTargetButton.cpp</itemPath>
+      <itemPath>OglGrid.cpp</itemPath>
       <itemPath>Outline.cpp</itemPath>
       <itemPath>ScreenFrame.cpp</itemPath>
       <itemPath>TreeDisplayManager.cpp</itemPath>
@@ -144,6 +148,10 @@
       </item>
       <item path="Network.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="OglGrid.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="OglGrid.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Outline.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Outline.h" ex="false" tool="3" flavor2="0">
@@ -181,6 +189,10 @@
       <item path="frameProjection.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="gl_notes.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="oglGrid.shfrag" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="oglGrid.shvert" ex="false" tool="3" flavor2="0">
       </item>
       <item path="panelSurfaceSources.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -280,6 +292,10 @@
       </item>
       <item path="Network.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="OglGrid.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="OglGrid.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Outline.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Outline.h" ex="false" tool="3" flavor2="0">
@@ -317,6 +333,10 @@
       <item path="frameProjection.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="gl_notes.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="oglGrid.shfrag" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="oglGrid.shvert" ex="false" tool="3" flavor2="0">
       </item>
       <item path="panelSurfaceSources.cpp" ex="false" tool="1" flavor2="0">
       </item>

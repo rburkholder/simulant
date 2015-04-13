@@ -27,7 +27,7 @@ class ScreenFrame {
   //   and then transmit to remote monitor
 public:
   
-  typedef CanvasBase::pCanvas_t pCanvas_t;
+  //typedef CanvasBase::pCanvas_t pCanvas_t;
   
   typedef boost::shared_ptr<ScreenFrame> pScreenFrame_t;
   
@@ -49,7 +49,7 @@ private:
   // disallow default constructor  
   ScreenFrame( void ): m_display( 0 ), m_point( 0, 0 ), m_size( 100, 200 ) {  };
   
-  typedef std::vector<pCanvas_t> vCanvas_t;
+  //typedef std::vector<pCanvas_t> vCanvas_t;
   
   unsigned int m_nDisplay;
   std::string m_sDescription;

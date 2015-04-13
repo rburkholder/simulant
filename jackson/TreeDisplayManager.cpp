@@ -53,10 +53,11 @@ public:
   
   typedef boost::shared_ptr<TreeItemBase> pTreeItem_t;
   
-  TreeItemBase( TreeDisplayManager* pTree_, wxTreeItemId id_ ): m_pTree( pTree_ ), m_id( id_ ) {};
-  virtual ~TreeItemBase( void ) {};
+  TreeItemBase( TreeDisplayManager* pTree_, wxTreeItemId id_ ): m_pTree( pTree_ ), m_id( id_ ) {}
+  virtual ~TreeItemBase( void ) {}
   virtual void ShowContextMenu( void ) {}
   virtual void SetSelected( void ) {}
+  virtual void RemoveSelected( void ) {}
 protected:
   wxTreeItemId m_id;  // identifier of this part of the tree control
   TreeDisplayManager* m_pTree;  // used for assigning the popup, plus other base class functions, eg for Bind, etc
@@ -113,6 +114,7 @@ private:
   pOutline_t m_pOutline;
   
   void SetSelected( void );
+  void RemoveSelected( void );
   
   void HandleAddPicture( wxCommandEvent& event );
   void HandleAddVideo( wxCommandEvent& event );
@@ -142,8 +144,14 @@ void TreeItemCanvas::ShowContextMenu( void ) {
 }
 
 void TreeItemCanvas::SetSelected( void ) {
-  std::cout << "Tree Item Canvas Selected" << std::endl;
+  //std::cout << "Tree Item Canvas Selected" << std::endl;
   m_pScreenFrame->GetFrame()->SetOutline( m_pOutline );
+  m_pScreenFrame->GetFrame()->Refresh();
+}
+
+void TreeItemCanvas::RemoveSelected( void ) {
+  pOutline_t pOutline;
+  m_pScreenFrame->GetFrame()->SetOutline( pOutline );
   m_pScreenFrame->GetFrame()->Refresh();
 }
 
@@ -264,11 +272,14 @@ void TreeItemScreenFrame::HandleAddCanvas( wxCommandEvent& event ) {
   std::cout << "Add Canvas" << std::endl;  
   // various stages:  
   //   0) popup to get description
-  //   1) tree item added
-  //   2) outline added
-  //   3) outline changeable
-  //   4) handle selection event to turn outline back on for resizing events
-  //   5) add menu items to add pictures or movies
+  //   1) tree item added - done
+  //   2) outline added - done
+  //   3) outline changeable - done
+  //   4) handle selection event to turn outline back on for resizing events - done
+  //   5) add menu items to add pictures or movies - done 
+  //   6) create the canvas?
+  //   7) handle events from outline to adjust canvas
+  
   wxTreeItemId id = m_pTree->AppendItem( m_id, "Canvas" );
   
   pOutline_t pOutline( new Outline( wxRect( 300, 300, 600, 600 ), true, false ) );  // instead, use some ratio of the main window
@@ -573,6 +584,7 @@ void TreeDisplayManager::CreateControls() {
   
   wxTreeCtrl::Bind( wxEVT_TREE_ITEM_MENU, &TreeDisplayManager::HandleContextMenu, this );
   wxTreeCtrl::Bind( wxEVT_TREE_SEL_CHANGED, &TreeDisplayManager::HandleSelectionChanged, this );
+  wxTreeCtrl::Bind( wxEVT_TREE_SEL_CHANGING, &TreeDisplayManager::HandleSelectionChanging, this );
   wxTreeCtrl::Bind( wxEVT_TREE_ITEM_ACTIVATED, &TreeDisplayManager::HandleItemActivated, this );
   
   wxTreeItemId id = wxTreeCtrl::AddRoot( "Projections" );
@@ -586,8 +598,16 @@ void TreeDisplayManager::HandleContextMenu( wxTreeEvent& event ) {
 }
 
 void TreeDisplayManager::HandleSelectionChanged( wxTreeEvent& event ) {
-  std::cout << "HandleSelectionChanged" << std::endl;
-  m_mapDecoder[ event.GetItem().GetID() ]->SetSelected();
+  std::cout << "HandleSelectionChanged " << event.GetItem().GetID() << std::endl;
+  m_idOld = event.GetItem();
+  m_mapDecoder[ m_idOld.GetID() ]->SetSelected();
+  
+}
+
+void TreeDisplayManager::HandleSelectionChanging( wxTreeEvent& event ) {
+  //std::cout << "HandleSelectionChanging " << event.GetItem().GetID() << std::endl;
+  if ( m_idOld.IsOk() ) m_mapDecoder[ m_idOld ]->RemoveSelected();
+  m_idOld.Unset();
 }
 
 void TreeDisplayManager::HandleItemActivated( wxTreeEvent& event ) {

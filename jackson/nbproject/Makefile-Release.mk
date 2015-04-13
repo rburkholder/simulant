@@ -42,6 +42,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/DndDropTarget.o \
 	${OBJECTDIR}/DndSourceButton.o \
 	${OBJECTDIR}/DndTargetButton.o \
+	${OBJECTDIR}/OglGrid.o \
 	${OBJECTDIR}/Outline.o \
 	${OBJECTDIR}/ScreenFrame.o \
 	${OBJECTDIR}/TreeDisplayManager.o \
@@ -114,6 +115,11 @@ ${OBJECTDIR}/DndTargetButton.o: DndTargetButton.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/DndTargetButton.o DndTargetButton.cpp
+
+${OBJECTDIR}/OglGrid.o: OglGrid.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/OglGrid.o OglGrid.cpp
 
 ${OBJECTDIR}/Outline.o: Outline.cpp 
 	${MKDIR} -p ${OBJECTDIR}

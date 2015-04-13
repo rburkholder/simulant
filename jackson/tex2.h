@@ -32,7 +32,6 @@ public:
 protected:
 private:
   
-  //GLuint m_program;
   GLuint m_texture;
   
   std::vector<glm::vec2> m_vtxWindowCoords;

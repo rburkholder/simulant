@@ -61,6 +61,8 @@ private:
     ID_TREEDISPLAYMANAGER
   };
   
+  wxTreeItemId m_idOld;
+  
   typedef std::map<void*,pTreeItem_t> mapDecoder_t;  // void* is from wxTreeItemId
   typedef std::pair<void*,pTreeItem_t> mapDecoder_pair_t;
   mapDecoder_t m_mapDecoder;
@@ -70,6 +72,7 @@ private:
   
   void HandleContextMenu( wxTreeEvent& event );
   void HandleSelectionChanged( wxTreeEvent& event );
+  void HandleSelectionChanging( wxTreeEvent& event );
   void HandleItemActivated( wxTreeEvent& event );
 
   wxBitmap GetBitmapResource( const wxString& name );
