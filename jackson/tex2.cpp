@@ -32,7 +32,7 @@
 
 // NDS Normalized Device Space: x,y: -1.0,-1.0 -> 1.0, 1.0 ; depth: 0.0 -> 1.0  pg 39
 
-void  callback(GLenum source,GLenum type, GLuint id,
+void  callbackTex2(GLenum source,GLenum type, GLuint id,
    GLenum severity, GLsizei length, const GLchar* message, const void* userParam ) {
   std::cout << "gl error:  " << message << std::endl;
 }
@@ -62,7 +62,7 @@ void tex2::OnPaintInit() {
   
   std::cout << "init start" << std::endl;
 
-  glDebugMessageCallback( &callback, 0 );
+  glDebugMessageCallback( &callbackTex2, 0 );
   
   boost::filesystem::path path;
   path = boost::filesystem::current_path();
@@ -85,7 +85,7 @@ void tex2::OnPaint() {
   
   std::cout << "display start" << std::endl;
   
-  glDebugMessageCallback( &callback, 0 );
+  glDebugMessageCallback( &callbackTex2, 0 );
 
   wxImagePixelData data( *m_pImage );
   int width = data.GetWidth();

@@ -39,6 +39,7 @@ extern "C" {
 
 //#include "tut1.h"
 #include "tex2.h"
+#include "OglGrid.h"
 
 #include "eventImage.h"
 
@@ -107,32 +108,37 @@ private:
   
   enum {
     ID_Null = wxID_HIGHEST,
-    MIAddPicture, MIAddVideo
+    MIAddPicture, MIAddVideo, MIShowGrid
   };
+  
+  typedef boost::shared_ptr<OglGrid> pOglGrid_t;
   
   pScreenFrame_t m_pScreenFrame;
   pOutline_t m_pOutline;
+  pOglGrid_t m_pOglGrid;
   
   void SetSelected( void );
   void RemoveSelected( void );
   
   void HandleAddPicture( wxCommandEvent& event );
   void HandleAddVideo( wxCommandEvent& event );
+  void HandleShowGrid( wxCommandEvent& event );
   
 };
 
 TreeItemCanvas::TreeItemCanvas( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame, pOutline_t pOutline )
 : TreeItemBase( pTree_, id_ ), m_pScreenFrame( pScreenFrame ), m_pOutline( pOutline ) {
-  
 }
 
 TreeItemCanvas::~TreeItemCanvas( void ) {
-  
 }
 
 void TreeItemCanvas::ShowContextMenu( void ) {
   
   wxMenu* pMenu = new wxMenu();
+  
+  pMenu->Append( MIShowGrid, "Show Grid" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemCanvas::HandleShowGrid, this, MIShowGrid );
   
   pMenu->Append( MIAddPicture, "Add &Picture" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemCanvas::HandleAddPicture, this, MIAddPicture );
@@ -153,6 +159,19 @@ void TreeItemCanvas::RemoveSelected( void ) {
   pOutline_t pOutline;
   m_pScreenFrame->GetFrame()->SetOutline( pOutline );
   m_pScreenFrame->GetFrame()->Refresh();
+}
+
+void TreeItemCanvas::HandleShowGrid( wxCommandEvent& event ) {
+  std::cout << "Tree Item Show Grid" << std::endl;
+  int argsCanvas[] = { WX_GL_CORE_PROFILE, WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
+  m_pOglGrid.reset( new OglGrid( m_pScreenFrame->GetFrame(), argsCanvas ) );
+  wxRect rect( 500, 100, 300, 600 );
+  pOutline_t pOutline( m_pScreenFrame->GetFrame()->GetOutline() );
+  if ( 0 != pOutline.use_count() ) {
+    rect = pOutline->GetBoundingBox();
+  }
+  m_pOglGrid->SetSize( rect.GetSize() );
+  m_pOglGrid->Move( rect.GetTopLeft() );
 }
 
 void TreeItemCanvas::HandleAddPicture( wxCommandEvent& event ) {
@@ -192,7 +211,7 @@ private:
   
   enum {
     ID_Null = wxID_HIGHEST,
-    MIAddOpenGLCanvas,
+    MIAddOpenGLCanvas, 
     MIAddOutline, MISelectPicture, MISelectVideo, MIImageToOpenGL, MIMovieScreen
   };
   
@@ -281,6 +300,7 @@ void TreeItemScreenFrame::HandleAddCanvas( wxCommandEvent& event ) {
   //   7) handle events from outline to adjust canvas
   
   wxTreeItemId id = m_pTree->AppendItem( m_id, "Canvas" );
+  m_pTree->EnsureVisible( id );
   
   pOutline_t pOutline( new Outline( wxRect( 300, 300, 600, 600 ), true, false ) );  // instead, use some ratio of the main window
 
@@ -565,6 +585,7 @@ void TreeDisplayManager::Append( pScreenFrame_t pScreenFrame ) {
   wxTreeItemId idRoot = wxTreeCtrl::GetRootItem();
   std::string sId = boost::lexical_cast<std::string>( pScreenFrame->GetId() );
   wxTreeItemId id = wxTreeCtrl::AppendItem( idRoot, "Frame " + sId );
+  EnsureVisible( id );
   
   pTreeItem_t pTreeItem( new TreeItemScreenFrame( this, id, pScreenFrame ) );
   Add( id, pTreeItem );

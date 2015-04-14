@@ -24,26 +24,29 @@ void  callbackOglGrid(GLenum source,GLenum type, GLuint id,
 
 OglGrid::OglGrid( wxFrame* parent, int* args ): canvasOpenGL<OglGrid>( parent, args ) {
   
-  const unsigned int nCols( 10 );
-  const unsigned int nRows( 10 );
+  const GLuint nCols( 10 );  // but will n + 1, iterate 0 .. n
+  const GLuint nRows( 10 );  // but will n + 1, iterate 0 .. n
   
-  unsigned int cnt( 0 );
-  for ( unsigned int ix = 0; ix <= nCols; ++ix ) {
-    m_vCoords.push_back( glm::vec2( ix, 0 ) );
+  GLuint cnt( 0 );
+  for ( GLuint ix = 0; ix <= nCols; ++ix ) {
+    m_vCoords.push_back( glm::vec2( (float)ix, 0.0f ) );
     m_vElements.push_back( cnt++ );
-    m_vCoords.push_back( glm::vec2( ix, nRows ) );
-    m_vElements.push_back( cnt++ );
-  }
-  for ( unsigned int iy = 0; iy <= nRows; ++iy ) {
-    m_vCoords.push_back( glm::vec2( 0, iy ) );
-    m_vElements.push_back( cnt++ );
-    m_vCoords.push_back( glm::vec2( nCols, iy ) );
+    m_vCoords.push_back( glm::vec2( (float)ix, (float)nRows ) );
     m_vElements.push_back( cnt++ );
   }
+  for ( GLuint iy = 0; iy <= nRows; ++iy ) {
+    m_vCoords.push_back( glm::vec2( 0.0f, (float)iy ) );
+    m_vElements.push_back( cnt++ );
+    m_vCoords.push_back( glm::vec2( (float)nCols, (float)iy ) );
+    m_vElements.push_back( cnt++ );
+  }
+  
+  glm::vec3 vScale( 2.0f / nCols, 2.0f / nRows, 0.0f );
+  glm::vec3 vTranslate( -1.0f, -1.0f, 0.0f );
 
-  glm::mat4 m_mat4Transform = glm::mat4( 1.0f ); // identity matrix
-  m_mat4Transform *= glm::translate( glm::vec3( -1.0f, -1.0f, 0.0f ) );
-  m_mat4Transform *= glm::scale( glm::vec3( 2.0f / nCols, 2.0f / nRows, 0.0f ) );
+  m_mat4Transform = glm::mat4( 1.0f ); // identity matrix
+  m_mat4Transform *= glm::translate( vTranslate ); // then translate to straddle zero
+  m_mat4Transform *= glm::scale( vScale );  // first scale to 0..2
 
 }
 
@@ -56,7 +59,7 @@ void OglGrid::OnPaintInit() {
 
   glDebugMessageCallback( &callbackOglGrid, 0 );
   
-  std::string prefix( "../projects/simulant/jackson/" );
+  std::string prefix( "/home/rpb/projects/simulant/jackson/" );
   CanvasBase::LoadShader( GL_VERTEX_SHADER, prefix + "oglGrid.shvert" );
   CanvasBase::LoadShader( GL_FRAGMENT_SHADER, prefix + "oglGrid.shfrag" );
 	InitializeProgram();
@@ -73,6 +76,8 @@ void OglGrid::OnPaint() {
   
   glDebugMessageCallback( &callbackOglGrid, 0 );
 
+  glUseProgram(m_program);
+
   // vertex array object (VAO), an object that represents the
   // vertex fetch stage of the OpenGL pipeline and is used to supply input to
   // the vertex shader  (can go in startup)
@@ -80,37 +85,31 @@ void OglGrid::OnPaint() {
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
 
-  glUseProgram(m_program);
-
   // Create a Vertex Buffer Object and copy the vertex data to it
   GLuint vbWindowCoords;  // vertices to be deprecated
   glGenBuffers(1, &vbWindowCoords);
   glBindBuffer(GL_ARRAY_BUFFER, vbWindowCoords);
   
-//  int s1 = sizeof( glm::vec2 ) * m_vtxWindowCoords.size();
-//  int s2 = sizeof(vtxTextureCoords);
-//  std::cout << "s values: " << s1 << ", " << s2 << std::endl;
-//  glBufferData(GL_ARRAY_BUFFER, s1, &m_vtxWindowCoords[0], GL_STATIC_DRAW);  // copy vertices to opengl
+  int s1 = sizeof( glm::vec2 ) * m_vCoords.size();
+  //int s1 = 2 * m_vCoords.size();
+  //int s2 = sizeof(m_vElements);
+  int s2 = m_vElements.size();
+  std::cout << "s values: " << s1 << ", " << s2 << std::endl;
+  //std::cout << "s value: " << s1 << std::endl;
+  glBufferData(GL_ARRAY_BUFFER, s1, &m_vCoords[0], GL_STATIC_DRAW);  // copy vertices to opengl
 
   // Specify the layout of the vertex data
   GLint attribWindowCoords = glGetAttribLocation(m_program, "vWindowCoords");
-  glEnableVertexAttribArray(attribWindowCoords);
+  glEnableVertexAttribArray( attribWindowCoords );
   glVertexAttribPointer(attribWindowCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
-
   
-  // **** need to pass in grid vertices
   // **** aspect ratio comes from screen coordinates and how they map to window coordinates (-1,-1,1,1)
-  
-//  GLuint elements[] = {  // natural order for 
-//      0, 1, 2,
-//      0, 2, 3
-//  };
   
   // Create an element array
   GLuint ebo;
   glGenBuffers(1, &ebo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_vElements.size(), &(m_vElements[0]), GL_STATIC_DRAW);  // copy m_vElements to opengl
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_vElements.size()*sizeof(GLuint), &(m_vElements[0]), GL_STATIC_DRAW);  // copy m_vElements to opengl
 
   GLint uniformTransform = glGetUniformLocation( m_program, "mTransform" );
   glUniformMatrix4fv(uniformTransform, 1, GL_FALSE, &m_mat4Transform[0][0]);
@@ -119,7 +118,7 @@ void OglGrid::OnPaint() {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  // Draw a rectangle from the 2 triangles using 6 indices
+  // Draw the grid
   glDrawElements(GL_LINES, m_vElements.size(), GL_UNSIGNED_INT, 0);
 
   // uncomment after testing and clean up

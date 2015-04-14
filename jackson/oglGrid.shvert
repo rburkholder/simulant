@@ -5,5 +5,5 @@ layout(location=0) in vec2 vWindowCoords;
 uniform mat4 mTransform;
 
 void main(void) {
-  gl_Position = vec4(vWindowCoords,0,1);
+  gl_Position = mTransform * vec4(vWindowCoords,0,1);
 } 
