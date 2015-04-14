@@ -52,6 +52,7 @@ public:
   void Append( pScreenFrame_t pScreenFrame );
   
   void Add( const wxTreeItemId& id, pTreeItem_t pTreeItem );
+  void Delete( wxTreeItemId id );
 
 protected:
 private:

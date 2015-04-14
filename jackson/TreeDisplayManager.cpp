@@ -59,6 +59,7 @@ public:
   virtual void ShowContextMenu( void ) {}
   virtual void SetSelected( void ) {}
   virtual void RemoveSelected( void ) {}
+  wxTreeItemId GetTreeItemId( void ) { return m_id; }
 protected:
   wxTreeItemId m_id;  // identifier of this part of the tree control
   TreeDisplayManager* m_pTree;  // used for assigning the popup, plus other base class functions, eg for Bind, etc
@@ -108,7 +109,7 @@ private:
   
   enum {
     ID_Null = wxID_HIGHEST,
-    MIAddPicture, MIAddVideo, MIShowGrid
+    MIAddPicture, MIAddVideo, MIShowGrid, MIDelete
   };
   
   typedef boost::shared_ptr<OglGrid> pOglGrid_t;
@@ -123,6 +124,7 @@ private:
   void HandleAddPicture( wxCommandEvent& event );
   void HandleAddVideo( wxCommandEvent& event );
   void HandleShowGrid( wxCommandEvent& event );
+  void HandleDelete( wxCommandEvent& event );
   
 };
 
@@ -145,6 +147,9 @@ void TreeItemCanvas::ShowContextMenu( void ) {
   
   pMenu->Append( MIAddVideo, "Add &Video" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemCanvas::HandleAddVideo, this, MIAddVideo );
+  
+  pMenu->Append( MIDelete, "Delete" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemCanvas::HandleDelete, this, MIDelete );
   
   m_pTree->PopupMenu( pMenu );
 }
@@ -180,6 +185,11 @@ void TreeItemCanvas::HandleAddPicture( wxCommandEvent& event ) {
 
 void TreeItemCanvas::HandleAddVideo( wxCommandEvent& event ) {
   std::cout << "Tree Item Add Video" << std::endl;
+}
+
+void TreeItemCanvas::HandleDelete( wxCommandEvent& event ) {
+  std::cout << "Tree Item Delete" << std::endl;
+  m_pTree->Delete( this->m_id );
 }
 
 // ================
@@ -296,7 +306,7 @@ void TreeItemScreenFrame::HandleAddCanvas( wxCommandEvent& event ) {
   //   3) outline changeable - done
   //   4) handle selection event to turn outline back on for resizing events - done
   //   5) add menu items to add pictures or movies - done 
-  //   6) create the canvas?
+  //   6) create the canvas? - done
   //   7) handle events from outline to adjust canvas
   
   wxTreeItemId id = m_pTree->AppendItem( m_id, "Canvas" );
@@ -594,6 +604,20 @@ void TreeDisplayManager::Append( pScreenFrame_t pScreenFrame ) {
 
 void TreeDisplayManager::Add( const wxTreeItemId& id, pTreeItem_t pTreeItem ) {
   m_mapDecoder.insert( mapDecoder_pair_t( id.GetID(), pTreeItem ) );
+}
+
+void TreeDisplayManager::Delete( wxTreeItemId id ) {
+  //wxTreeItemId id( pTreeItem->GetTreeItemId() );
+  if ( 0 == GetChildrenCount( id ) ) {
+    mapDecoder_t::iterator iter = m_mapDecoder.find( id.GetID() );
+    assert( m_mapDecoder.end() != iter );
+    wxTreeCtrl::Delete( id );
+    m_idOld.Unset();
+    m_mapDecoder.erase( iter );
+  }
+  else {
+    std::cout << "item has children" << std::endl;
+  }
 }
 
 void TreeDisplayManager::Init() {
