@@ -43,8 +43,10 @@ OglGrid::OglGrid( wxFrame* parent, int* args ): canvasOpenGL<OglGrid>( parent, a
   
   glm::vec3 vScale( 2.0f / nCols, 2.0f / nRows, 0.0f );
   glm::vec3 vTranslate( -1.0f, -1.0f, 0.0f );
+  glm::vec3 vScaleDownABit( 0.99f, 0.99f, 0.0f );
 
   m_mat4Transform = glm::mat4( 1.0f ); // identity matrix
+  m_mat4Transform *= glm::scale( vScaleDownABit ); // gets all four sides into the window
   m_mat4Transform *= glm::translate( vTranslate ); // then translate to straddle zero
   m_mat4Transform *= glm::scale( vScale );  // first scale to 0..2
 

@@ -93,7 +93,94 @@ private:
 
 // ================
 
+class TreeItemCanvasGrid: public TreeItemBase {
+  // so can add/delete the grid object, and possibly handle the mouse stuff for setting up the transform
+public:
+  
+  typedef boost::shared_ptr<ScreenFrame> pScreenFrame_t;
+  typedef Outline::pOutline_t pOutline_t;
+  
+  TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame, pOutline_t pOutline );
+  ~TreeItemCanvasGrid( void );
+  
+  virtual void ShowContextMenu( void );
+  
+  // need to return transformation matrix managed by the Grid
+  
+protected:
+private:
+  
+  enum {
+    ID_Null = wxID_HIGHEST,
+    MIDelete
+  };
+  
+  typedef boost::shared_ptr<OglGrid> pOglGrid_t;
+  
+  pScreenFrame_t m_pScreenFrame;
+  pOutline_t m_pOutline;
+  pOglGrid_t m_pOglGrid;
+  
+  void HandleDelete( wxCommandEvent& event );
+  void HandleMouseWheel( wxMouseEvent& event );
+};
+
+TreeItemCanvasGrid::TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame, pOutline_t pOutline )
+: TreeItemBase( pTree_, id_ ), m_pScreenFrame( pScreenFrame ), m_pOutline( pOutline ) {
+  
+  std::cout << "Tree Item Show Grid" << std::endl;
+  int argsCanvas[] = { WX_GL_CORE_PROFILE, WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
+  m_pOglGrid.reset( new OglGrid( m_pScreenFrame->GetFrame(), argsCanvas ) );
+  wxRect rect( 500, 100, 300, 600 );
+//  pOutline_t pOutline( m_pScreenFrame->GetFrame()->GetOutline() );
+  if ( 0 != pOutline.use_count() ) {
+    rect = pOutline->GetBoundingBox();
+  }
+  m_pOglGrid->SetSize( rect.GetSize() );
+  m_pOglGrid->Move( rect.GetTopLeft() );
+  
+  m_pOglGrid->Bind( wxEVT_MOUSEWHEEL, &TreeItemCanvasGrid::HandleMouseWheel, this );
+  
+}
+
+TreeItemCanvasGrid::~TreeItemCanvasGrid( void ) {
+}
+
+void TreeItemCanvasGrid::HandleMouseWheel( wxMouseEvent& event ) {
+  std::cout << "mouse wheel " << event.GetWheelDelta() << ", " << event.GetWheelRotation() << std::endl;
+  int n( event.GetWheelRotation() );
+  if ( 0 != n ) {
+    if ( 0 < n ) { // positive
+      // zoom in, and update transform matrix
+    }
+    else { // negative
+      // zoom out, and update transform matrix
+    }
+  }
+  event.Skip();
+}
+
+void TreeItemCanvasGrid::ShowContextMenu( void ) {
+  
+  wxMenu* pMenu = new wxMenu();
+  
+  pMenu->Append( MIDelete, "Delete" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemCanvasGrid::HandleDelete, this, MIDelete );
+  
+  m_pTree->PopupMenu( pMenu );
+}
+
+void TreeItemCanvasGrid::HandleDelete( wxCommandEvent& event ) {
+  std::cout << "Tree Item Delete" << std::endl;
+  m_pTree->Delete( this->m_id );
+  // need a refresh
+}
+
+// ================
+
 class TreeItemCanvas: public TreeItemBase {
+  // may need to change name to only a place holder as it is no longer a canvas,
+  // but a placeholder for an outline for creating displayable objects
 public:
   
   typedef boost::shared_ptr<ScreenFrame> pScreenFrame_t;
@@ -112,11 +199,15 @@ private:
     MIAddPicture, MIAddVideo, MIShowGrid, MIDelete
   };
   
-  typedef boost::shared_ptr<OglGrid> pOglGrid_t;
+  //typedef boost::shared_ptr<OglGrid> pOglGrid_t;
+  
+  bool m_bHasGrid;  // need a signal from grid when to clear, should only have one grid assigned
+  // but allow multiple for now, but each is going to overwrite the supplied outline
+  // unless the outline is read only, and used only as a starting point
+  // will allow multiple objects on the canvas, so may not need m_bHasGrid
   
   pScreenFrame_t m_pScreenFrame;
   pOutline_t m_pOutline;
-  pOglGrid_t m_pOglGrid;
   
   void SetSelected( void );
   void RemoveSelected( void );
@@ -129,7 +220,7 @@ private:
 };
 
 TreeItemCanvas::TreeItemCanvas( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame, pOutline_t pOutline )
-: TreeItemBase( pTree_, id_ ), m_pScreenFrame( pScreenFrame ), m_pOutline( pOutline ) {
+: TreeItemBase( pTree_, id_ ), m_pScreenFrame( pScreenFrame ), m_pOutline( pOutline ), m_bHasGrid( false ) {
 }
 
 TreeItemCanvas::~TreeItemCanvas( void ) {
@@ -167,16 +258,11 @@ void TreeItemCanvas::RemoveSelected( void ) {
 }
 
 void TreeItemCanvas::HandleShowGrid( wxCommandEvent& event ) {
-  std::cout << "Tree Item Show Grid" << std::endl;
-  int argsCanvas[] = { WX_GL_CORE_PROFILE, WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
-  m_pOglGrid.reset( new OglGrid( m_pScreenFrame->GetFrame(), argsCanvas ) );
-  wxRect rect( 500, 100, 300, 600 );
-  pOutline_t pOutline( m_pScreenFrame->GetFrame()->GetOutline() );
-  if ( 0 != pOutline.use_count() ) {
-    rect = pOutline->GetBoundingBox();
-  }
-  m_pOglGrid->SetSize( rect.GetSize() );
-  m_pOglGrid->Move( rect.GetTopLeft() );
+  wxTreeItemId id = m_pTree->AppendItem( m_id, "Grid" );
+  m_pTree->EnsureVisible( id );
+  
+  pTreeItem_t pTreeItem( new TreeItemCanvasGrid( m_pTree, id, m_pScreenFrame, m_pOutline ) );
+  m_pTree->Add( id, pTreeItem );
 }
 
 void TreeItemCanvas::HandleAddPicture( wxCommandEvent& event ) {
@@ -205,6 +291,8 @@ public:
 protected:
 private:
 };
+
+// ================
 
 class TreeItemScreenFrame: public TreeItemBase {
 public:
