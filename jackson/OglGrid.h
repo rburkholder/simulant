@@ -28,6 +28,9 @@ protected:
 private:
   
   GLuint m_idVertexArray;
+  GLuint m_idUniformTransform;
+  GLuint m_idWindowCoordsVertexBuffer;
+  GLuint m_idElementBuffer;
   
   std::vector<glm::vec2> m_vCoords;
   std::vector<GLuint> m_vElements;

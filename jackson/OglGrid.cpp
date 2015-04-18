@@ -54,13 +54,15 @@ OglGrid::OglGrid( wxFrame* parent, int* args ): canvasOpenGL<OglGrid>( parent, a
 
 OglGrid::~OglGrid() {
   if ( m_bPaintInited ) {
+    glDeleteBuffers(1, &m_idElementBuffer);
+    glDeleteBuffers(1, &m_idWindowCoordsVertexBuffer);
     glDeleteVertexArrays(1, &m_idVertexArray);
   }
 }
 
 void OglGrid::UpdateTransform( const glm::mat4& mat4Transform ) {
   m_mat4Transform *= mat4Transform;
-  canvasOpenGL<OglGrid>::Refresh();
+  //canvasOpenGL<OglGrid>::Refresh();
 }
 
 void OglGrid::OnPaintInit() {
@@ -80,6 +82,30 @@ void OglGrid::OnPaintInit() {
   glGenVertexArrays(1, &m_idVertexArray);
   glBindVertexArray(m_idVertexArray);
 
+  m_idUniformTransform = glGetUniformLocation( m_idProgram, "mTransform" );
+  
+  // Create a Vertex Buffer Object and copy the vertex data to it
+  glGenBuffers(1, &m_idWindowCoordsVertexBuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, m_idWindowCoordsVertexBuffer);
+  
+  // notice this uses an implicit buffer id, need to figure out how this works
+  int s1 = sizeof( glm::vec2 ) * m_vCoords.size();
+  int s2 = m_vElements.size();
+  std::cout << "s values: " << s1 << ", " << s2 << std::endl;
+  glBufferData(GL_ARRAY_BUFFER, s1, &m_vCoords[0], GL_STATIC_DRAW);  // copy vertices to opengl
+
+  // Specify the layout of the vertex data
+  GLuint attribWindowCoords = glGetAttribLocation(m_idProgram, "vWindowCoords");
+  glEnableVertexAttribArray( attribWindowCoords );
+  glVertexAttribPointer(attribWindowCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
+  
+  // Create an element array
+  glGenBuffers(1, &m_idElementBuffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_idElementBuffer);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * m_vElements.size(), &(m_vElements[0]), GL_STATIC_DRAW);  // copy m_vElements to opengl
+
+  // **** aspect ratio comes from screen coordinates and how they map to window coordinates (-1,-1,1,1)
+  
   //glDebugMessageCallback( 0, 0 );
   
   std::cout << "init end" << std::endl;
@@ -88,40 +114,13 @@ void OglGrid::OnPaintInit() {
 
 void OglGrid::OnPaint() {
   
-  std::cout << "display start" << std::endl;
+  //std::cout << "display start" << std::endl;
   
   //glDebugMessageCallback( &callbackOglGrid, 0 );
 
   glUseProgram(m_idProgram);
 
-  // Create a Vertex Buffer Object and copy the vertex data to it
-  GLuint vbWindowCoords;  // vertices to be deprecated
-  glGenBuffers(1, &vbWindowCoords);
-  glBindBuffer(GL_ARRAY_BUFFER, vbWindowCoords);
-  
-  int s1 = sizeof( glm::vec2 ) * m_vCoords.size();
-  //int s1 = 2 * m_vCoords.size();
-  //int s2 = sizeof(m_vElements);
-  int s2 = m_vElements.size();
-  std::cout << "s values: " << s1 << ", " << s2 << std::endl;
-  //std::cout << "s value: " << s1 << std::endl;
-  glBufferData(GL_ARRAY_BUFFER, s1, &m_vCoords[0], GL_STATIC_DRAW);  // copy vertices to opengl
-
-  // Specify the layout of the vertex data
-  GLint attribWindowCoords = glGetAttribLocation(m_idProgram, "vWindowCoords");
-  glEnableVertexAttribArray( attribWindowCoords );
-  glVertexAttribPointer(attribWindowCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
-  
-  // **** aspect ratio comes from screen coordinates and how they map to window coordinates (-1,-1,1,1)
-  
-  // Create an element array
-  GLuint ebo;
-  glGenBuffers(1, &ebo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * m_vElements.size(), &(m_vElements[0]), GL_STATIC_DRAW);  // copy m_vElements to opengl
-
-  GLuint uniformTransform = glGetUniformLocation( m_idProgram, "mTransform" );
-  glUniformMatrix4fv(uniformTransform, 1, GL_FALSE, &m_mat4Transform[0][0]);
+  glUniformMatrix4fv(m_idUniformTransform, 1, GL_FALSE, &m_mat4Transform[0][0]);
 
   // Clear the screen to black
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -130,12 +129,9 @@ void OglGrid::OnPaint() {
   // Draw the grid
   glDrawElements(GL_LINES, m_vElements.size(), GL_UNSIGNED_INT, 0);
 
-  glDeleteBuffers(1, &ebo);
-  glDeleteBuffers(1, &vbWindowCoords);
-
   //glDebugMessageCallback( 0, 0 );
 
-  std::cout << "display end" << std::endl;
+  //std::cout << "display end" << std::endl;
 }
 
 //Called whenever the window is resized. The new window size is given, in pixels.
