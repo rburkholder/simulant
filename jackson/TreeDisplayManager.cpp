@@ -117,18 +117,28 @@ private:
   
   typedef boost::shared_ptr<OglGrid> pOglGrid_t;
   
+  float m_floatFactor;
+  
   pScreenFrame_t m_pScreenFrame;
   pOutline_t m_pOutline;
   pOglGrid_t m_pOglGrid;
   
+  glm::mat4 m_mat4Transform;
+  
+  void ResetTransformMatrix( void );
+  
   void HandleDelete( wxCommandEvent& event );
   void HandleMouseWheel( wxMouseEvent& event );
+  void HandleMouseMoved( wxMouseEvent& event );
 };
 
 TreeItemCanvasGrid::TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame, pOutline_t pOutline )
-: TreeItemBase( pTree_, id_ ), m_pScreenFrame( pScreenFrame ), m_pOutline( pOutline ) {
+: TreeItemBase( pTree_, id_ ), m_pScreenFrame( pScreenFrame ), m_pOutline( pOutline ), m_floatFactor( 1.0f ) {
   
   std::cout << "Tree Item Show Grid" << std::endl;
+  
+  ResetTransformMatrix();
+  
   int argsCanvas[] = { WX_GL_CORE_PROFILE, WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
   m_pOglGrid.reset( new OglGrid( m_pScreenFrame->GetFrame(), argsCanvas ) );
   wxRect rect( 500, 100, 300, 600 );
@@ -140,25 +150,55 @@ TreeItemCanvasGrid::TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId
   m_pOglGrid->Move( rect.GetTopLeft() );
   
   m_pOglGrid->Bind( wxEVT_MOUSEWHEEL, &TreeItemCanvasGrid::HandleMouseWheel, this );
+  m_pOglGrid->Bind( wxEVT_MOTION, &TreeItemCanvasGrid::HandleMouseMoved, this );
   
 }
 
 TreeItemCanvasGrid::~TreeItemCanvasGrid( void ) {
 }
 
+void TreeItemCanvasGrid::ResetTransformMatrix( void ) {
+  m_mat4Transform = glm::mat4( 1.0f );
+}
+
 void TreeItemCanvasGrid::HandleMouseWheel( wxMouseEvent& event ) {
   std::cout << "mouse wheel " << event.GetWheelDelta() << ", " << event.GetWheelRotation() << std::endl;
+  static const float scaleMajor( 0.10f );
+  static const float scaleMinor( 0.01f );
+  float factor( 1.0f );
   int n( event.GetWheelRotation() );
   if ( 0 != n ) {
+    glm::vec3 vScale;
     if ( 0 < n ) { // positive
       // zoom in, and update transform matrix
+      factor = 1.0f + scaleMajor;
+      vScale = glm::vec3( factor, factor, 0.0f );
     }
     else { // negative
       // zoom out, and update transform matrix
+      factor = 1.0f / ( 1.0f + scaleMajor );
+      vScale = glm::vec3( factor, factor, 0.0f );
     }
+    m_floatFactor *= factor;
+    std::cout << "factor: " << m_floatFactor << std::endl;
+    m_mat4Transform *= glm::scale( vScale );
+    m_pOglGrid->UpdateTransform( m_mat4Transform );
   }
   event.Skip();
 }
+
+void TreeItemCanvasGrid::HandleMouseMoved( wxMouseEvent& event ) {
+  event.Skip();
+}
+
+//  glm::vec3 vScaleTo2( 2.0f / nCols, 2.0f / nRows, 0.0f );
+//  glm::vec3 vTranslateAround0( -1.0f, -1.0f, 0.0f );
+//  glm::vec3 vScaleDownABit( 0.99f, 0.99f, 0.0f );
+
+//  m_mat4Transform = glm::mat4( 1.0f ); // identity matrix
+//  m_mat4Transform *= glm::scale( vScaleDownABit ); // gets all four sides into the window
+//  m_mat4Transform *= glm::translate( vTranslateAround0 ); // then translate to straddle zero
+//  m_mat4Transform *= glm::scale( vScaleTo2 );  // first scale to 0..2
 
 void TreeItemCanvasGrid::ShowContextMenu( void ) {
   

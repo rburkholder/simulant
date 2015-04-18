@@ -16,22 +16,27 @@
 #include "canvasOpenGL.h"
 
 class OglGrid: public canvasOpenGL<OglGrid> {
+  friend class canvasOpenGL<OglGrid>;
 public:
   
   OglGrid( wxFrame* parent, int* args );
   virtual ~OglGrid();
   
-  void OnPaintInit();
-  void OnPaint();
-  void OnResize( int w, int h );
+  void UpdateTransform( const glm::mat4& mat4Transform );
   
 protected:
 private:
+  
+  GLuint m_idVertexArray;
   
   std::vector<glm::vec2> m_vCoords;
   std::vector<GLuint> m_vElements;
   
   glm::mat4 m_mat4Transform;
+  
+  void OnPaintInit();
+  void OnPaint();
+  void OnResize( int w, int h );
   
 };
 

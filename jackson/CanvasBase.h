@@ -57,7 +57,7 @@ protected:
   
   vShader_t m_vShader;
   
-  GLuint m_program;
+  GLuint m_idProgram;
   
 private:
   

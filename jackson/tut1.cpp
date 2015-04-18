@@ -79,7 +79,7 @@ void tut1::OnPaint() {
 	glClearColor(0.0f, 0.0f, 1.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	glUseProgram(m_program);
+	glUseProgram(m_idProgram);
 
 	glBindBuffer(GL_ARRAY_BUFFER, boPosition);
 	glEnableVertexAttribArray(0);

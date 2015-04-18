@@ -109,7 +109,7 @@ void tex2::OnPaint() {
 //  mat4Transform *= glm::translate( glm::vec3( 1.0f, 1.0f, 0.0f ) );  // translate to window coordinates
 //  mat4Transform *= glm::scale( glm::vec3( 1.0f, 1.0f, 1.0f ) );  // invert image and expand to window coordinates
 
-  glUseProgram(m_program);
+  glUseProgram( m_idProgram );
 
   // Create a Vertex Buffer Object and copy the vertex data to it
   GLuint vbWindowCoords;  // vertices to be deprecated
@@ -121,7 +121,7 @@ void tex2::OnPaint() {
   glBufferData(GL_ARRAY_BUFFER, s1, &m_vtxWindowCoords[0], GL_STATIC_DRAW);  // copy vertices to opengl
 
   // Specify the layout of the vertex data
-  GLint attribWindowCoords = glGetAttribLocation(m_program, "vWindowCoords");
+  GLint attribWindowCoords = glGetAttribLocation(m_idProgram, "vWindowCoords");
   glEnableVertexAttribArray(attribWindowCoords);
   glVertexAttribPointer(attribWindowCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
@@ -167,11 +167,11 @@ void tex2::OnPaint() {
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);  // copy elements to opengl
 
   // Specify the layout of the vertex data
-  GLint attribTextureCoords = glGetAttribLocation(m_program, "vTextureCoords");
+  GLint attribTextureCoords = glGetAttribLocation(m_idProgram, "vTextureCoords");
   glEnableVertexAttribArray(attribTextureCoords);
   glVertexAttribPointer(attribTextureCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-  GLint uniformTransform = glGetUniformLocation( m_program, "mTransform" );
+  GLint uniformTransform = glGetUniformLocation( m_idProgram, "mTransform" );
   glUniformMatrix4fv(uniformTransform, 1, GL_FALSE, &mat4Transform[0][0]);
 
   // Clear the screen to black

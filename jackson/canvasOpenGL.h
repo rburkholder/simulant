@@ -17,32 +17,32 @@ public:
   canvasOpenGL( wxFrame* parent, int* args );
   virtual ~canvasOpenGL( void );
 protected:
+  bool m_bPaintInited;
 private:
   
-  bool m_bFirstTime;
   wxGLContext*	m_context;
   
   void OnPaint() {};  // empty placeholder for crtp
   void OnPaintInit() {};  // empty placeholder for crtp
   void OnResize( int w, int h ) {};  // empty placeholder for crtp
   
-  void Resized( wxSizeEvent& event );
-  void Render( wxPaintEvent& event );
+  void HnadleResize( wxSizeEvent& event );
+  void HandlePaint( wxPaintEvent& event );
 };
 
 template <typename CRTP>
 canvasOpenGL<CRTP>::canvasOpenGL( wxFrame* parent, int* args )
 : CanvasBase( parent, args ), 
 //  wxGLCanvas( parent, wxID_ANY, args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE ), 
-  m_bFirstTime( true ), m_context( 0 )
+  m_bPaintInited( false ), m_context( 0 )
 {
   m_context = new wxGLContext( this );
   
   // To avoid flashing on MSW
   SetBackgroundStyle( wxBG_STYLE_CUSTOM );
   
-  wxGLCanvas::Bind( wxEVT_PAINT, &canvasOpenGL<CRTP>::Render, this );
-  wxGLCanvas::Bind( wxEVT_SIZE, &canvasOpenGL<CRTP>::Resized, this );
+  wxGLCanvas::Bind( wxEVT_PAINT, &canvasOpenGL<CRTP>::HandlePaint, this );
+  wxGLCanvas::Bind( wxEVT_SIZE, &canvasOpenGL<CRTP>::HnadleResize, this );
 }
 
 template <typename CRTP>
@@ -52,7 +52,7 @@ canvasOpenGL<CRTP>::~canvasOpenGL( ) {
 }
 
 template <typename CRTP>
-void canvasOpenGL<CRTP>::Render( wxPaintEvent& event ) {
+void canvasOpenGL<CRTP>::HandlePaint( wxPaintEvent& event ) {
   
   if (!IsShown( )) return;
 
@@ -70,8 +70,8 @@ void canvasOpenGL<CRTP>::Render( wxPaintEvent& event ) {
   //
   // stuff starts here down 
   
-  if ( m_bFirstTime ) {
-    m_bFirstTime = false;
+  if ( !m_bPaintInited ) {
+    m_bPaintInited = true;
     // https://www.opengl.org/sdk/docs/man/html/glGetString.xhtml
     std::cout << "Vendor: " << glGetString(GL_VENDOR) << std::endl;
     std::cout << "Renderer: " << glGetString(GL_RENDERER) << std::endl;
@@ -100,7 +100,7 @@ void canvasOpenGL<CRTP>::Render( wxPaintEvent& event ) {
 }
 
 template <typename CRTP>
-void canvasOpenGL<CRTP>::Resized( wxSizeEvent& event ) {
+void canvasOpenGL<CRTP>::HnadleResize( wxSizeEvent& event ) {
   //	wxGLCanvas::OnSize(evt);
   
   if ( &canvasOpenGL<CRTP>::OnResize != &CRTP::OnResize ) {

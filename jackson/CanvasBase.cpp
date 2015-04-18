@@ -21,7 +21,7 @@ CanvasBase::CanvasBase(  wxFrame* parent, int* args  )
 }
 
 CanvasBase::~CanvasBase( void ) {
-  if (m_bProgramCreated) glDeleteProgram(m_program);
+  if (m_bProgramCreated) glDeleteProgram(m_idProgram);
   m_bProgramCreated = false;
 };
 
@@ -94,7 +94,7 @@ bool CanvasBase::CreateProgram( const vShader_t& vShader, GLuint& program ) {
 
 void CanvasBase::InitializeProgram() {
   
-  if ( m_bProgramCreated = CreateProgram( m_vShader, m_program ) ) {
+  if ( m_bProgramCreated = CreateProgram( m_vShader, m_idProgram ) ) {
   };
   
   std::for_each(m_vShader.begin(), m_vShader.end(), glDeleteShader);

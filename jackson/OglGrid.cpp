@@ -41,32 +41,46 @@ OglGrid::OglGrid( wxFrame* parent, int* args ): canvasOpenGL<OglGrid>( parent, a
     m_vElements.push_back( cnt++ );
   }
   
-  glm::vec3 vScale( 2.0f / nCols, 2.0f / nRows, 0.0f );
-  glm::vec3 vTranslate( -1.0f, -1.0f, 0.0f );
+  glm::vec3 vScaleTo2( 2.0f / nCols, 2.0f / nRows, 0.0f );
+  glm::vec3 vTranslateAround0( -1.0f, -1.0f, 0.0f );
   glm::vec3 vScaleDownABit( 0.99f, 0.99f, 0.0f );
 
   m_mat4Transform = glm::mat4( 1.0f ); // identity matrix
   m_mat4Transform *= glm::scale( vScaleDownABit ); // gets all four sides into the window
-  m_mat4Transform *= glm::translate( vTranslate ); // then translate to straddle zero
-  m_mat4Transform *= glm::scale( vScale );  // first scale to 0..2
+  m_mat4Transform *= glm::translate( vTranslateAround0 ); // then translate to straddle zero
+  m_mat4Transform *= glm::scale( vScaleTo2 );  // first scale to 0..2
 
 }
 
 OglGrid::~OglGrid() {
+  if ( m_bPaintInited ) {
+    glDeleteVertexArrays(1, &m_idVertexArray);
+  }
+}
+
+void OglGrid::UpdateTransform( const glm::mat4& mat4Transform ) {
+  m_mat4Transform *= mat4Transform;
+  canvasOpenGL<OglGrid>::Refresh();
 }
 
 void OglGrid::OnPaintInit() {
   
   std::cout << "init start" << std::endl;
 
-  glDebugMessageCallback( &callbackOglGrid, 0 );
+  //glDebugMessageCallback( &callbackOglGrid, 0 );
   
   std::string prefix( "/home/rpb/projects/simulant/jackson/" );
   CanvasBase::LoadShader( GL_VERTEX_SHADER, prefix + "oglGrid.shvert" );
   CanvasBase::LoadShader( GL_FRAGMENT_SHADER, prefix + "oglGrid.shfrag" );
 	InitializeProgram();
   
-  glDebugMessageCallback( 0, 0 );
+  // vertex array object (VAO), an object that represents the
+  // vertex fetch stage of the OpenGL pipeline and is used to supply input to
+  // the vertex shader  (can go in startup)
+  glGenVertexArrays(1, &m_idVertexArray);
+  glBindVertexArray(m_idVertexArray);
+
+  //glDebugMessageCallback( 0, 0 );
   
   std::cout << "init end" << std::endl;
   
@@ -76,16 +90,9 @@ void OglGrid::OnPaint() {
   
   std::cout << "display start" << std::endl;
   
-  glDebugMessageCallback( &callbackOglGrid, 0 );
+  //glDebugMessageCallback( &callbackOglGrid, 0 );
 
-  glUseProgram(m_program);
-
-  // vertex array object (VAO), an object that represents the
-  // vertex fetch stage of the OpenGL pipeline and is used to supply input to
-  // the vertex shader  (can go in startup)
-  GLuint vao;
-  glGenVertexArrays(1, &vao);
-  glBindVertexArray(vao);
+  glUseProgram(m_idProgram);
 
   // Create a Vertex Buffer Object and copy the vertex data to it
   GLuint vbWindowCoords;  // vertices to be deprecated
@@ -101,7 +108,7 @@ void OglGrid::OnPaint() {
   glBufferData(GL_ARRAY_BUFFER, s1, &m_vCoords[0], GL_STATIC_DRAW);  // copy vertices to opengl
 
   // Specify the layout of the vertex data
-  GLint attribWindowCoords = glGetAttribLocation(m_program, "vWindowCoords");
+  GLint attribWindowCoords = glGetAttribLocation(m_idProgram, "vWindowCoords");
   glEnableVertexAttribArray( attribWindowCoords );
   glVertexAttribPointer(attribWindowCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
   
@@ -111,9 +118,9 @@ void OglGrid::OnPaint() {
   GLuint ebo;
   glGenBuffers(1, &ebo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_vElements.size()*sizeof(GLuint), &(m_vElements[0]), GL_STATIC_DRAW);  // copy m_vElements to opengl
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * m_vElements.size(), &(m_vElements[0]), GL_STATIC_DRAW);  // copy m_vElements to opengl
 
-  GLint uniformTransform = glGetUniformLocation( m_program, "mTransform" );
+  GLuint uniformTransform = glGetUniformLocation( m_idProgram, "mTransform" );
   glUniformMatrix4fv(uniformTransform, 1, GL_FALSE, &m_mat4Transform[0][0]);
 
   // Clear the screen to black
@@ -123,13 +130,10 @@ void OglGrid::OnPaint() {
   // Draw the grid
   glDrawElements(GL_LINES, m_vElements.size(), GL_UNSIGNED_INT, 0);
 
-  // uncomment after testing and clean up
   glDeleteBuffers(1, &ebo);
   glDeleteBuffers(1, &vbWindowCoords);
 
-  glDeleteVertexArrays(1, &vao);
-
-  glDebugMessageCallback( 0, 0 );
+  //glDebugMessageCallback( 0, 0 );
 
   std::cout << "display end" << std::endl;
 }
