@@ -7,13 +7,14 @@
 #include <wx/display.h>
 #include <wx/sizer.h>
 
-
 #include "panelSurfaceSources.h"
 #include "appProjection.h"
 
 IMPLEMENT_APP( AppProjection )
 
 bool AppProjection::OnInit( ) {
+  
+  typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
   
   m_pFrameMain = new FrameMain( (wxFrame *)NULL, -1, wxT( "Projection Demo" ), wxPoint( 10, 10 ), wxSize( 500, 250 ) );
   m_pFrameMain->Bind( wxEVT_CLOSE_WINDOW, &AppProjection::OnClose, this );  // start close of windows and controls

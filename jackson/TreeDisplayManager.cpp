@@ -104,13 +104,13 @@ class TreeItemCanvasGrid: public TreeItemBase {
   // so can add/delete the grid object, and possibly handle the mouse stuff for setting up the transform
 public:
   
-  typedef boost::shared_ptr<PhysicalDisplay> pScreenFrame_t;
+  typedef boost::shared_ptr<PhysicalDisplay> pPhysicalDisplay_t;
   typedef Outline::pOutline_t pOutline_t;
   
   typedef boost::signals2::signal<void ( const glm::mat4& )> signalTransformUpdated_t;
   typedef signalTransformUpdated_t::slot_type slotTransformUpdated_t;
   
-  TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame, pOutline_t pOutline );
+  TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay, pOutline_t pOutline );
   ~TreeItemCanvasGrid( void );
   
   virtual void ShowContextMenu( void );
@@ -139,8 +139,7 @@ private:
   int m_intMouseX;
   int m_intMouseY;
   
-  pScreenFrame_t m_pScreenFrame;
-  //pOutline_t m_pOutline;
+  pPhysicalDisplay_t m_pPhysicalDisplay;
   pOglGrid_t m_pOglGrid;
   
   glm::mat4 m_mat4Transform;
@@ -163,13 +162,13 @@ private:
   
 };
 
-TreeItemCanvasGrid::TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame, pOutline_t pOutline )
-: TreeItemBase( pTree_, id_ ), m_pScreenFrame( pScreenFrame ), /*m_pOutline( pOutline ),*/ m_floatFactor( 1.0f ), m_bActive( false ) {
+TreeItemCanvasGrid::TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay, pOutline_t pOutline )
+: TreeItemBase( pTree_, id_ ), m_pPhysicalDisplay( pPhysicalDisplay ), m_floatFactor( 1.0f ), m_bActive( false ) {
   
   std::cout << "Tree Item Show Grid" << std::endl;
   
   int argsCanvas[] = { WX_GL_CORE_PROFILE, WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
-  m_pOglGrid.reset( new OglGrid( m_pScreenFrame->GetFrame(), argsCanvas ) );
+  m_pOglGrid.reset( new OglGrid( pPhysicalDisplay->GetFrame(), argsCanvas ) );
   wxRect rect( 10, 10, 10, 10 );
 //  pOutline_t pOutline( m_pScreenFrame->GetFrame()->GetOutline() );
   if ( 0 != pOutline.use_count() ) {
@@ -206,12 +205,12 @@ TreeItemCanvasGrid::~TreeItemCanvasGrid( void ) {
 
 void TreeItemCanvasGrid::HandleRefreshTimer( FpsGenerator::FPS fps ) {
   if ( m_bActive ) { // cross thread action
-    wxApp::GetInstance()->QueueEvent( new EventGenerateFrame( EVENT_GENERATEFRAME, m_pScreenFrame->GetFrame()->GetId() ) );
+    wxApp::GetInstance()->QueueEvent( new EventGenerateFrame( EVENT_GENERATEFRAME, m_pPhysicalDisplay->GetFrame()->GetId() ) );
   }
 }
 
 void TreeItemCanvasGrid::HandleRefresh( EventGenerateFrame& event ) {
-  if ( m_pScreenFrame->GetFrame()->GetId() == event.GetId() ) {
+  if ( m_pPhysicalDisplay->GetFrame()->GetId() == event.GetId() ) {
     m_pOglGrid->Refresh();
   }
   else {
@@ -229,8 +228,6 @@ void TreeItemCanvasGrid::ResetTransformMatrix( void ) {
   
   float height = m_pOglGrid->GetClientSize().GetHeight();
   float width = m_pOglGrid->GetClientSize().GetWidth();
-  //float height = m_pOutline->GetBoundingBox().GetHeight();
-  //float width  = m_pOutline->GetBoundingBox().GetWidth();
   float ar = height / width;  // aspect ratio
   
   if ( 1.0 != ar ) {  // rescale if not a square
@@ -240,7 +237,6 @@ void TreeItemCanvasGrid::ResetTransformMatrix( void ) {
     else { // width > height, so scale to height
       floatWidthScale = 1.0f * ar;
     }
-    //m_pOglGrid->UpdateTransform( m_mat4Transform );
   }
   
   m_mat4Transform *= glm::scale( glm::vec3( floatWidthScale, floatHeightScale, 0.0f ) );
@@ -486,13 +482,13 @@ private:
 
 // ================
 
-class TreeItemScreenFrame: public TreeItemBase {
+class TreeItemPhysicalDisplay: public TreeItemBase {
 public:
   
-  typedef boost::shared_ptr<PhysicalDisplay> pScreenFrame_t;
+  typedef boost::shared_ptr<PhysicalDisplay> pPhysicalDisplay_t;
   
-  TreeItemScreenFrame( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame );
-  ~TreeItemScreenFrame( void );
+  TreeItemPhysicalDisplay( TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pScreenFrame );
+  ~TreeItemPhysicalDisplay( void );
   
   virtual void ShowContextMenu( void );
   
@@ -516,7 +512,7 @@ private:
   boost::asio::io_service m_Srvc;
   boost::asio::io_service::work* m_pWork;
   
-  pScreenFrame_t m_pScreenFrame;
+  pPhysicalDisplay_t m_pPhysicalDisplay;
   
   //tut1* m_pTut1;
   tex2* m_pTex;
@@ -539,8 +535,8 @@ private:
   
 };
 
-TreeItemScreenFrame::TreeItemScreenFrame( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame )
-: TreeItemBase( pTree_, id_ ), m_pScreenFrame( pScreenFrame ) {
+TreeItemPhysicalDisplay::TreeItemPhysicalDisplay( TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay )
+: TreeItemBase( pTree_, id_ ), m_pPhysicalDisplay( pPhysicalDisplay ) {
   // add a right click pop up to add displayable objects and surfaces
   // which are then serialized for session persistence
   // use text or enum keys to register objects, for subsequent re-creation
@@ -561,23 +557,23 @@ TreeItemScreenFrame::TreeItemScreenFrame( TreeDisplayManager* pTree_, wxTreeItem
   }
 
   // **** will need to set a specific instance id so that multiple frames can be run
-  wxApp::GetInstance()->Bind( EVENT_IMAGE, &TreeItemScreenFrame::HandleEventImage, this );
+  wxApp::GetInstance()->Bind( EVENT_IMAGE, &TreeItemPhysicalDisplay::HandleEventImage, this );
 }
 
-TreeItemScreenFrame::~TreeItemScreenFrame( void ) {
+TreeItemPhysicalDisplay::~TreeItemPhysicalDisplay( void ) {
   delete m_pWork;
   m_pWork = 0;
   m_threadsWorkers.join_all();
 }
 
-void TreeItemScreenFrame::HandleAddOutline(  wxCommandEvent& event  ) {  // for remote displays, will use wizard dialog
+void TreeItemPhysicalDisplay::HandleAddOutline(  wxCommandEvent& event  ) {  // for remote displays, will use wizard dialog
   std::cout << "Add Outline" << std::endl;  
   pOutline_t m_pOutline( new Outline( wxRect( 300, 300, 600, 600 ) ) );
-  m_pScreenFrame->GetFrame()->SetOutline( m_pOutline );
-  m_pScreenFrame->GetFrame()->Refresh();
+  m_pPhysicalDisplay->GetFrame()->SetOutline( m_pOutline );
+  m_pPhysicalDisplay->GetFrame()->Refresh();
 }
 
-void TreeItemScreenFrame::HandleAddCanvas( wxCommandEvent& event ) {
+void TreeItemPhysicalDisplay::HandleAddCanvas( wxCommandEvent& event ) {
   std::cout << "Add Canvas" << std::endl;  
   // various stages:  
   //   0) popup to get description
@@ -594,40 +590,40 @@ void TreeItemScreenFrame::HandleAddCanvas( wxCommandEvent& event ) {
   
   pOutline_t pOutline( new Outline( wxRect( 300, 300, 600, 600 ), true, false ) );  // instead, use some ratio of the main window
 
-  pTreeItem_t pTreeItem( new TreeItemCanvas( m_pTree, id, m_pScreenFrame, pOutline ) );
+  pTreeItem_t pTreeItem( new TreeItemCanvas( m_pTree, id, m_pPhysicalDisplay, pOutline ) );
   m_pTree->Add( id, pTreeItem );
 }
   
-void TreeItemScreenFrame::ShowContextMenu( void ) {
+void TreeItemPhysicalDisplay::ShowContextMenu( void ) {
   wxMenu* pMenu = new wxMenu();
   
   pMenu->Append( MIAddOpenGLCanvas, "Add Canvas" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScreenFrame::HandleAddCanvas, this, MIAddOpenGLCanvas );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPhysicalDisplay::HandleAddCanvas, this, MIAddOpenGLCanvas );
   
   pMenu->AppendSeparator();
 
   pMenu->Append( MIAddOutline, "&Add Outline" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScreenFrame::HandleAddOutline, this, MIAddOutline );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPhysicalDisplay::HandleAddOutline, this, MIAddOutline );
 
   pMenu->Append( MISelectPicture, "wx Picture" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScreenFrame::HandleLoadPicture, this, MISelectPicture );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPhysicalDisplay::HandleLoadPicture, this, MISelectPicture );
 
   pMenu->Append( MISelectVideo, "wx Video" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScreenFrame::HandleLoadVideo, this, MISelectVideo );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPhysicalDisplay::HandleLoadVideo, this, MISelectVideo );
 
   pMenu->Append( MIImageToOpenGL, "Image->OpenGL" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScreenFrame::HandleImage2OpenGL, this, MIImageToOpenGL );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPhysicalDisplay::HandleImage2OpenGL, this, MIImageToOpenGL );
 
   pMenu->Append( MIMovieScreen, "Movie Screen" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScreenFrame::HandleCreateMovieScreen, this, MIMovieScreen );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPhysicalDisplay::HandleCreateMovieScreen, this, MIMovieScreen );
 
   m_pTree->PopupMenu( pMenu );
 }
   
-void TreeItemScreenFrame::HandleLoadPicture( wxCommandEvent& event ) {
+void TreeItemPhysicalDisplay::HandleLoadPicture( wxCommandEvent& event ) {
   std::cout << "LoadPicture" << std::endl;  
   wxFileDialog dialogOpenFile( 
-    m_pScreenFrame->GetFrame(), wxT("Select Image" ), m_sPictureDirectory, "", 
+    m_pPhysicalDisplay->GetFrame(), wxT("Select Image" ), m_sPictureDirectory, "", 
     //"JPG Files (*.jpg)|*.jpg", 
     _("Image Files ") + wxImage::GetImageExtWildcard(),
     wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_CHANGE_DIR );
@@ -637,7 +633,7 @@ void TreeItemScreenFrame::HandleLoadPicture( wxCommandEvent& event ) {
     std::cout << "dir " << m_sPictureDirectory << std::endl;
     assert( m_image.LoadFile( dialogOpenFile.GetPath(), wxBITMAP_TYPE_JPEG ) );
     wxBitmap bitmap( m_image );
-    FrameProjection* pfp = m_pScreenFrame->GetFrame();
+    FrameProjection* pfp = m_pPhysicalDisplay->GetFrame();
     wxClientDC dc( pfp );
     dc.DrawBitmap( bitmap, wxPoint( 0, 0 ) );
     Image2OpenGL();
@@ -646,7 +642,7 @@ void TreeItemScreenFrame::HandleLoadPicture( wxCommandEvent& event ) {
   }
 }
 
-void TreeItemScreenFrame::Image2OpenGL( void ) {
+void TreeItemPhysicalDisplay::Image2OpenGL( void ) {
   
   if ( m_image.IsOk() ) {
     //std::cout << "is ok" << std::endl;
@@ -656,10 +652,10 @@ void TreeItemScreenFrame::Image2OpenGL( void ) {
     }
     if ( 0 == m_pTex ) {
       int argsCanvas[] = { WX_GL_CORE_PROFILE, WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
-      m_pTex = new tex2( m_pScreenFrame->GetFrame(), argsCanvas );
+      m_pTex = new tex2( m_pPhysicalDisplay->GetFrame(), argsCanvas );
       //m_pTex->SetSize( m_image.GetWidth(), m_image.GetHeight() );
       wxRect rect( 500, 100, 300, 600 );
-      pOutline_t pOutline( m_pScreenFrame->GetFrame()->GetOutline() );
+      pOutline_t pOutline( m_pPhysicalDisplay->GetFrame()->GetOutline() );
       if ( 0 != pOutline.use_count() ) {
         rect = pOutline->GetBoundingBox();
       }
@@ -688,12 +684,12 @@ void TreeItemScreenFrame::Image2OpenGL( void ) {
   }
 }
 
-void TreeItemScreenFrame::Workers( void ) {
+void TreeItemPhysicalDisplay::Workers( void ) {
   m_Srvc.run(); 
 }
 
 //int nFrame=0;
-void TreeItemScreenFrame::HandleOnFrame( AVCodecContext* context, AVFrame* frame, AVPacket* pkt, void* user, structTimeSteps perf ) {
+void TreeItemPhysicalDisplay::HandleOnFrame( AVCodecContext* context, AVFrame* frame, AVPacket* pkt, void* user, structTimeSteps perf ) {
   
 #define FMT PIX_FMT_RGB32
 //#define FMT PIX_FMT_RGB24
@@ -726,7 +722,7 @@ void TreeItemScreenFrame::HandleOnFrame( AVCodecContext* context, AVFrame* frame
   perf.scaled = boost::chrono::high_resolution_clock::now();
 
   //HandleFrameTransform( pRGB, buf, user, perf, srcX, srcY );
-  m_Srvc.post( boost::phoenix::bind( &TreeItemScreenFrame::HandleFrameTransform, this, pRGB, buf, user, perf, srcX, srcY ) );
+  m_Srvc.post( boost::phoenix::bind( &TreeItemPhysicalDisplay::HandleFrameTransform, this, pRGB, buf, user, perf, srcX, srcY ) );
   
   // ** note decode currently works faster than the transform, so transform work will queue up.
   //    need to deal with proper timing of frames.
@@ -736,7 +732,7 @@ void TreeItemScreenFrame::HandleOnFrame( AVCodecContext* context, AVFrame* frame
   //      or do frame ordering in final presentation to screen, buffer loop
 }
 
-void TreeItemScreenFrame::HandleFrameTransform( AVFrame* pRgb, uint8_t* buf, void* user, structTimeSteps perf, int srcX, int srcY ) {
+void TreeItemPhysicalDisplay::HandleFrameTransform( AVFrame* pRgb, uint8_t* buf, void* user, structTimeSteps perf, int srcX, int srcY ) {
   
   perf.queue1 = boost::chrono::high_resolution_clock::now();
   
@@ -762,7 +758,7 @@ void TreeItemScreenFrame::HandleFrameTransform( AVFrame* pRgb, uint8_t* buf, voi
   
   // may need to set a unique itemid if multiple events running simultaneously
   // need to change this to the specific canvas into which the frame is going to be displayed
-  wxApp::GetInstance()->QueueEvent( new EventImage( EVENT_IMAGE, m_pScreenFrame->GetFrame()->GetId(), pImage, user, perf ) );
+  wxApp::GetInstance()->QueueEvent( new EventImage( EVENT_IMAGE, m_pPhysicalDisplay->GetFrame()->GetId(), pImage, user, perf ) );
   //m_pScreenFrame->GetFrame()->QueueEvent( new EventImage( EVENT_IMAGE, -1, pImage, user, perf ) );
   //m_pScreenFrame->GetFrame()->get QueueEvent( new EventImage( EVENT_IMAGE, -1, pImage, user, perf ) );
   
@@ -771,7 +767,7 @@ void TreeItemScreenFrame::HandleFrameTransform( AVFrame* pRgb, uint8_t* buf, voi
   
 }
 
-void TreeItemScreenFrame::HandleEventImage( EventImage& event ) {
+void TreeItemPhysicalDisplay::HandleEventImage( EventImage& event ) {
 
   typedef boost::chrono::milliseconds ms;
   typedef boost::chrono::microseconds mu;
@@ -801,14 +797,14 @@ void TreeItemScreenFrame::HandleEventImage( EventImage& event ) {
     
 }
 
-void TreeItemScreenFrame::ProcessVideoFile( boost::shared_ptr<DecodeH264> pDecoder ) {
+void TreeItemPhysicalDisplay::ProcessVideoFile( boost::shared_ptr<DecodeH264> pDecoder ) {
   pDecoder->ProcessFile();
 }
 
-void TreeItemScreenFrame::HandleLoadVideo( wxCommandEvent& event ) {
+void TreeItemPhysicalDisplay::HandleLoadVideo( wxCommandEvent& event ) {
   std::cout << "LoadPicture" << std::endl;  
   wxFileDialog dialogOpenFile( 
-    m_pScreenFrame->GetFrame(), wxT("Select Video" ), m_sVideoDirectory, "", 
+    m_pPhysicalDisplay->GetFrame(), wxT("Select Video" ), m_sVideoDirectory, "", 
     //"Video Files (*.ts)|*.ts", 
     "Video Files (*.h264)|*.h264", 
     //_(" Files ") + wxImage::GetImageExtWildcard(),
@@ -819,16 +815,16 @@ void TreeItemScreenFrame::HandleLoadVideo( wxCommandEvent& event ) {
     std::cout << "dir " << m_sVideoDirectory << std::endl;
     //assert( m_image.LoadFile( dialogOpenFile.GetPath(), wxBITMAP_TYPE_JPEG ) );
 
-    boost::shared_ptr<DecodeH264> pDecoder( new DecodeH264 ( m_pScreenFrame->GetFrame() ) );
+    boost::shared_ptr<DecodeH264> pDecoder( new DecodeH264 ( m_pPhysicalDisplay->GetFrame() ) );
     
     namespace args = boost::phoenix::arg_names;
     pDecoder->m_OnFrame.connect( 
-      boost::phoenix::bind( &TreeItemScreenFrame::HandleOnFrame, this, args::arg1, args::arg2, args::arg3, args::arg4, args::arg5 ) );
+      boost::phoenix::bind( &TreeItemPhysicalDisplay::HandleOnFrame, this, args::arg1, args::arg2, args::arg3, args::arg4, args::arg5 ) );
 
     pDecoder->load( dialogOpenFile.GetPath() );
     // ProcessFile to be handled in thread
 
-    m_Srvc.post( boost::phoenix::bind( &TreeItemScreenFrame::ProcessVideoFile, this, pDecoder ) );
+    m_Srvc.post( boost::phoenix::bind( &TreeItemPhysicalDisplay::ProcessVideoFile, this, pDecoder ) );
     
     // need to do processing in background, 
     // put frames into queue
@@ -877,7 +873,7 @@ void TreeDisplayManager::Append( pPhysicalDisplay_t pPhysicalDisplay ) {
   wxTreeItemId id = wxTreeCtrl::AppendItem( idRoot, "Frame " + sId );
   EnsureVisible( id );
   
-  pTreeItem_t pTreeItem( new TreeItemScreenFrame( this, id, pPhysicalDisplay ) );
+  pTreeItem_t pTreeItem( new TreeItemPhysicalDisplay( this, id, pPhysicalDisplay ) );
   Add( id, pTreeItem );
   //m_mapDecoder.insert( mapDecoder_pair_t( id.GetID(), pTreeItem ) );
 }
