@@ -13,11 +13,11 @@
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
 
-#include <boost/phoenix/bind/bind_member_function.hpp>
 //#include <boost/phoenix/bind.hpp>
+#include <boost/phoenix/bind/bind_member_function.hpp>
 #include <boost/phoenix/core/argument.hpp>
-#include <boost/shared_ptr.hpp>
 
+#include <boost/signals2.hpp>
 #include <boost/chrono/chrono_io.hpp>
 
 #include <wx/menu.h>
@@ -107,12 +107,20 @@ public:
   typedef boost::shared_ptr<ScreenFrame> pScreenFrame_t;
   typedef Outline::pOutline_t pOutline_t;
   
+  typedef boost::signals2::signal<void ( const glm::mat4& )> signalTransformUpdated_t;
+  typedef signalTransformUpdated_t::slot_type slotTransformUpdated_t;
+  
   TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame, pOutline_t pOutline );
   ~TreeItemCanvasGrid( void );
   
   virtual void ShowContextMenu( void );
   
+  void GetTransformMatrix( glm::mat4& matrix ) const { matrix = m_mat4Transform; };
+  
   // need to return transformation matrix managed by the Grid
+  boost::signals2::connection Connect( const slotTransformUpdated_t& slot ) {
+    return m_signalTransformUpdated.connect( slot );
+  }
   
 protected:
 private:
@@ -137,9 +145,12 @@ private:
   
   glm::mat4 m_mat4Transform;
   
+  signalTransformUpdated_t m_signalTransformUpdated;
+  
   boost::signals2::connection m_slotTimer;
   
   void ResetTransformMatrix( void );
+  void UpdateTransformMatrix( void );
   
   void HandleDelete( wxCommandEvent& event );
   void HandleReset( wxCommandEvent& event );
@@ -176,7 +187,7 @@ TreeItemCanvasGrid::TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId
   m_slotTimer = fps.Connect( FpsGenerator::fps24, boost::phoenix::bind( &TreeItemCanvasGrid::HandleRefreshTimer, this ) );
  
   ResetTransformMatrix();
-  m_pOglGrid->UpdateTransform( m_mat4Transform );
+  UpdateTransformMatrix();
   
   m_bActive = true;
   
@@ -184,7 +195,11 @@ TreeItemCanvasGrid::TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId
 
 TreeItemCanvasGrid::~TreeItemCanvasGrid( void ) {
   m_bActive = false;
+  wxApp::GetInstance()->Unbind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this );
   m_slotTimer.disconnect();
+  m_pOglGrid->Unbind( wxEVT_MOUSEWHEEL, &TreeItemCanvasGrid::HandleMouseWheel, this );
+  m_pOglGrid->Unbind( wxEVT_MOTION, &TreeItemCanvasGrid::HandleMouseMoved, this );
+  m_pOglGrid->Unbind( wxEVT_LEFT_DOWN, &TreeItemCanvasGrid::HandleMouseLeftDown, this );
 }
 
 void TreeItemCanvasGrid::HandleRefreshTimer( void ) {
@@ -223,6 +238,11 @@ void TreeItemCanvasGrid::ResetTransformMatrix( void ) {
   std::cout << "ar " << floatWidthScale << ", " << floatHeightScale << std::endl;
 }
 
+void TreeItemCanvasGrid::UpdateTransformMatrix( void ) {
+  m_pOglGrid->UpdateTransform( m_mat4Transform );
+  m_signalTransformUpdated( m_mat4Transform );
+}
+
 void TreeItemCanvasGrid::HandleMouseWheel( wxMouseEvent& event ) {
   //std::cout << "mouse wheel " << event.GetWheelDelta() << ", " << event.GetWheelRotation() << std::endl;
   static const float scaleMajor( 0.10f );
@@ -257,7 +277,7 @@ void TreeItemCanvasGrid::HandleMouseWheel( wxMouseEvent& event ) {
       //std::cout << "scale factor: " << m_floatFactor << std::endl;
       m_mat4Transform *= glm::scale( vScale );
     }
-    m_pOglGrid->UpdateTransform( m_mat4Transform );
+    UpdateTransformMatrix();
   }
   event.Skip( false );
 }
@@ -291,7 +311,7 @@ void TreeItemCanvasGrid::HandleMouseMoved( wxMouseEvent& event ) {
       glm::vec3 vTranslate = glm::vec3( multiplier * ratioX, -multiplier * ratioY, 0.0f );
       m_mat4Transform *= glm::translate( vTranslate );
     }
-    m_pOglGrid->UpdateTransform( m_mat4Transform );
+    UpdateTransformMatrix();
   }
   
   m_intMouseX = event.GetX();
@@ -321,7 +341,7 @@ void TreeItemCanvasGrid::HandleDelete( wxCommandEvent& event ) {
 void TreeItemCanvasGrid::HandleReset( wxCommandEvent& event ) {
   std::cout << "Grid Reset" << std::endl;
   ResetTransformMatrix();
-  m_pOglGrid->UpdateTransform( m_mat4Transform );
+  UpdateTransformMatrix();
 }
 
 // ================
@@ -347,7 +367,7 @@ private:
     MIAddPicture, MIAddVideo, MIShowGrid, MIDelete
   };
   
-  //typedef boost::shared_ptr<OglGrid> pOglGrid_t;
+  glm::mat4 m_mat4Transform;  // The transformation matrix built by Grid
   
   bool m_bHasGrid;  // need a signal from grid when to clear, should only have one grid assigned
   // but allow multiple for now, but each is going to overwrite the supplied outline
@@ -357,6 +377,8 @@ private:
   pScreenFrame_t m_pScreenFrame;
   pOutline_t m_pOutline;
   
+  boost::signals2::connection m_connectGrid;  // not quite right, as we can have multiple grids showing.
+  
   void SetSelected( void );
   void RemoveSelected( void );
   
@@ -365,10 +387,13 @@ private:
   void HandleShowGrid( wxCommandEvent& event );
   void HandleDelete( wxCommandEvent& event );
   
+  void HandleUpdateTransform( const glm::mat4& matrix );
+  
 };
 
 TreeItemCanvas::TreeItemCanvas( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame, pOutline_t pOutline )
 : TreeItemBase( pTree_, id_ ), m_pScreenFrame( pScreenFrame ), m_pOutline( pOutline ), m_bHasGrid( false ) {
+  m_mat4Transform = glm::mat4( 1.0f );  // identity matrix to start
 }
 
 TreeItemCanvas::~TreeItemCanvas( void ) {
@@ -409,8 +434,13 @@ void TreeItemCanvas::HandleShowGrid( wxCommandEvent& event ) {
   wxTreeItemId id = m_pTree->AppendItem( m_id, "Grid" );
   m_pTree->EnsureVisible( id );
   
-  pTreeItem_t pTreeItem( new TreeItemCanvasGrid( m_pTree, id, m_pScreenFrame, m_pOutline ) );
+  TreeItemCanvasGrid* p = new TreeItemCanvasGrid( m_pTree, id, m_pScreenFrame, m_pOutline );
+  pTreeItem_t pTreeItem( p );
   m_pTree->Add( id, pTreeItem );
+  
+  namespace args = boost::phoenix::arg_names;
+  m_connectGrid = p->Connect( boost::phoenix::bind( &TreeItemCanvas::HandleUpdateTransform, this, args::arg1 ) );
+  p->GetTransformMatrix( m_mat4Transform );
 }
 
 void TreeItemCanvas::HandleAddPicture( wxCommandEvent& event ) {
@@ -424,6 +454,10 @@ void TreeItemCanvas::HandleAddVideo( wxCommandEvent& event ) {
 void TreeItemCanvas::HandleDelete( wxCommandEvent& event ) {
   std::cout << "Tree Item Delete" << std::endl;
   m_pTree->Delete( this->m_id );
+}
+
+void TreeItemCanvas::HandleUpdateTransform( const glm::mat4& matrix ) {
+  m_mat4Transform = matrix;
 }
 
 // ================

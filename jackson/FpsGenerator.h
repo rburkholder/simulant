@@ -24,14 +24,13 @@ public:
   
   enum FPS { fps24=0, fps25, fps30, fps48, fps60, fps100 };
   
+  typedef boost::signals2::signal<void ()> signalFrame_t;  // signal definition
+  typedef signalFrame_t::slot_type slotFrame_t;       // slot definition
+  
   FpsGenerator( );
   virtual ~FpsGenerator( );
   
-  typedef boost::signals2::signal<void ()> signalFrame_t;  // signal definition
-  typedef signalFrame_t::slot_type actionFrame_t;       // slot definition
-  
-  boost::signals2::connection Connect( FPS, const actionFrame_t& );
-  //void Disconnect( FPS, const actionFrame_t& );
+  boost::signals2::connection Connect( FPS, const slotFrame_t& );
   
 protected:  
 private:

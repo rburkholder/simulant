@@ -82,13 +82,9 @@ FpsGenerator::~FpsGenerator( ) {
   m_thread.join();  // wait for thread to end
 }
 
-boost::signals2::connection FpsGenerator::Connect( FPS fps, const actionFrame_t& action ) {
-  return m_vDownCount[ fps ]->m_signal.connect( action );
+boost::signals2::connection FpsGenerator::Connect( FPS fps, const slotFrame_t& slot ) {
+  return m_vDownCount[ fps ]->m_signal.connect( slot );
 }
-
-//ct( FPS fps, const actionFrame_t& action ) {
-//  m_vDownCount[ fps ]->m_signal.disconnect( action );
-//}
 
 void FpsGenerator::Thread( void ) {
   
