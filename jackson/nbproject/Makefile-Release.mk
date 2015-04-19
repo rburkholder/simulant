@@ -42,6 +42,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/DndDropTarget.o \
 	${OBJECTDIR}/DndSourceButton.o \
 	${OBJECTDIR}/DndTargetButton.o \
+	${OBJECTDIR}/EventGenerateFrame.o \
+	${OBJECTDIR}/EventImage.o \
 	${OBJECTDIR}/FpsGenerator.o \
 	${OBJECTDIR}/OglGrid.o \
 	${OBJECTDIR}/Outline.o \
@@ -49,7 +51,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/TreeDisplayManager.o \
 	${OBJECTDIR}/appProjection.o \
 	${OBJECTDIR}/canvasOpenGL.o \
-	${OBJECTDIR}/eventImage.o \
 	${OBJECTDIR}/frameMain.o \
 	${OBJECTDIR}/frameProjection.o \
 	${OBJECTDIR}/panelSurfaceSources.o \
@@ -117,6 +118,16 @@ ${OBJECTDIR}/DndTargetButton.o: DndTargetButton.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/DndTargetButton.o DndTargetButton.cpp
 
+${OBJECTDIR}/EventGenerateFrame.o: EventGenerateFrame.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/EventGenerateFrame.o EventGenerateFrame.cpp
+
+${OBJECTDIR}/EventImage.o: EventImage.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/EventImage.o EventImage.cpp
+
 ${OBJECTDIR}/FpsGenerator.o: FpsGenerator.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -151,11 +162,6 @@ ${OBJECTDIR}/canvasOpenGL.o: canvasOpenGL.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/canvasOpenGL.o canvasOpenGL.cpp
-
-${OBJECTDIR}/eventImage.o: eventImage.cpp 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/eventImage.o eventImage.cpp
 
 ${OBJECTDIR}/frameMain.o: frameMain.cpp 
 	${MKDIR} -p ${OBJECTDIR}

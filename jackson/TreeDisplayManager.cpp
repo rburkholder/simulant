@@ -13,7 +13,8 @@
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
 
-#include <boost/phoenix/bind.hpp>
+#include <boost/phoenix/bind/bind_member_function.hpp>
+//#include <boost/phoenix/bind.hpp>
 #include <boost/phoenix/core/argument.hpp>
 #include <boost/shared_ptr.hpp>
 
@@ -41,11 +42,16 @@ extern "C" {
 #include "tex2.h"
 #include "OglGrid.h"
 
-#include "eventImage.h"
+#include "EventImage.h"
+#include "EventGenerateFrame.h"
 
 #include "Outline.h"
 
+#include "FpsGenerator.h"
+
 #include "TreeDisplayManager.h"
+
+FpsGenerator fps;  // generate signals for frame rate control
 
 IMPLEMENT_DYNAMIC_CLASS( TreeDisplayManager, wxTreeCtrl )
 
@@ -125,11 +131,17 @@ private:
   
   glm::mat4 m_mat4Transform;
   
+  boost::signals2::connection m_slotTimer;
+  
   void ResetTransformMatrix( void );
   
   void HandleDelete( wxCommandEvent& event );
   void HandleMouseWheel( wxMouseEvent& event );
   void HandleMouseMoved( wxMouseEvent& event );
+  
+  void HandleRefreshTimer( void );
+  void HandleRefresh( EventGenerateFrame& event );
+  
 };
 
 TreeItemCanvasGrid::TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame, pOutline_t pOutline )
@@ -152,9 +164,23 @@ TreeItemCanvasGrid::TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId
   m_pOglGrid->Bind( wxEVT_MOUSEWHEEL, &TreeItemCanvasGrid::HandleMouseWheel, this );
   m_pOglGrid->Bind( wxEVT_MOTION, &TreeItemCanvasGrid::HandleMouseMoved, this );
   
+  wxApp::GetInstance()->Bind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this ); 
+  
+  m_slotTimer = fps.Connect( FpsGenerator::fps24, boost::phoenix::bind( &TreeItemCanvasGrid::HandleRefreshTimer, this ) );
+ 
 }
 
 TreeItemCanvasGrid::~TreeItemCanvasGrid( void ) {
+  m_slotTimer.disconnect();
+}
+
+void TreeItemCanvasGrid::HandleRefreshTimer( void ) {
+  wxApp::GetInstance()->QueueEvent( new EventGenerateFrame( EVENT_GENERATEFRAME, m_pScreenFrame->GetFrame()->GetId() ) );
+}
+
+void TreeItemCanvasGrid::HandleRefresh( EventGenerateFrame& event ) {
+  m_pOglGrid->Refresh();
+  event.Skip( false );
 }
 
 void TreeItemCanvasGrid::ResetTransformMatrix( void ) {

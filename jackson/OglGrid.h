@@ -36,6 +36,7 @@ private:
   std::vector<GLuint> m_vElements;
   
   glm::mat4 m_mat4Transform;
+  glm::mat4 m_mat4Basic;
   
   void OnPaintInit();
   void OnPaint();

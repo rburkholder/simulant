@@ -45,10 +45,12 @@ OglGrid::OglGrid( wxFrame* parent, int* args ): canvasOpenGL<OglGrid>( parent, a
   glm::vec3 vTranslateAround0( -1.0f, -1.0f, 0.0f );
   glm::vec3 vScaleDownABit( 0.99f, 0.99f, 0.0f );
 
-  m_mat4Transform = glm::mat4( 1.0f ); // identity matrix
-  m_mat4Transform *= glm::scale( vScaleDownABit ); // gets all four sides into the window
-  m_mat4Transform *= glm::translate( vTranslateAround0 ); // then translate to straddle zero
-  m_mat4Transform *= glm::scale( vScaleTo2 );  // first scale to 0..2
+  m_mat4Basic = glm::mat4( 1.0f ); // identity matrix
+  m_mat4Basic *= glm::scale( vScaleDownABit ); // gets all four sides into the window
+  m_mat4Basic *= glm::translate( vTranslateAround0 ); // then translate to straddle zero
+  m_mat4Basic *= glm::scale( vScaleTo2 );  // first scale to 0..2
+  
+  m_mat4Transform = m_mat4Basic;
 
 }
 
@@ -61,7 +63,11 @@ OglGrid::~OglGrid() {
 }
 
 void OglGrid::UpdateTransform( const glm::mat4& mat4Transform ) {
-  m_mat4Transform *= mat4Transform;
+  //m_mat4Transform *= mat4Transform;
+  glm::vec3 vTranslateToCenter( -1.0f, -1.0f, 0.0f );
+  glm::vec3 vTranslateFromCenter( 1.0f, 1.0f, 0.0f );
+  //m_mat4Transform = m_mat4Basic * glm::translate( vTranslateFromCenter ) * mat4Transform * glm::translate( vTranslateToCenter );
+  m_mat4Transform = mat4Transform * m_mat4Basic;
   //canvasOpenGL<OglGrid>::Refresh();
 }
 

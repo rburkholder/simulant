@@ -11,6 +11,8 @@
       <itemPath>DndDropTarget.h</itemPath>
       <itemPath>DndSourceButton.h</itemPath>
       <itemPath>DndTargetButton.h</itemPath>
+      <itemPath>EventGenerateFrame.h</itemPath>
+      <itemPath>EventImage.h</itemPath>
       <itemPath>FpsGenerator.h</itemPath>
       <itemPath>Network.h</itemPath>
       <itemPath>OglGrid.h</itemPath>
@@ -21,7 +23,6 @@
       <itemPath>appProjection.h</itemPath>
       <itemPath>canvasOpenGL.h</itemPath>
       <itemPath>common.h</itemPath>
-      <itemPath>eventImage.h</itemPath>
       <itemPath>frameMain.h</itemPath>
       <itemPath>frameProjection.h</itemPath>
       <itemPath>panelSurfaceSources.h</itemPath>
@@ -48,6 +49,8 @@
       <itemPath>DndDropTarget.cpp</itemPath>
       <itemPath>DndSourceButton.cpp</itemPath>
       <itemPath>DndTargetButton.cpp</itemPath>
+      <itemPath>EventGenerateFrame.cpp</itemPath>
+      <itemPath>EventImage.cpp</itemPath>
       <itemPath>FpsGenerator.cpp</itemPath>
       <itemPath>OglGrid.cpp</itemPath>
       <itemPath>Outline.cpp</itemPath>
@@ -55,7 +58,6 @@
       <itemPath>TreeDisplayManager.cpp</itemPath>
       <itemPath>appProjection.cpp</itemPath>
       <itemPath>canvasOpenGL.cpp</itemPath>
-      <itemPath>eventImage.cpp</itemPath>
       <itemPath>frameMain.cpp</itemPath>
       <itemPath>frameProjection.cpp</itemPath>
       <itemPath>panelSurfaceSources.cpp</itemPath>
@@ -148,6 +150,14 @@
       </item>
       <item path="DndTargetButton.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="EventGenerateFrame.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="EventGenerateFrame.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="EventImage.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="EventImage.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="FpsGenerator.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="FpsGenerator.h" ex="false" tool="3" flavor2="0">
@@ -181,10 +191,6 @@
       <item path="canvasOpenGL.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="common.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="eventImage.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="eventImage.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="frameMain.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -296,6 +302,14 @@
       </item>
       <item path="DndTargetButton.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="EventGenerateFrame.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="EventGenerateFrame.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="EventImage.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="EventImage.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="FpsGenerator.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="FpsGenerator.h" ex="false" tool="3" flavor2="0">
@@ -329,10 +343,6 @@
       <item path="canvasOpenGL.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="common.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="eventImage.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="eventImage.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="frameMain.cpp" ex="false" tool="1" flavor2="0">
       </item>
