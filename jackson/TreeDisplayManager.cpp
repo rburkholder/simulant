@@ -34,6 +34,7 @@ extern "C" {
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 #include "common.h"
 #include "DecodeH264.h"
@@ -118,12 +119,15 @@ private:
   
   enum {
     ID_Null = wxID_HIGHEST,
-    MIDelete
+    MIDelete, MIReset
   };
   
   typedef boost::shared_ptr<OglGrid> pOglGrid_t;
   
   float m_floatFactor;
+  
+  int m_intMouseX;
+  int m_intMouseY;
   
   pScreenFrame_t m_pScreenFrame;
   pOutline_t m_pOutline;
@@ -136,8 +140,10 @@ private:
   void ResetTransformMatrix( void );
   
   void HandleDelete( wxCommandEvent& event );
+  void HandleReset( wxCommandEvent& event );
   void HandleMouseWheel( wxMouseEvent& event );
   void HandleMouseMoved( wxMouseEvent& event );
+  void HandleMouseLeftDown( wxMouseEvent& event );
   
   void HandleRefreshTimer( void );
   void HandleRefresh( EventGenerateFrame& event );
@@ -163,6 +169,7 @@ TreeItemCanvasGrid::TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId
   
   m_pOglGrid->Bind( wxEVT_MOUSEWHEEL, &TreeItemCanvasGrid::HandleMouseWheel, this );
   m_pOglGrid->Bind( wxEVT_MOTION, &TreeItemCanvasGrid::HandleMouseMoved, this );
+  m_pOglGrid->Bind( wxEVT_LEFT_DOWN, &TreeItemCanvasGrid::HandleMouseLeftDown, this );
   
   wxApp::GetInstance()->Bind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this ); 
   
@@ -188,33 +195,80 @@ void TreeItemCanvasGrid::ResetTransformMatrix( void ) {
 }
 
 void TreeItemCanvasGrid::HandleMouseWheel( wxMouseEvent& event ) {
-  std::cout << "mouse wheel " << event.GetWheelDelta() << ", " << event.GetWheelRotation() << std::endl;
+  //std::cout << "mouse wheel " << event.GetWheelDelta() << ", " << event.GetWheelRotation() << std::endl;
   static const float scaleMajor( 0.10f );
   static const float scaleMinor( 0.01f );
-  float factor( 1.0f );
+  
   int n( event.GetWheelRotation() );
   if ( 0 != n ) {
-    glm::vec3 vScale;
-    if ( 0 < n ) { // positive
-      // zoom in, and update transform matrix
-      factor = 1.0f + scaleMajor;
-      vScale = glm::vec3( factor, factor, 0.0f );
+    if ( event.m_controlDown ) { // control selects rotation about z axis
+      float degrees = event.ShiftDown() ? 0.01f : 0.10f;
+      glm::vec3 vRotate = glm::vec3( 0.0f, 0.0f, 1.0f );
+      if ( 0 < n ) { //positive
+        m_mat4Transform *= glm::rotate( degrees, vRotate );
+      }
+      else {
+        m_mat4Transform *= glm::rotate( -degrees, vRotate );
+      }
     }
-    else { // negative
-      // zoom out, and update transform matrix
-      factor = 1.0f / ( 1.0f + scaleMajor );
-      vScale = glm::vec3( factor, factor, 0.0f );
+    else { // scale xy together
+      float factor( 1.0f );
+      glm::vec3 vScale;
+      if ( 0 < n ) { // positive
+        // zoom in, and update transform matrix
+        factor = 1.0f + ( event.ShiftDown() ? scaleMinor : scaleMajor );
+        vScale = glm::vec3( factor, factor, 0.0f );
+      }
+      else { // negative
+        // zoom out, and update transform matrix
+        factor = 1.0f / ( 1.0f + ( event.ShiftDown() ? scaleMinor : scaleMajor ) );
+        vScale = glm::vec3( factor, factor, 0.0f );
+      }
+      m_floatFactor *= factor;
+      //std::cout << "scale factor: " << m_floatFactor << std::endl;
+      m_mat4Transform *= glm::scale( vScale );
     }
-    m_floatFactor *= factor;
-    std::cout << "factor: " << m_floatFactor << std::endl;
-    m_mat4Transform *= glm::scale( vScale );
     m_pOglGrid->UpdateTransform( m_mat4Transform );
   }
-  event.Skip();
+  event.Skip( false );
+}
+
+void TreeItemCanvasGrid::HandleMouseLeftDown( wxMouseEvent& event ) {
+  //std::cout << "left down " << event.GetX() << ", " << event.GetY() << std::endl;
+  m_intMouseX = event.GetX();
+  m_intMouseY = event.GetY();
 }
 
 void TreeItemCanvasGrid::HandleMouseMoved( wxMouseEvent& event ) {
-  event.Skip();
+  //std::cout << "mouse moved " << event.GetX() << ", " << event.GetY() << std::endl;
+  if ( event.LeftIsDown() ) {
+    int difX = event.GetX() - m_intMouseX;
+    int difY = event.GetY() - m_intMouseY;
+    // need to use aspect ratio for following so consistent ratios in each direction
+    float ratioX = (float) difX / (float) this->m_pOutline->GetBoundingBox().GetWidth();
+    float ratioY = (float) difY / (float) this->m_pOutline->GetBoundingBox().GetHeight();
+    //std::cout << "drag " << difX << ", " << difY << ", " << ratioX << ", " << ratioY << std::endl;
+    if ( event.ControlDown() ) { // rotation
+      glm::vec3 vRotate;
+      float degrees = event.ShiftDown() ? 0.1f : 1.0f;
+      vRotate = glm::vec3( 0.0f, 1.0f, 0.0f );
+      m_mat4Transform *= glm::rotate( ratioX * degrees, vRotate );
+      vRotate = glm::vec3( 1.0f, 0.0f, 0.0f );
+      m_mat4Transform *= glm::rotate( ratioY * degrees, vRotate );
+    }
+    else { // translation
+      float multiplier = 2.0 * ( event.ShiftDown() ? 0.1f : 1.0f );
+      //std::cout << "multiplier " << multiplier << std::endl;
+      glm::vec3 vTranslate = glm::vec3( multiplier * ratioX, -multiplier * ratioY, 0.0f );
+      m_mat4Transform *= glm::translate( vTranslate );
+    }
+    m_pOglGrid->UpdateTransform( m_mat4Transform );
+  }
+  
+  m_intMouseX = event.GetX();
+  m_intMouseY = event.GetY();
+  
+  event.Skip( false );
 }
 
 //  glm::vec3 vScaleTo2( 2.0f / nCols, 2.0f / nRows, 0.0f );
@@ -230,6 +284,9 @@ void TreeItemCanvasGrid::ShowContextMenu( void ) {
   
   wxMenu* pMenu = new wxMenu();
   
+  pMenu->Append( MIReset, "Reset" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemCanvasGrid::HandleReset, this, MIReset );
+  
   pMenu->Append( MIDelete, "Delete" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemCanvasGrid::HandleDelete, this, MIDelete );
   
@@ -240,6 +297,12 @@ void TreeItemCanvasGrid::HandleDelete( wxCommandEvent& event ) {
   std::cout << "Tree Item Delete" << std::endl;
   m_pTree->Delete( this->m_id );
   // need a refresh
+}
+
+void TreeItemCanvasGrid::HandleReset( wxCommandEvent& event ) {
+  std::cout << "Grid Reset" << std::endl;
+  ResetTransformMatrix();
+  m_pOglGrid->UpdateTransform( m_mat4Transform );
 }
 
 // ================
