@@ -210,7 +210,7 @@ void TreeItemCanvasGrid::HandleRefreshTimer( void ) {
 
 void TreeItemCanvasGrid::HandleRefresh( EventGenerateFrame& event ) {
   m_pOglGrid->Refresh();
-  event.Skip( false );
+  event.Skip( true );  // let other ones process this as well
 }
 
 void TreeItemCanvasGrid::ResetTransformMatrix( void ) {
