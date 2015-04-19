@@ -82,7 +82,7 @@ private:
   bool HitTest( wxPoint );
 
   void UpdateBoundingBoxes( void ); // performs inflation
-  void GetBoundingBoxes( wxRect& box1, wxRect& box2 );  // no inflation
+  void GetBoundingBoxes( wxRect& box1, wxRect& box2 );  // no inflation - one for each triangle
   void GetBoundingBox( wxPoint a, wxPoint b, wxPoint c, wxRect& rect ); 
   double PointToSegmentDistanceSquared( wxPoint point1, wxPoint point2, wxPoint point );
   bool PointInTriangle( wxPoint a, wxPoint b, wxPoint c, wxPoint p );

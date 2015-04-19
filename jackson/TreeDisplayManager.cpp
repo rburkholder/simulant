@@ -124,6 +124,8 @@ private:
   
   typedef boost::shared_ptr<OglGrid> pOglGrid_t;
   
+  volatile bool m_bActive;
+  
   float m_floatFactor;
   
   int m_intMouseX;
@@ -145,17 +147,15 @@ private:
   void HandleMouseMoved( wxMouseEvent& event );
   void HandleMouseLeftDown( wxMouseEvent& event );
   
-  void HandleRefreshTimer( void );
+  void HandleRefreshTimer( void );  // is in work thread
   void HandleRefresh( EventGenerateFrame& event );
   
 };
 
 TreeItemCanvasGrid::TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame, pOutline_t pOutline )
-: TreeItemBase( pTree_, id_ ), m_pScreenFrame( pScreenFrame ), m_pOutline( pOutline ), m_floatFactor( 1.0f ) {
+: TreeItemBase( pTree_, id_ ), m_pScreenFrame( pScreenFrame ), m_pOutline( pOutline ), m_floatFactor( 1.0f ), m_bActive( false ) {
   
   std::cout << "Tree Item Show Grid" << std::endl;
-  
-  ResetTransformMatrix();
   
   int argsCanvas[] = { WX_GL_CORE_PROFILE, WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
   m_pOglGrid.reset( new OglGrid( m_pScreenFrame->GetFrame(), argsCanvas ) );
@@ -175,14 +175,22 @@ TreeItemCanvasGrid::TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId
   
   m_slotTimer = fps.Connect( FpsGenerator::fps24, boost::phoenix::bind( &TreeItemCanvasGrid::HandleRefreshTimer, this ) );
  
+  ResetTransformMatrix();
+  m_pOglGrid->UpdateTransform( m_mat4Transform );
+  
+  m_bActive = true;
+  
 }
 
 TreeItemCanvasGrid::~TreeItemCanvasGrid( void ) {
+  m_bActive = false;
   m_slotTimer.disconnect();
 }
 
 void TreeItemCanvasGrid::HandleRefreshTimer( void ) {
-  wxApp::GetInstance()->QueueEvent( new EventGenerateFrame( EVENT_GENERATEFRAME, m_pScreenFrame->GetFrame()->GetId() ) );
+  if ( m_bActive ) {
+    wxApp::GetInstance()->QueueEvent( new EventGenerateFrame( EVENT_GENERATEFRAME, m_pScreenFrame->GetFrame()->GetId() ) );
+  }
 }
 
 void TreeItemCanvasGrid::HandleRefresh( EventGenerateFrame& event ) {
@@ -191,7 +199,28 @@ void TreeItemCanvasGrid::HandleRefresh( EventGenerateFrame& event ) {
 }
 
 void TreeItemCanvasGrid::ResetTransformMatrix( void ) {
+  
   m_mat4Transform = glm::mat4( 1.0f );
+  
+  float floatHeightScale( 1.0f );
+  float floatWidthScale( 1.0f );
+  
+  float height = m_pOutline->GetBoundingBox().GetHeight();
+  float width  = m_pOutline->GetBoundingBox().GetWidth();
+  float ar = height / width;  // aspect ratio
+  
+  if ( 1.0 != ar ) {  // rescale if not a square
+    if ( 1.0 < ar ) { // height > width, so scale to width
+      floatHeightScale = 1.0f / ar;
+    }
+    else { // width > height, so scale to height
+      floatWidthScale = 1.0f * ar;
+    }
+    //m_pOglGrid->UpdateTransform( m_mat4Transform );
+  }
+  
+  m_mat4Transform *= glm::scale( glm::vec3( floatWidthScale, floatHeightScale, 0.0f ) );
+  std::cout << "ar " << floatWidthScale << ", " << floatHeightScale << std::endl;
 }
 
 void TreeItemCanvasGrid::HandleMouseWheel( wxMouseEvent& event ) {
@@ -271,15 +300,6 @@ void TreeItemCanvasGrid::HandleMouseMoved( wxMouseEvent& event ) {
   event.Skip( false );
 }
 
-//  glm::vec3 vScaleTo2( 2.0f / nCols, 2.0f / nRows, 0.0f );
-//  glm::vec3 vTranslateAround0( -1.0f, -1.0f, 0.0f );
-//  glm::vec3 vScaleDownABit( 0.99f, 0.99f, 0.0f );
-
-//  m_mat4Transform = glm::mat4( 1.0f ); // identity matrix
-//  m_mat4Transform *= glm::scale( vScaleDownABit ); // gets all four sides into the window
-//  m_mat4Transform *= glm::translate( vTranslateAround0 ); // then translate to straddle zero
-//  m_mat4Transform *= glm::scale( vScaleTo2 );  // first scale to 0..2
-
 void TreeItemCanvasGrid::ShowContextMenu( void ) {
   
   wxMenu* pMenu = new wxMenu();
@@ -296,7 +316,6 @@ void TreeItemCanvasGrid::ShowContextMenu( void ) {
 void TreeItemCanvasGrid::HandleDelete( wxCommandEvent& event ) {
   std::cout << "Tree Item Delete" << std::endl;
   m_pTree->Delete( this->m_id );
-  // need a refresh
 }
 
 void TreeItemCanvasGrid::HandleReset( wxCommandEvent& event ) {
