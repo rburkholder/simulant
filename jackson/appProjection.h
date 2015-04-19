@@ -17,7 +17,7 @@ public:
 protected:
 private:
   
-  typedef ScreenFrame::pScreenFrame_t pScreenFrame_t;
+  typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
   
   FrameMain *m_pFrameMain;
   panelSurfaceSources* m_pSurfaceSources;

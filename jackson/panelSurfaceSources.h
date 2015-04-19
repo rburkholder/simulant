@@ -25,7 +25,7 @@ class panelSurfaceSources: public wxPanel {
   DECLARE_DYNAMIC_CLASS( panelSurfaceSources )
 public:
   
-  typedef ScreenFrame::pScreenFrame_t pScreenFrame_t;
+  typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
   
   panelSurfaceSources();
   panelSurfaceSources( 
@@ -44,7 +44,7 @@ public:
 
   ~panelSurfaceSources();
   
-  void Append( pScreenFrame_t pScreenFrame );
+  void Append( pPhysicalDisplay_t pPhysicalDisplay );
 
 protected:  
 private:

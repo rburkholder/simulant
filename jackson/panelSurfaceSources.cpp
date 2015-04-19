@@ -51,8 +51,8 @@ void panelSurfaceSources::Init() {
   m_bInEditMode = false;
 }
 
-void panelSurfaceSources::Append( pScreenFrame_t pScreenFrame ) {
-  m_treeDisplays->Append( pScreenFrame );
+void panelSurfaceSources::Append( pPhysicalDisplay_t pPhysicalDisplay ) {
+  m_treeDisplays->Append( pPhysicalDisplay );
 }
 
 void panelSurfaceSources::CreateControls() {    

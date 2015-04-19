@@ -5,8 +5,6 @@
  * Created on April 18, 2015, 6:08 PM
  */
 
-#include <vector>
-
 #include <boost/phoenix/bind/bind_member_function.hpp>
 
 #include <boost/chrono/system_clocks.hpp>
@@ -21,8 +19,8 @@ class DownCount {
 public:
   
   static const size_t nSourceCounts = 3;
-  DownCount( const size_t* pCounts ) 
-  : m_ixSourceCounts( 0 ), m_nCount( 0 )
+  DownCount( FpsGenerator::FPS fps, const size_t* pCounts ) 
+  : m_fps( fps ), m_ixSourceCounts( 0 ), m_nCount( 0 )
   { // frame pull down rates
     m_rSourceCounts[ 0 ] = pCounts[ 0 ];
     m_rSourceCounts[ 1 ] = pCounts[ 1 ];
@@ -35,7 +33,7 @@ public:
     --m_nCount;
     if ( 0 == m_nCount ) {
       // generate event
-      m_signal();
+      m_signal( m_fps );  // send fps as check that correct events are happening
       // then update counters
       ++m_ixSourceCounts;
       if ( nSourceCounts == m_ixSourceCounts ) {
@@ -52,28 +50,29 @@ private:
   size_t m_rSourceCounts[ nSourceCounts ];
   size_t m_ixSourceCounts;
   size_t m_nCount;
+  FpsGenerator::FPS m_fps;
 };
   
 FpsGenerator::FpsGenerator( ) 
 : m_bStopThread( false ), m_bThreadRunning( false ), m_thread( boost::phoenix::bind( &FpsGenerator::Thread, this ) )
 {
   const size_t cnt24fps[DownCount::nSourceCounts] = { 8, 8, 9 };
-  m_vDownCount.push_back( pDownCount_t( new DownCount( cnt24fps ) ) );
+  m_mapDownCount.insert( std::pair<FPS,pDownCount_t>( fps24, pDownCount_t( new DownCount( fps24, cnt24fps ) ) ) );
 
   const size_t cnt25fps[DownCount::nSourceCounts] = { 8, 8, 8 };
-  m_vDownCount.push_back( pDownCount_t( new DownCount( cnt25fps ) ) );
+  m_mapDownCount.insert( std::pair<FPS,pDownCount_t>( fps25, pDownCount_t( new DownCount( fps25, cnt25fps ) ) ) );
 
   const size_t cnt30fps[DownCount::nSourceCounts] = { 7, 7, 6 };
-  m_vDownCount.push_back( pDownCount_t( new DownCount( cnt30fps ) ) );
+  m_mapDownCount.insert( std::pair<FPS,pDownCount_t>( fps30, pDownCount_t( new DownCount( fps30, cnt30fps ) ) ) );
 
   const size_t cnt48fps[DownCount::nSourceCounts] = { 4, 4, 5 };
-  m_vDownCount.push_back( pDownCount_t( new DownCount( cnt48fps ) ) );
+  m_mapDownCount.insert( std::pair<FPS,pDownCount_t>( fps48, pDownCount_t( new DownCount( fps48, cnt48fps ) ) ) );
 
   const size_t cnt60fps[DownCount::nSourceCounts] = { 3, 3, 4 };
-  m_vDownCount.push_back( pDownCount_t( new DownCount( cnt60fps ) ) );
+  m_mapDownCount.insert( std::pair<FPS,pDownCount_t>( fps60, pDownCount_t( new DownCount( fps60, cnt60fps ) ) ) );
   
   const size_t cnt100fps[DownCount::nSourceCounts] = { 2, 2, 2 };
-  m_vDownCount.push_back( pDownCount_t( new DownCount( cnt100fps ) ) );
+  m_mapDownCount.insert( std::pair<FPS,pDownCount_t>( fps100, pDownCount_t( new DownCount( fps100, cnt100fps ) ) ) );
   
   }
 
@@ -83,7 +82,9 @@ FpsGenerator::~FpsGenerator( ) {
 }
 
 boost::signals2::connection FpsGenerator::Connect( FPS fps, const slotFrame_t& slot ) {
-  return m_vDownCount[ fps ]->m_signal.connect( slot );
+  mapDownCount_t::iterator iter = m_mapDownCount.find( fps );
+  assert( m_mapDownCount.end() != iter );
+  return iter->second->m_signal.connect( slot );
 }
 
 void FpsGenerator::Thread( void ) {
@@ -97,10 +98,11 @@ void FpsGenerator::Thread( void ) {
   m_bThreadRunning = true;
   while ( ! m_bStopThread ) {
     // generate events
-    for ( vDownCount_t::iterator iter = m_vDownCount.begin(); m_vDownCount.end() != iter; ++iter ) {
-      (*iter)->Check();
+    for ( mapDownCount_t::iterator iter = m_mapDownCount.begin(); m_mapDownCount.end() != iter; ++iter ) {
+      iter->second->Check();
     }
     // perform delay to next
+    // could move this to prior to Check and provide current time to slots as well
     tp tpNow = boost::chrono::high_resolution_clock::now();
     tp tpNext = tpBase + duration;
     if ( tpNext < tpNow ) { //stutter step, not processing fast enough

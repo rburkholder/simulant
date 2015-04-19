@@ -18,7 +18,7 @@
 
 //#include "structures.h"
 
-class ScreenFrame {  
+class PhysicalDisplay {  
   // maybe subset of multi-monitor setup, or an individual remote monitor
   // maps to the pixels emitted by a single projector
   // remote controller may be used to populate the resolution here
@@ -29,14 +29,14 @@ public:
   
   //typedef CanvasBase::pCanvas_t pCanvas_t;
   
-  typedef boost::shared_ptr<ScreenFrame> pScreenFrame_t;
+  typedef boost::shared_ptr<PhysicalDisplay> pPhysicalDisplay_t;
   
-  ScreenFrame( unsigned int nDisplay, wxWindow* parent ): 
-      ScreenFrame( nDisplay, parent, wxPoint( 0, 0 ), wxSize( 100, 200 ) ) {
+  PhysicalDisplay( unsigned int nDisplay, wxWindow* parent ): 
+      PhysicalDisplay( nDisplay, parent, wxPoint( 0, 0 ), wxSize( 100, 200 ) ) {
   }
-  ScreenFrame( unsigned int nDisplay, wxWindow* parent, wxPoint point_, wxSize size_ );
+  PhysicalDisplay( unsigned int nDisplay, wxWindow* parent, wxPoint point_, wxSize size_ );
       
-  virtual ~ScreenFrame( void );
+  virtual ~PhysicalDisplay( void );
   
   FrameProjection* GetFrame( void ) { return m_pFrame; }
   
@@ -47,7 +47,7 @@ protected:
 private:
 
   // disallow default constructor  
-  ScreenFrame( void ): m_display( 0 ), m_point( 0, 0 ), m_size( 100, 200 ) {  };
+  PhysicalDisplay( void ): m_display( 0 ), m_point( 0, 0 ), m_size( 100, 200 ) {  };
   
   //typedef std::vector<pCanvas_t> vCanvas_t;
   

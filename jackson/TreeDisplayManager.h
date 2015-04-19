@@ -15,7 +15,7 @@
 #include <wx/wx.h>
 #include <wx/treectrl.h>
 
-#include "ScreenFrame.h"
+#include "PhysicalDisplay.h"
 
 #define SYMBOL_TREEDISPLAYMANAGER_STYLE wxTR_HAS_BUTTONS | wxTR_SINGLE
 #define SYMBOL_TREEDISPLAYMANAGER_TITLE _("Displays")
@@ -29,7 +29,7 @@ class TreeDisplayManager: public wxTreeCtrl {
   DECLARE_DYNAMIC_CLASS( TreeDisplayManager )
 public:
   
-  typedef ScreenFrame::pScreenFrame_t pScreenFrame_t;
+  typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
   typedef boost::shared_ptr<TreeItemBase> pTreeItem_t;
   
   TreeDisplayManager();
@@ -49,7 +49,7 @@ public:
 
   ~TreeDisplayManager();
   
-  void Append( pScreenFrame_t pScreenFrame );
+  void Append( pPhysicalDisplay_t pPhysicalDisplay );
   
   void Add( const wxTreeItemId& id, pTreeItem_t pTreeItem );
   void Delete( wxTreeItemId id );

@@ -17,7 +17,7 @@
       <itemPath>Network.h</itemPath>
       <itemPath>OglGrid.h</itemPath>
       <itemPath>Outline.h</itemPath>
-      <itemPath>ScreenFrame.h</itemPath>
+      <itemPath>PhysicalDisplay.h</itemPath>
       <itemPath>SpinLock.h</itemPath>
       <itemPath>TreeDisplayManager.h</itemPath>
       <itemPath>appProjection.h</itemPath>
@@ -54,7 +54,7 @@
       <itemPath>FpsGenerator.cpp</itemPath>
       <itemPath>OglGrid.cpp</itemPath>
       <itemPath>Outline.cpp</itemPath>
-      <itemPath>ScreenFrame.cpp</itemPath>
+      <itemPath>PhysicalDisplay.cpp</itemPath>
       <itemPath>TreeDisplayManager.cpp</itemPath>
       <itemPath>appProjection.cpp</itemPath>
       <itemPath>canvasOpenGL.cpp</itemPath>
@@ -172,9 +172,9 @@
       </item>
       <item path="Outline.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="ScreenFrame.cpp" ex="false" tool="1" flavor2="0">
+      <item path="PhysicalDisplay.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="ScreenFrame.h" ex="false" tool="3" flavor2="0">
+      <item path="PhysicalDisplay.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="SpinLock.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -324,9 +324,9 @@
       </item>
       <item path="Outline.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="ScreenFrame.cpp" ex="false" tool="1" flavor2="0">
+      <item path="PhysicalDisplay.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="ScreenFrame.h" ex="false" tool="3" flavor2="0">
+      <item path="PhysicalDisplay.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="SpinLock.h" ex="false" tool="3" flavor2="0">
       </item>

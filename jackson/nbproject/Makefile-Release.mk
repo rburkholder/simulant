@@ -47,7 +47,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/FpsGenerator.o \
 	${OBJECTDIR}/OglGrid.o \
 	${OBJECTDIR}/Outline.o \
-	${OBJECTDIR}/ScreenFrame.o \
+	${OBJECTDIR}/PhysicalDisplay.o \
 	${OBJECTDIR}/TreeDisplayManager.o \
 	${OBJECTDIR}/appProjection.o \
 	${OBJECTDIR}/canvasOpenGL.o \
@@ -143,10 +143,10 @@ ${OBJECTDIR}/Outline.o: Outline.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Outline.o Outline.cpp
 
-${OBJECTDIR}/ScreenFrame.o: ScreenFrame.cpp 
+${OBJECTDIR}/PhysicalDisplay.o: PhysicalDisplay.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/ScreenFrame.o ScreenFrame.cpp
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/PhysicalDisplay.o PhysicalDisplay.cpp
 
 ${OBJECTDIR}/TreeDisplayManager.o: TreeDisplayManager.cpp 
 	${MKDIR} -p ${OBJECTDIR}

@@ -10,7 +10,7 @@
 #ifndef FPSGENERATOR_H
 #define	FPSGENERATOR_H
 
-#include <vector>
+#include <map>
 
 #include <boost/thread/thread.hpp>
 #include <boost/shared_ptr.hpp>
@@ -22,9 +22,9 @@ class DownCount;
 class FpsGenerator {
 public:
   
-  enum FPS { fps24=0, fps25, fps30, fps48, fps60, fps100 };
+  enum FPS { fps24 = 24, fps25 = 25, fps30 = 30, fps48 = 48, fps60 = 60, fps100 = 100 }; 
   
-  typedef boost::signals2::signal<void ()> signalFrame_t;  // signal definition
+  typedef boost::signals2::signal<void ( FPS )> signalFrame_t;  // signal definition
   typedef signalFrame_t::slot_type slotFrame_t;       // slot definition
   
   FpsGenerator( );
@@ -42,8 +42,8 @@ private:
   
   boost::thread m_thread;
   
-  typedef std::vector<pDownCount_t> vDownCount_t;
-  vDownCount_t m_vDownCount;
+  typedef std::map<FPS, pDownCount_t> mapDownCount_t;
+  mapDownCount_t m_mapDownCount;
   
   void Thread( void ); // stuff running in the thread
 };

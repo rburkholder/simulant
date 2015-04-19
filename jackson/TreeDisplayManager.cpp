@@ -104,7 +104,7 @@ class TreeItemCanvasGrid: public TreeItemBase {
   // so can add/delete the grid object, and possibly handle the mouse stuff for setting up the transform
 public:
   
-  typedef boost::shared_ptr<ScreenFrame> pScreenFrame_t;
+  typedef boost::shared_ptr<PhysicalDisplay> pScreenFrame_t;
   typedef Outline::pOutline_t pOutline_t;
   
   typedef boost::signals2::signal<void ( const glm::mat4& )> signalTransformUpdated_t;
@@ -140,7 +140,7 @@ private:
   int m_intMouseY;
   
   pScreenFrame_t m_pScreenFrame;
-  pOutline_t m_pOutline;
+  //pOutline_t m_pOutline;
   pOglGrid_t m_pOglGrid;
   
   glm::mat4 m_mat4Transform;
@@ -158,19 +158,19 @@ private:
   void HandleMouseMoved( wxMouseEvent& event );
   void HandleMouseLeftDown( wxMouseEvent& event );
   
-  void HandleRefreshTimer( void );  // is in work thread
+  void HandleRefreshTimer( FpsGenerator::FPS fps );  // is in work thread
   void HandleRefresh( EventGenerateFrame& event );
   
 };
 
 TreeItemCanvasGrid::TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame, pOutline_t pOutline )
-: TreeItemBase( pTree_, id_ ), m_pScreenFrame( pScreenFrame ), m_pOutline( pOutline ), m_floatFactor( 1.0f ), m_bActive( false ) {
+: TreeItemBase( pTree_, id_ ), m_pScreenFrame( pScreenFrame ), /*m_pOutline( pOutline ),*/ m_floatFactor( 1.0f ), m_bActive( false ) {
   
   std::cout << "Tree Item Show Grid" << std::endl;
   
   int argsCanvas[] = { WX_GL_CORE_PROFILE, WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
   m_pOglGrid.reset( new OglGrid( m_pScreenFrame->GetFrame(), argsCanvas ) );
-  wxRect rect( 500, 100, 300, 600 );
+  wxRect rect( 10, 10, 10, 10 );
 //  pOutline_t pOutline( m_pScreenFrame->GetFrame()->GetOutline() );
   if ( 0 != pOutline.use_count() ) {
     rect = pOutline->GetBoundingBox();
@@ -183,8 +183,10 @@ TreeItemCanvasGrid::TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId
   m_pOglGrid->Bind( wxEVT_LEFT_DOWN, &TreeItemCanvasGrid::HandleMouseLeftDown, this );
   
   wxApp::GetInstance()->Bind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this ); 
+  //m_pScreenFrame->GetFrame()->Bind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this );  // doesn't propgate properly
   
-  m_slotTimer = fps.Connect( FpsGenerator::fps24, boost::phoenix::bind( &TreeItemCanvasGrid::HandleRefreshTimer, this ) );
+  namespace args = boost::phoenix::arg_names;
+  m_slotTimer = fps.Connect( FpsGenerator::fps24, boost::phoenix::bind( &TreeItemCanvasGrid::HandleRefreshTimer, this, args::arg1 ) );
  
   ResetTransformMatrix();
   UpdateTransformMatrix();
@@ -195,21 +197,26 @@ TreeItemCanvasGrid::TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId
 
 TreeItemCanvasGrid::~TreeItemCanvasGrid( void ) {
   m_bActive = false;
-  wxApp::GetInstance()->Unbind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this );
   m_slotTimer.disconnect();
+  wxApp::GetInstance()->Unbind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this );
   m_pOglGrid->Unbind( wxEVT_MOUSEWHEEL, &TreeItemCanvasGrid::HandleMouseWheel, this );
   m_pOglGrid->Unbind( wxEVT_MOTION, &TreeItemCanvasGrid::HandleMouseMoved, this );
   m_pOglGrid->Unbind( wxEVT_LEFT_DOWN, &TreeItemCanvasGrid::HandleMouseLeftDown, this );
 }
 
-void TreeItemCanvasGrid::HandleRefreshTimer( void ) {
-  if ( m_bActive ) {
+void TreeItemCanvasGrid::HandleRefreshTimer( FpsGenerator::FPS fps ) {
+  if ( m_bActive ) { // cross thread action
     wxApp::GetInstance()->QueueEvent( new EventGenerateFrame( EVENT_GENERATEFRAME, m_pScreenFrame->GetFrame()->GetId() ) );
   }
 }
 
 void TreeItemCanvasGrid::HandleRefresh( EventGenerateFrame& event ) {
-  m_pOglGrid->Refresh();
+  if ( m_pScreenFrame->GetFrame()->GetId() == event.GetId() ) {
+    m_pOglGrid->Refresh();
+  }
+  else {
+    //std::cout << "not our event" << std::endl;  // this does get hit, so the if above is appropriate
+  }
   event.Skip( true );  // let other ones process this as well
 }
 
@@ -220,8 +227,10 @@ void TreeItemCanvasGrid::ResetTransformMatrix( void ) {
   float floatHeightScale( 1.0f );
   float floatWidthScale( 1.0f );
   
-  float height = m_pOutline->GetBoundingBox().GetHeight();
-  float width  = m_pOutline->GetBoundingBox().GetWidth();
+  float height = m_pOglGrid->GetClientSize().GetHeight();
+  float width = m_pOglGrid->GetClientSize().GetWidth();
+  //float height = m_pOutline->GetBoundingBox().GetHeight();
+  //float width  = m_pOutline->GetBoundingBox().GetWidth();
   float ar = height / width;  // aspect ratio
   
   if ( 1.0 != ar ) {  // rescale if not a square
@@ -294,8 +303,8 @@ void TreeItemCanvasGrid::HandleMouseMoved( wxMouseEvent& event ) {
     int difX = event.GetX() - m_intMouseX;
     int difY = event.GetY() - m_intMouseY;
     // need to use aspect ratio for following so consistent ratios in each direction
-    float ratioX = (float) difX / (float) this->m_pOutline->GetBoundingBox().GetWidth();
-    float ratioY = (float) difY / (float) this->m_pOutline->GetBoundingBox().GetHeight();
+    float ratioX = (float) difX / (float) m_pOglGrid->GetClientSize().GetWidth();
+    float ratioY = (float) difY / (float) m_pOglGrid->GetClientSize().GetHeight();
     //std::cout << "drag " << difX << ", " << difY << ", " << ratioX << ", " << ratioY << std::endl;
     if ( event.ControlDown() ) { // rotation
       glm::vec3 vRotate;
@@ -351,7 +360,7 @@ class TreeItemCanvas: public TreeItemBase {
   // but a placeholder for an outline for creating displayable objects
 public:
   
-  typedef boost::shared_ptr<ScreenFrame> pScreenFrame_t;
+  typedef boost::shared_ptr<PhysicalDisplay> pScreenFrame_t;
   typedef Outline::pOutline_t pOutline_t;
   
   TreeItemCanvas( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame, pOutline_t pOutline );
@@ -397,6 +406,7 @@ TreeItemCanvas::TreeItemCanvas( TreeDisplayManager* pTree_, wxTreeItemId id_, pS
 }
 
 TreeItemCanvas::~TreeItemCanvas( void ) {
+  RemoveSelected();
 }
 
 void TreeItemCanvas::ShowContextMenu( void ) {
@@ -479,7 +489,7 @@ private:
 class TreeItemScreenFrame: public TreeItemBase {
 public:
   
-  typedef boost::shared_ptr<ScreenFrame> pScreenFrame_t;
+  typedef boost::shared_ptr<PhysicalDisplay> pScreenFrame_t;
   
   TreeItemScreenFrame( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame );
   ~TreeItemScreenFrame( void );
@@ -861,13 +871,13 @@ bool TreeDisplayManager::Create( wxWindow* parent, wxWindowID id, const wxPoint&
 TreeDisplayManager::~TreeDisplayManager() {
 }
 
-void TreeDisplayManager::Append( pScreenFrame_t pScreenFrame ) {
+void TreeDisplayManager::Append( pPhysicalDisplay_t pPhysicalDisplay ) {
   wxTreeItemId idRoot = wxTreeCtrl::GetRootItem();
-  std::string sId = boost::lexical_cast<std::string>( pScreenFrame->GetId() );
+  std::string sId = boost::lexical_cast<std::string>( pPhysicalDisplay->GetId() );
   wxTreeItemId id = wxTreeCtrl::AppendItem( idRoot, "Frame " + sId );
   EnsureVisible( id );
   
-  pTreeItem_t pTreeItem( new TreeItemScreenFrame( this, id, pScreenFrame ) );
+  pTreeItem_t pTreeItem( new TreeItemScreenFrame( this, id, pPhysicalDisplay ) );
   Add( id, pTreeItem );
   //m_mapDecoder.insert( mapDecoder_pair_t( id.GetID(), pTreeItem ) );
 }

@@ -5,9 +5,9 @@
  * Created on April 4, 2015, 8:40 PM
  */
 
-#include "ScreenFrame.h"
+#include "PhysicalDisplay.h"
 
-ScreenFrame::ScreenFrame( unsigned int nDisplay, wxWindow* parent, wxPoint point_, wxSize size_ ): 
+PhysicalDisplay::PhysicalDisplay( unsigned int nDisplay, wxWindow* parent, wxPoint point_, wxSize size_ ): 
   m_nDisplay( nDisplay ), m_display( nDisplay ), m_point( point_ ), m_size( size_ ) 
 {
   // for debugging purposes
@@ -24,5 +24,5 @@ ScreenFrame::ScreenFrame( unsigned int nDisplay, wxWindow* parent, wxPoint point
   m_pFrame->Show();
 }
   
-ScreenFrame::~ScreenFrame( ) {
+PhysicalDisplay::~PhysicalDisplay( ) {
 }
