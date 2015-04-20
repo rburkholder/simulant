@@ -82,6 +82,8 @@ void OglGrid::OnPaintInit() {
   CanvasBase::LoadShader( GL_FRAGMENT_SHADER, prefix + "oglGrid.shfrag" );
 	InitializeProgram();
   
+  glUseProgram(m_idProgram);
+  
   // vertex array object (VAO), an object that represents the
   // vertex fetch stage of the OpenGL pipeline and is used to supply input to
   // the vertex shader  (can go in startup)
@@ -109,6 +111,8 @@ void OglGrid::OnPaintInit() {
   glGenBuffers(1, &m_idElementBuffer);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_idElementBuffer);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * m_vElements.size(), &(m_vElements[0]), GL_STATIC_DRAW);  // copy m_vElements to opengl
+  
+  glUseProgram(0);
 
   // **** aspect ratio comes from screen coordinates and how they map to window coordinates (-1,-1,1,1)
   
@@ -126,6 +130,7 @@ void OglGrid::OnPaint() {
 
   glUseProgram(m_idProgram);
 
+  //m_idUniformTransform = glGetUniformLocation( m_idProgram, "mTransform" );
   glUniformMatrix4fv(m_idUniformTransform, 1, GL_FALSE, &m_mat4Transform[0][0]);
 
   // Clear the screen to black
@@ -134,6 +139,8 @@ void OglGrid::OnPaint() {
 
   // Draw the grid
   glDrawElements(GL_LINES, m_vElements.size(), GL_UNSIGNED_INT, 0);
+  
+  glUseProgram(0);
 
   //glDebugMessageCallback( 0, 0 );
 
@@ -143,5 +150,6 @@ void OglGrid::OnPaint() {
 //Called whenever the window is resized. The new window size is given, in pixels.
 //This is an opportunity to call glViewport or glScissor to keep up with the change in size.
 void OglGrid::OnResize (int w, int h) {
+  //std::cout << "oglgrid resize " << w << ", " << h << std::endl;
 	glViewport(0, 0, (GLsizei) w, (GLsizei) h);
 }

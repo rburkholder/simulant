@@ -167,7 +167,8 @@ TreeItemCanvasGrid::TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId
   
   std::cout << "Tree Item Show Grid" << std::endl;
   
-  int argsCanvas[] = { WX_GL_CORE_PROFILE, WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
+  //int argsCanvas[] = { WX_GL_CORE_PROFILE, WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
+  int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
   m_pOglGrid.reset( new OglGrid( pPhysicalDisplay->GetFrame(), argsCanvas ) );
   wxRect rect( 10, 10, 10, 10 );
 //  pOutline_t pOutline( m_pScreenFrame->GetFrame()->GetOutline() );

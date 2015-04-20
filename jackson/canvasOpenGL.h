@@ -81,6 +81,10 @@ void canvasOpenGL<CRTP>::HandlePaint( wxPaintEvent& event ) {
 //    auto res2 = glGetString(GL_RENDERER);
 //    auto res3 = glGetString(GL_SHADING_LANGUAGE_VERSION);
 //    auto res4 = glGetString(GL_VENDOR);
+    
+    GLint units;
+    glGetIntegerv( GL_MAX_TEXTURE_UNITS, &units );
+    std::cout << "Texture Units " << units << std::endl;
 
     if ( &canvasOpenGL<CRTP>::OnPaintInit != &CRTP::OnPaintInit ) {
       static_cast<CRTP*>( this )->OnPaintInit();
