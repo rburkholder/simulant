@@ -61,8 +61,6 @@ protected:
   
 private:
   
-  bool m_bProgramCreated;
-  
   std::string m_sName;
   
   GLuint CreateShader( GLenum eShaderType, const std::string& strShaderCode );

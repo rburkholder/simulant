@@ -86,26 +86,28 @@ void OglGrid::OnPaintInit() {
   
   // vertex array object (VAO), an object that represents the
   // vertex fetch stage of the OpenGL pipeline and is used to supply input to
-  // the vertex shader  (can go in startup)
-  glGenVertexArrays(1, &m_idVertexArray);
-  glBindVertexArray(m_idVertexArray);
+  // the vertex shader  (can go in startup) -- page 20 of superbible
+  glGenVertexArrays( 1, &m_idVertexArray );
+  // can be used to switch between a bunch of different buffer collections
+  // http://www.openglsuperbible.com/2013/12/09/vertex-array-performance/
+  glBindVertexArray( m_idVertexArray );  
 
   m_idUniformTransform = glGetUniformLocation( m_idProgram, "mTransform" );
   
   // Create a Vertex Buffer Object and copy the vertex data to it
   glGenBuffers(1, &m_idWindowCoordsVertexBuffer);
-  glBindBuffer(GL_ARRAY_BUFFER, m_idWindowCoordsVertexBuffer);
   
+  glBindBuffer(GL_ARRAY_BUFFER, m_idWindowCoordsVertexBuffer); // works with vertex array object
   // notice this uses an implicit buffer id, need to figure out how this works
   int s1 = sizeof( glm::vec2 ) * m_vCoords.size();
   int s2 = m_vElements.size();
   std::cout << "s values: " << s1 << ", " << s2 << std::endl;
   glBufferData(GL_ARRAY_BUFFER, s1, &m_vCoords[0], GL_STATIC_DRAW);  // copy vertices to opengl
 
-  // Specify the layout of the vertex data
+  // Specify the layout of the vertex data - works with vertex array object
   GLuint attribWindowCoords = glGetAttribLocation(m_idProgram, "vWindowCoords");
-  glEnableVertexAttribArray( attribWindowCoords );
   glVertexAttribPointer(attribWindowCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray( attribWindowCoords );
   
   // Create an element array
   glGenBuffers(1, &m_idElementBuffer);
@@ -137,7 +139,7 @@ void OglGrid::OnPaint() {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  // Draw the grid
+  // Draw the grid -- https://www.khronos.org/opengles/sdk/docs/man/xhtml/glDrawElements.xml
   glDrawElements(GL_LINES, m_vElements.size(), GL_UNSIGNED_INT, 0);
   
   glUseProgram(0);
