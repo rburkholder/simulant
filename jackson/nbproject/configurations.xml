@@ -18,6 +18,8 @@
       <itemPath>OglGrid.h</itemPath>
       <itemPath>Outline.h</itemPath>
       <itemPath>PhysicalDisplay.h</itemPath>
+      <itemPath>SceneElement.h</itemPath>
+      <itemPath>SceneManager.h</itemPath>
       <itemPath>SpinLock.h</itemPath>
       <itemPath>TreeDisplayManager.h</itemPath>
       <itemPath>appProjection.h</itemPath>
@@ -55,6 +57,8 @@
       <itemPath>OglGrid.cpp</itemPath>
       <itemPath>Outline.cpp</itemPath>
       <itemPath>PhysicalDisplay.cpp</itemPath>
+      <itemPath>SceneElement.cpp</itemPath>
+      <itemPath>SceneManager.cpp</itemPath>
       <itemPath>TreeDisplayManager.cpp</itemPath>
       <itemPath>appProjection.cpp</itemPath>
       <itemPath>canvasOpenGL.cpp</itemPath>
@@ -175,6 +179,14 @@
       <item path="PhysicalDisplay.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="PhysicalDisplay.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="SceneElement.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="SceneElement.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="SceneManager.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="SceneManager.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="SpinLock.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -327,6 +339,14 @@
       <item path="PhysicalDisplay.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="PhysicalDisplay.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="SceneElement.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="SceneElement.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="SceneManager.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="SceneManager.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="SpinLock.h" ex="false" tool="3" flavor2="0">
       </item>

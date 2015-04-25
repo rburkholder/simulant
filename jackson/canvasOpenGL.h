@@ -48,7 +48,6 @@ canvasOpenGL<CRTP>::canvasOpenGL( wxFrame* parent, int* args )
 template <typename CRTP>
 canvasOpenGL<CRTP>::~canvasOpenGL( ) {
   if ( 0 != m_context ) delete m_context;
-  //if( 0 != m_program ) 
 }
 
 template <typename CRTP>

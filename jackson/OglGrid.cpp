@@ -106,8 +106,8 @@ void OglGrid::OnPaintInit() {
 
   // Specify the layout of the vertex data - works with vertex array object
   GLuint attribWindowCoords = glGetAttribLocation(m_idProgram, "vWindowCoords");
-  glVertexAttribPointer(attribWindowCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray( attribWindowCoords );
+  glVertexAttribPointer(attribWindowCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
   
   // Create an element array
   glGenBuffers(1, &m_idElementBuffer);

@@ -48,6 +48,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/OglGrid.o \
 	${OBJECTDIR}/Outline.o \
 	${OBJECTDIR}/PhysicalDisplay.o \
+	${OBJECTDIR}/SceneElement.o \
+	${OBJECTDIR}/SceneManager.o \
 	${OBJECTDIR}/TreeDisplayManager.o \
 	${OBJECTDIR}/appProjection.o \
 	${OBJECTDIR}/canvasOpenGL.o \
@@ -147,6 +149,16 @@ ${OBJECTDIR}/PhysicalDisplay.o: PhysicalDisplay.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/PhysicalDisplay.o PhysicalDisplay.cpp
+
+${OBJECTDIR}/SceneElement.o: SceneElement.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneElement.o SceneElement.cpp
+
+${OBJECTDIR}/SceneManager.o: SceneManager.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneManager.o SceneManager.cpp
 
 ${OBJECTDIR}/TreeDisplayManager.o: TreeDisplayManager.cpp 
 	${MKDIR} -p ${OBJECTDIR}
