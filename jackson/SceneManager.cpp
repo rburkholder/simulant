@@ -7,10 +7,12 @@
 
 #include <boost/foreach.hpp>
 
+#define GL_GLEXT_PROTOTYPES
+
 #include "SceneElement.h"
 #include "SceneManager.h"
 
-//#include <GL/glext.h>
+#include <GL/glext.h>
 
 //#include <glm/glm.hpp>
 //#include <glm/gtc/matrix_transform.hpp>
@@ -21,7 +23,7 @@
 
 void  callbackSceneManager(GLenum source, GLenum type, GLuint id,
    GLenum severity, GLsizei length, const GLchar* message, const void* userParam ) {
-  std::cout << "gl error:  " << message << std::endl;
+  std::cout << "gl error:  (" << userParam << ") " << message << std::endl;
 }
 
 SceneManager::SceneManager( wxFrame* parent, int* args ): canvasOpenGL<SceneManager>( parent, args ), m_cntMapSceneElement( 0 ) {
@@ -33,6 +35,9 @@ SceneManager::~SceneManager( ) {
 SceneManager::key_t SceneManager::Add( pSceneElement_t pSceneElement ) {
   key_t key( ++m_cntMapSceneElement ); 
   m_mapSceneElement.insert( mapSceneElement_t::value_type( key, pSceneElement ) );
+  if ( Initialized() ) {
+    pSceneElement->Init();
+  }
   return key;
 }
 
@@ -52,9 +57,9 @@ void SceneManager::OnPaintInit( void ) {
   
   // stuff goes here
   BOOST_FOREACH( mapSceneElement_t::value_type element, m_mapSceneElement ) {
-    //glDebugMessageCallback( &callbackOglGrid, element.first );
+    glDebugMessageCallback( &callbackSceneManager, (const void*) element.first );
     element.second->Init();
-    //glDebugMessageCallback( 0, 0 );
+    glDebugMessageCallback( 0, 0 );
   }
   
   std::cout << "init end" << std::endl;
@@ -65,10 +70,15 @@ void SceneManager::OnPaint( void ) {
   //std::cout << "paint start" << std::endl;
   
   // stuff goes here
+  
+  // Clear the screen to black
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT);
+
   BOOST_FOREACH( mapSceneElement_t::value_type element, m_mapSceneElement ) {
-    //glDebugMessageCallback( &callbackOglGrid, element.first );
+    glDebugMessageCallback( &callbackSceneManager, (const void*) element.first );
     element.second->Paint();
-    //glDebugMessageCallback( 0, 0 );
+    glDebugMessageCallback( 0, 0 );
   }
 
   //std::cout << "paint end" << std::endl;

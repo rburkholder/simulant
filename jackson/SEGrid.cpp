@@ -119,8 +119,8 @@ void SEGrid::Paint( void ) {
   glUniformMatrix4fv(m_idUniformTransform, 1, GL_FALSE, &m_mat4Transform[0][0]);
 
   // Clear the screen to black
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
+//  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+//  glClear(GL_COLOR_BUFFER_BIT);
 
   // Draw the grid -- https://www.khronos.org/opengles/sdk/docs/man/xhtml/glDrawElements.xml
   glDrawElements(GL_LINES, m_vElements.size(), GL_UNSIGNED_INT, 0);

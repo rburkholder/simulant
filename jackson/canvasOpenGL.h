@@ -17,8 +17,10 @@ public:
   canvasOpenGL( wxFrame* parent, int* args );
   virtual ~canvasOpenGL( void );
 protected:
-  bool m_bPaintInited;
+  bool Initialized( void ) { return m_bPaintInited; }
 private:
+  
+  bool m_bPaintInited;
   
   wxGLContext*	m_context;
   

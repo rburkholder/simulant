@@ -17,7 +17,7 @@
 
 class SEGrid: public SceneElement {
 public:
-
+  
   SEGrid( );
   virtual ~SEGrid( );
   

@@ -5,7 +5,7 @@
  * Created on April 5, 2015, 10:11 PM
  */
 
-//#include <map>
+#include <map>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/lexical_cast.hpp>
@@ -49,6 +49,10 @@ extern "C" {
 #include "Outline.h"
 
 #include "FpsGenerator.h"
+
+#include "SceneElement.h"
+#include "SEGrid.h"
+#include "SceneManager.h"
 
 #include "TreeDisplayManager.h"
 
@@ -110,7 +114,10 @@ public:
   typedef boost::signals2::signal<void ( const glm::mat4& )> signalTransformUpdated_t;
   typedef signalTransformUpdated_t::slot_type slotTransformUpdated_t;
   
-  TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay, pOutline_t pOutline );
+  typedef boost::shared_ptr<SceneManager> pSceneManager_t;
+  
+  TreeItemCanvasGrid( 
+    TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay, pOutline_t pOutline, pSceneManager_t pSceneManager );
   ~TreeItemCanvasGrid( void );
   
   virtual void ShowContextMenu( void );
@@ -130,7 +137,9 @@ private:
     MIDelete, MIReset
   };
   
-  typedef boost::shared_ptr<OglGrid> pOglGrid_t;
+  //typedef boost::shared_ptr<OglGrid> pOglGrid_t;
+  typedef SceneManager::key_t key_t;
+  typedef boost::shared_ptr<SEGrid> pSEGrid_t;
   
   volatile bool m_bActive;
   
@@ -140,7 +149,10 @@ private:
   int m_intMouseY;
   
   pPhysicalDisplay_t m_pPhysicalDisplay;
-  pOglGrid_t m_pOglGrid;
+  //pOglGrid_t m_pOglGrid;
+  pSceneManager_t m_pSceneManager;
+  pSEGrid_t m_pGrid;
+  key_t m_key;
   
   glm::mat4 m_mat4Transform;
   
@@ -162,25 +174,30 @@ private:
   
 };
 
-TreeItemCanvasGrid::TreeItemCanvasGrid( TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay, pOutline_t pOutline )
-: TreeItemBase( pTree_, id_ ), m_pPhysicalDisplay( pPhysicalDisplay ), m_floatFactor( 1.0f ), m_bActive( false ) {
+TreeItemCanvasGrid::TreeItemCanvasGrid( 
+  TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay, pOutline_t pOutline, pSceneManager_t pSceneManager)
+: TreeItemBase( pTree_, id_ ), m_pPhysicalDisplay( pPhysicalDisplay ), m_pSceneManager( pSceneManager), 
+  m_floatFactor( 1.0f ), m_bActive( false ) {
   
   std::cout << "Tree Item Show Grid" << std::endl;
   
   //int argsCanvas[] = { WX_GL_CORE_PROFILE, WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
   int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
-  m_pOglGrid.reset( new OglGrid( pPhysicalDisplay->GetFrame(), argsCanvas ) );
-  wxRect rect( 10, 10, 10, 10 );
+  //m_pOglGrid.reset( new OglGrid( pPhysicalDisplay->GetFrame(), argsCanvas ) );
+  //wxRect rect( 10, 10, 10, 10 );
 //  pOutline_t pOutline( m_pScreenFrame->GetFrame()->GetOutline() );
-  if ( 0 != pOutline.use_count() ) {
-    rect = pOutline->GetBoundingBox();
-  }
-  m_pOglGrid->SetSize( rect.GetSize() );
-  m_pOglGrid->Move( rect.GetTopLeft() );
+  //if ( 0 != pOutline.use_count() ) {
+  //  rect = pOutline->GetBoundingBox();
+  //}
+  //m_pOglGrid->SetSize( rect.GetSize() );
+  //m_pOglGrid->Move( rect.GetTopLeft() );
   
-  m_pOglGrid->Bind( wxEVT_MOUSEWHEEL, &TreeItemCanvasGrid::HandleMouseWheel, this );
-  m_pOglGrid->Bind( wxEVT_MOTION, &TreeItemCanvasGrid::HandleMouseMoved, this );
-  m_pOglGrid->Bind( wxEVT_LEFT_DOWN, &TreeItemCanvasGrid::HandleMouseLeftDown, this );
+  m_pGrid.reset( new SEGrid );
+  m_key = m_pSceneManager->Add( m_pGrid );
+ 
+  m_pSceneManager->Bind( wxEVT_MOUSEWHEEL, &TreeItemCanvasGrid::HandleMouseWheel, this );
+  m_pSceneManager->Bind( wxEVT_MOTION, &TreeItemCanvasGrid::HandleMouseMoved, this );
+  m_pSceneManager->Bind( wxEVT_LEFT_DOWN, &TreeItemCanvasGrid::HandleMouseLeftDown, this );
   
   wxApp::GetInstance()->Bind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this ); 
   //m_pScreenFrame->GetFrame()->Bind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this );  // doesn't propgate properly
@@ -199,9 +216,10 @@ TreeItemCanvasGrid::~TreeItemCanvasGrid( void ) {
   m_bActive = false;
   m_slotTimer.disconnect();
   wxApp::GetInstance()->Unbind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this );
-  m_pOglGrid->Unbind( wxEVT_MOUSEWHEEL, &TreeItemCanvasGrid::HandleMouseWheel, this );
-  m_pOglGrid->Unbind( wxEVT_MOTION, &TreeItemCanvasGrid::HandleMouseMoved, this );
-  m_pOglGrid->Unbind( wxEVT_LEFT_DOWN, &TreeItemCanvasGrid::HandleMouseLeftDown, this );
+  m_pSceneManager->Unbind( wxEVT_MOUSEWHEEL, &TreeItemCanvasGrid::HandleMouseWheel, this );
+  m_pSceneManager->Unbind( wxEVT_MOTION, &TreeItemCanvasGrid::HandleMouseMoved, this );
+  m_pSceneManager->Unbind( wxEVT_LEFT_DOWN, &TreeItemCanvasGrid::HandleMouseLeftDown, this );
+  m_pSceneManager->Delete( m_key );
 }
 
 void TreeItemCanvasGrid::HandleRefreshTimer( FpsGenerator::FPS fps ) {
@@ -212,7 +230,11 @@ void TreeItemCanvasGrid::HandleRefreshTimer( FpsGenerator::FPS fps ) {
 
 void TreeItemCanvasGrid::HandleRefresh( EventGenerateFrame& event ) {
   if ( m_pPhysicalDisplay->GetFrame()->GetId() == event.GetId() ) {
-    m_pOglGrid->Refresh();
+    //m_pOglGrid->Refresh();
+    //m_pGrid->Refresh();
+    m_pSceneManager->Refresh(); // this isn't the right way, as it will get called to many times
+    //  when registering, registers with a specific fps queue
+    // this should set a flag, so SceneManager draws everything, or does an auto refresh.
   }
   else {
     //std::cout << "not our event" << std::endl;  // this does get hit, so the if above is appropriate
@@ -227,8 +249,10 @@ void TreeItemCanvasGrid::ResetTransformMatrix( void ) {
   float floatHeightScale( 1.0f );
   float floatWidthScale( 1.0f );
   
-  float height = m_pOglGrid->GetClientSize().GetHeight();
-  float width = m_pOglGrid->GetClientSize().GetWidth();
+  //float height = m_pOglGrid->GetClientSize().GetHeight();
+  float height = m_pPhysicalDisplay->GetFrame()->GetClientSize().GetHeight();
+  //float width = m_pOglGrid->GetClientSize().GetWidth();
+  float width = m_pPhysicalDisplay->GetFrame()->GetClientSize().GetWidth();
   float ar = height / width;  // aspect ratio
   
   if ( 1.0 != ar ) {  // rescale if not a square
@@ -245,7 +269,8 @@ void TreeItemCanvasGrid::ResetTransformMatrix( void ) {
 }
 
 void TreeItemCanvasGrid::UpdateTransformMatrix( void ) {
-  m_pOglGrid->UpdateTransform( m_mat4Transform );
+  //m_pOglGrid->UpdateTransform( m_mat4Transform );
+  m_pGrid->UpdateTransform( m_mat4Transform );
   m_signalTransformUpdated( m_mat4Transform );
 }
 
@@ -300,8 +325,10 @@ void TreeItemCanvasGrid::HandleMouseMoved( wxMouseEvent& event ) {
     int difX = event.GetX() - m_intMouseX;
     int difY = event.GetY() - m_intMouseY;
     // need to use aspect ratio for following so consistent ratios in each direction
-    float ratioX = (float) difX / (float) m_pOglGrid->GetClientSize().GetWidth();
-    float ratioY = (float) difY / (float) m_pOglGrid->GetClientSize().GetHeight();
+    //float ratioX = (float) difX / (float) m_pOglGrid->GetClientSize().GetWidth();
+    float ratioX = (float) difX / (float) m_pPhysicalDisplay->GetFrame()->GetClientSize().GetWidth();
+    //float ratioY = (float) difY / (float) m_pOglGrid->GetClientSize().GetHeight();
+    float ratioY = (float) difY / (float) m_pPhysicalDisplay->GetFrame()->GetClientSize().GetHeight();
     //std::cout << "drag " << difX << ", " << difY << ", " << ratioX << ", " << ratioY << std::endl;
     if ( event.ControlDown() ) { // rotation
       glm::vec3 vRotate;
@@ -328,6 +355,8 @@ void TreeItemCanvasGrid::HandleMouseMoved( wxMouseEvent& event ) {
 
 void TreeItemCanvasGrid::ShowContextMenu( void ) {
   
+  // todo:  need to toggle between grid and displayed picture
+  
   wxMenu* pMenu = new wxMenu();
   
   pMenu->Append( MIReset, "Reset" );
@@ -352,16 +381,18 @@ void TreeItemCanvasGrid::HandleReset( wxCommandEvent& event ) {
 
 // ================
 
-class TreeItemCanvas: public TreeItemBase {
+class TreeItemPlaceHolder: public TreeItemBase {
   // may need to change name to only a place holder as it is no longer a canvas,
   // but a placeholder for an outline for creating displayable objects
 public:
   
-  typedef boost::shared_ptr<PhysicalDisplay> pScreenFrame_t;
+  typedef boost::shared_ptr<PhysicalDisplay> pPhysicalDisplay_t;
   typedef Outline::pOutline_t pOutline_t;
+  typedef boost::shared_ptr<SceneManager> pSceneManager_t;
   
-  TreeItemCanvas( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame, pOutline_t pOutline );
-  ~TreeItemCanvas( void );
+  TreeItemPlaceHolder( TreeDisplayManager* pTree_, wxTreeItemId id_, 
+              pPhysicalDisplay_t pScreenFrame, pOutline_t pOutline, pSceneManager_t pSceneManager );
+  ~TreeItemPlaceHolder( void );
   
   virtual void ShowContextMenu( void );
   
@@ -370,102 +401,129 @@ private:
   
   enum {
     ID_Null = wxID_HIGHEST,
-    MIAddPicture, MIAddVideo, MIShowGrid, MIDelete
+    MIAddPicture, MIAddVideo, MIAddGrid, MIDelete
   };
   
-  glm::mat4 m_mat4Transform;  // The transformation matrix built by Grid
+  typedef SceneManager::key_t key_t;
+  typedef SceneManager::pSceneElement_t pSceneElement_t;
+  typedef boost::signals2::connection connection;
+  
+  // note:  no way to delete this yet, may need a signal for it
+  struct SceneElementInfo {
+    //key_t m_key;
+    //pSceneElement_t m_pSceneElement;
+    connection m_connectGrid;
+    glm::mat4 m_mat4Transform;  // The transformation matrix built by Grid
+    SceneElementInfo( void ): m_mat4Transform( 1.0f ) {};
+    //structSceneElement( key_t key, pSceneElement_t pSceneElement, connection connectGrid, glm::mat4 mat4Transform )
+    //  : m_key( key ), m_pSceneElement( pSceneElement ), m_connectGrid( connectGrid ), m_mat4Transform( mat4Transform ) {}
+    SceneElementInfo( connection connectGrid, glm::mat4 mat4Transform )
+      : m_connectGrid( connectGrid ), m_mat4Transform( mat4Transform ) {}
+    ~SceneElementInfo( void ) {
+      m_connectGrid.disconnect();
+    }
+    void HandleUpdateTransform( const glm::mat4& matrix ) {
+      m_mat4Transform = matrix;
+    }
+  };
+  
+  typedef boost::shared_ptr<SceneElementInfo> pSceneElementInfo_t;
+  typedef std::map<wxTreeItemId,pSceneElementInfo_t> mapSceneElementInfo_t;
   
   bool m_bHasGrid;  // need a signal from grid when to clear, should only have one grid assigned
   // but allow multiple for now, but each is going to overwrite the supplied outline
   // unless the outline is read only, and used only as a starting point
   // will allow multiple objects on the canvas, so may not need m_bHasGrid
   
-  pScreenFrame_t m_pScreenFrame;
+  pPhysicalDisplay_t m_pPhysicalDisplay;
   pOutline_t m_pOutline;
+  pSceneManager_t m_pSceneManager;
   
-  boost::signals2::connection m_connectGrid;  // not quite right, as we can have multiple grids showing.
+  mapSceneElementInfo_t m_mapSceneElementInfo;
   
   void SetSelected( void );
   void RemoveSelected( void );
   
   void HandleAddPicture( wxCommandEvent& event );
   void HandleAddVideo( wxCommandEvent& event );
-  void HandleShowGrid( wxCommandEvent& event );
+  void HandleAddGrid( wxCommandEvent& event );
   void HandleDelete( wxCommandEvent& event );
-  
-  void HandleUpdateTransform( const glm::mat4& matrix );
   
 };
 
-TreeItemCanvas::TreeItemCanvas( TreeDisplayManager* pTree_, wxTreeItemId id_, pScreenFrame_t pScreenFrame, pOutline_t pOutline )
-: TreeItemBase( pTree_, id_ ), m_pScreenFrame( pScreenFrame ), m_pOutline( pOutline ), m_bHasGrid( false ) {
-  m_mat4Transform = glm::mat4( 1.0f );  // identity matrix to start
+TreeItemPlaceHolder::TreeItemPlaceHolder( 
+  TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay, pOutline_t pOutline, pSceneManager_t pSceneManager )
+: TreeItemBase( pTree_, id_ ), m_pPhysicalDisplay( pPhysicalDisplay ), 
+  m_pOutline( pOutline ), m_pSceneManager( pSceneManager ), m_bHasGrid( false ) {
+  //m_mat4Transform = glm::mat4( 1.0f );  // identity matrix to start
 }
 
-TreeItemCanvas::~TreeItemCanvas( void ) {
+TreeItemPlaceHolder::~TreeItemPlaceHolder( void ) {
   RemoveSelected();
 }
 
-void TreeItemCanvas::ShowContextMenu( void ) {
+void TreeItemPlaceHolder::ShowContextMenu( void ) {
   
   wxMenu* pMenu = new wxMenu();
   
-  pMenu->Append( MIShowGrid, "Show Grid" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemCanvas::HandleShowGrid, this, MIShowGrid );
+  pMenu->Append( MIAddGrid, "Add &Grid" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPlaceHolder::HandleAddGrid, this, MIAddGrid );
   
   pMenu->Append( MIAddPicture, "Add &Picture" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemCanvas::HandleAddPicture, this, MIAddPicture );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPlaceHolder::HandleAddPicture, this, MIAddPicture );
   
   pMenu->Append( MIAddVideo, "Add &Video" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemCanvas::HandleAddVideo, this, MIAddVideo );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPlaceHolder::HandleAddVideo, this, MIAddVideo );
   
   pMenu->Append( MIDelete, "Delete" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemCanvas::HandleDelete, this, MIDelete );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPlaceHolder::HandleDelete, this, MIDelete );
   
   m_pTree->PopupMenu( pMenu );
 }
 
-void TreeItemCanvas::SetSelected( void ) {
+void TreeItemPlaceHolder::SetSelected( void ) {
   //std::cout << "Tree Item Canvas Selected" << std::endl;
-  m_pScreenFrame->GetFrame()->SetOutline( m_pOutline );
-  m_pScreenFrame->GetFrame()->Refresh();
+  m_pPhysicalDisplay->GetFrame()->SetOutline( m_pOutline );
+  m_pPhysicalDisplay->GetFrame()->Refresh();
 }
 
-void TreeItemCanvas::RemoveSelected( void ) {
+void TreeItemPlaceHolder::RemoveSelected( void ) {
   pOutline_t pOutline;
-  m_pScreenFrame->GetFrame()->SetOutline( pOutline );
-  m_pScreenFrame->GetFrame()->Refresh();
+  m_pPhysicalDisplay->GetFrame()->SetOutline( pOutline );
+  m_pPhysicalDisplay->GetFrame()->Refresh();
 }
 
-void TreeItemCanvas::HandleShowGrid( wxCommandEvent& event ) {
+void TreeItemPlaceHolder::HandleAddGrid( wxCommandEvent& event ) {
+  
   wxTreeItemId id = m_pTree->AppendItem( m_id, "Grid" );
   m_pTree->EnsureVisible( id );
   
-  TreeItemCanvasGrid* p = new TreeItemCanvasGrid( m_pTree, id, m_pScreenFrame, m_pOutline );
-  pTreeItem_t pTreeItem( p );
+  TreeItemCanvasGrid* pGrid = new TreeItemCanvasGrid( m_pTree, id, m_pPhysicalDisplay, m_pOutline, m_pSceneManager );
+  pTreeItem_t pTreeItem( pGrid );
   m_pTree->Add( id, pTreeItem );
   
+  pSceneElementInfo_t pInfo( new SceneElementInfo );
+  m_mapSceneElementInfo.insert( mapSceneElementInfo_t::value_type( id, pInfo ) );
+  
   namespace args = boost::phoenix::arg_names;
-  m_connectGrid = p->Connect( boost::phoenix::bind( &TreeItemCanvas::HandleUpdateTransform, this, args::arg1 ) );
-  p->GetTransformMatrix( m_mat4Transform );
+  pInfo->m_connectGrid = pGrid->Connect( boost::phoenix::bind( &SceneElementInfo::HandleUpdateTransform, pInfo.get(), args::arg1 ) );
+  pGrid->GetTransformMatrix( pInfo->m_mat4Transform );
+  
 }
 
-void TreeItemCanvas::HandleAddPicture( wxCommandEvent& event ) {
+void TreeItemPlaceHolder::HandleAddPicture( wxCommandEvent& event ) {
   std::cout << "Tree Item Add Picture" << std::endl;
 }
 
-void TreeItemCanvas::HandleAddVideo( wxCommandEvent& event ) {
+void TreeItemPlaceHolder::HandleAddVideo( wxCommandEvent& event ) {
   std::cout << "Tree Item Add Video" << std::endl;
 }
 
-void TreeItemCanvas::HandleDelete( wxCommandEvent& event ) {
+void TreeItemPlaceHolder::HandleDelete( wxCommandEvent& event ) {
   std::cout << "Tree Item Delete" << std::endl;
   m_pTree->Delete( this->m_id );
 }
 
-void TreeItemCanvas::HandleUpdateTransform( const glm::mat4& matrix ) {
-  m_mat4Transform = matrix;
-}
 
 // ================
 
@@ -498,11 +556,12 @@ private:
   
   enum {
     ID_Null = wxID_HIGHEST,
-    MIAddOpenGLCanvas, 
-    MIAddOutline, MISelectPicture, MISelectVideo, MIImageToOpenGL, MIMovieScreen
+    MIAddPlaceHolder,
+    MIAddOutline, MISelectPicture, MISelectVideo, MIImageToOpenGL, MIMovieScreen, 
   };
   
   typedef Outline::pOutline_t pOutline_t;
+  typedef boost::shared_ptr<SceneManager> pSceneManager_t;
   
   wxString m_sPictureDirectory;
   wxString m_sVideoDirectory;
@@ -512,6 +571,8 @@ private:
   boost::thread_group m_threadsWorkers;
   boost::asio::io_service m_Srvc;
   boost::asio::io_service::work* m_pWork;
+  
+  pSceneManager_t m_pSceneManager;
   
   pPhysicalDisplay_t m_pPhysicalDisplay;
   
@@ -524,7 +585,8 @@ private:
   void ProcessVideoFile( boost::shared_ptr<DecodeH264> pDecoder );
   
   void HandleAddOutline( wxCommandEvent& event );
-  void HandleAddCanvas( wxCommandEvent& event );
+  //void HandleAddCanvas( wxCommandEvent& event );
+  void HandleAddPlaceHolder( wxCommandEvent& event );
   void HandleOnFrame( AVCodecContext* context, AVFrame* frame, AVPacket* pkt, void* user, structTimeSteps perf );
   void HandleFrameTransform( AVFrame* pRgb, uint8_t* buf, void* user, structTimeSteps perf, int srcX, int srcY );
   void HandleEventImage( EventImage& );
@@ -538,6 +600,7 @@ private:
 
 TreeItemPhysicalDisplay::TreeItemPhysicalDisplay( TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay )
 : TreeItemBase( pTree_, id_ ), m_pPhysicalDisplay( pPhysicalDisplay ) {
+  
   // add a right click pop up to add displayable objects and surfaces
   // which are then serialized for session persistence
   // use text or enum keys to register objects, for subsequent re-creation
@@ -559,6 +622,14 @@ TreeItemPhysicalDisplay::TreeItemPhysicalDisplay( TreeDisplayManager* pTree_, wx
 
   // **** will need to set a specific instance id so that multiple frames can be run
   wxApp::GetInstance()->Bind( EVENT_IMAGE, &TreeItemPhysicalDisplay::HandleEventImage, this );
+  
+  //int argsCanvas[] = { WX_GL_CORE_PROFILE, WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
+  int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
+  m_pSceneManager.reset( new SceneManager( m_pPhysicalDisplay->GetFrame(), argsCanvas ) );
+  wxRect rect( 10, 10, 10, 10 );
+  rect = m_pPhysicalDisplay->GetFrame()->GetClientRect();
+  m_pSceneManager->SetSize( rect.GetSize() );
+  m_pSceneManager->Move( rect.GetTopLeft() );
 }
 
 TreeItemPhysicalDisplay::~TreeItemPhysicalDisplay( void ) {
@@ -574,7 +645,7 @@ void TreeItemPhysicalDisplay::HandleAddOutline(  wxCommandEvent& event  ) {  // 
   m_pPhysicalDisplay->GetFrame()->Refresh();
 }
 
-void TreeItemPhysicalDisplay::HandleAddCanvas( wxCommandEvent& event ) {
+void TreeItemPhysicalDisplay::HandleAddPlaceHolder( wxCommandEvent& event ) {
   std::cout << "Add Canvas" << std::endl;  
   // various stages:  
   //   0) popup to get description
@@ -591,15 +662,15 @@ void TreeItemPhysicalDisplay::HandleAddCanvas( wxCommandEvent& event ) {
   
   pOutline_t pOutline( new Outline( wxRect( 300, 300, 600, 600 ), true, false ) );  // instead, use some ratio of the main window
 
-  pTreeItem_t pTreeItem( new TreeItemCanvas( m_pTree, id, m_pPhysicalDisplay, pOutline ) );
+  pTreeItem_t pTreeItem( new TreeItemPlaceHolder( m_pTree, id, m_pPhysicalDisplay, pOutline, m_pSceneManager ) );
   m_pTree->Add( id, pTreeItem );
 }
-  
+
 void TreeItemPhysicalDisplay::ShowContextMenu( void ) {
   wxMenu* pMenu = new wxMenu();
   
-  pMenu->Append( MIAddOpenGLCanvas, "Add Canvas" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPhysicalDisplay::HandleAddCanvas, this, MIAddOpenGLCanvas );
+  pMenu->Append( MIAddPlaceHolder, "Add PlaceHolder" ); // need to have picture or video ready with dimensions to scale properly
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPhysicalDisplay::HandleAddPlaceHolder, this, MIAddPlaceHolder );
   
   pMenu->AppendSeparator();
 
@@ -880,7 +951,7 @@ void TreeDisplayManager::Append( pPhysicalDisplay_t pPhysicalDisplay ) {
 }
 
 void TreeDisplayManager::Add( const wxTreeItemId& id, pTreeItem_t pTreeItem ) {
-  m_mapDecoder.insert( mapDecoder_pair_t( id.GetID(), pTreeItem ) );
+  m_mapDecoder.insert( mapDecoder_t::value_type( id.GetID(), pTreeItem ) );
 }
 
 void TreeDisplayManager::Delete( wxTreeItemId id ) {
@@ -911,7 +982,7 @@ void TreeDisplayManager::CreateControls() {
   
   wxTreeItemId id = wxTreeCtrl::AddRoot( "Projections" );
   pTreeItem_t pTreeItem( new TreeItemRoot( this, id ) );
-  m_mapDecoder.insert( mapDecoder_pair_t( id.GetID(), pTreeItem ) );
+  m_mapDecoder.insert( mapDecoder_t::value_type( id.GetID(), pTreeItem ) );
   
 }
 
