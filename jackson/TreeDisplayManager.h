@@ -74,6 +74,7 @@ private:
   void HandleSelectionChanged( wxTreeEvent& event );
   void HandleSelectionChanging( wxTreeEvent& event );
   void HandleItemActivated( wxTreeEvent& event );
+  void HandleItemDeleted( wxTreeEvent& event );
 
   wxBitmap GetBitmapResource( const wxString& name );
   wxIcon GetIconResource( const wxString& name );

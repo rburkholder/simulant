@@ -45,7 +45,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/EventGenerateFrame.o \
 	${OBJECTDIR}/EventImage.o \
 	${OBJECTDIR}/FpsGenerator.o \
-	${OBJECTDIR}/OglGrid.o \
 	${OBJECTDIR}/Outline.o \
 	${OBJECTDIR}/PhysicalDisplay.o \
 	${OBJECTDIR}/SEGrid.o \
@@ -136,11 +135,6 @@ ${OBJECTDIR}/FpsGenerator.o: FpsGenerator.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/FpsGenerator.o FpsGenerator.cpp
-
-${OBJECTDIR}/OglGrid.o: OglGrid.cpp 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/OglGrid.o OglGrid.cpp
 
 ${OBJECTDIR}/Outline.o: Outline.cpp 
 	${MKDIR} -p ${OBJECTDIR}

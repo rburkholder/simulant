@@ -41,7 +41,6 @@ extern "C" {
 
 //#include "tut1.h"
 #include "tex2.h"
-#include "OglGrid.h"
 
 #include "EventImage.h"
 #include "EventGenerateFrame.h"
@@ -70,6 +69,7 @@ public:
   virtual void ShowContextMenu( void ) {}
   virtual void SetSelected( void ) {}
   virtual void RemoveSelected( void ) {}
+  virtual void DeletingChild( wxTreeItemId id ) {};
   wxTreeItemId GetTreeItemId( void ) { return m_id; }
 protected:
   wxTreeItemId m_id;  // identifier of this part of the tree control
@@ -145,11 +145,12 @@ private:
   
   float m_floatFactor;
   
+  bool m_bReceivingEvents;
+  
   int m_intMouseX;
   int m_intMouseY;
   
   pPhysicalDisplay_t m_pPhysicalDisplay;
-  //pOglGrid_t m_pOglGrid;
   pSceneManager_t m_pSceneManager;
   pSEGrid_t m_pGrid;
   key_t m_key;
@@ -180,20 +181,10 @@ private:
 TreeItemCanvasGrid::TreeItemCanvasGrid( 
   TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay, pOutline_t pOutline, pSceneManager_t pSceneManager)
 : TreeItemBase( pTree_, id_ ), m_pPhysicalDisplay( pPhysicalDisplay ), m_pSceneManager( pSceneManager), 
-  m_floatFactor( 1.0f ), m_bActive( false ) {
+  m_floatFactor( 1.0f ), m_bActive( false ), m_bReceivingEvents( false )
+{
   
   std::cout << "Tree Item Show Grid" << std::endl;
-  
-  //int argsCanvas[] = { WX_GL_CORE_PROFILE, WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
-  int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
-  //m_pOglGrid.reset( new OglGrid( pPhysicalDisplay->GetFrame(), argsCanvas ) );
-  //wxRect rect( 10, 10, 10, 10 );
-//  pOutline_t pOutline( m_pScreenFrame->GetFrame()->GetOutline() );
-  //if ( 0 != pOutline.use_count() ) {
-  //  rect = pOutline->GetBoundingBox();
-  //}
-  //m_pOglGrid->SetSize( rect.GetSize() );
-  //m_pOglGrid->Move( rect.GetTopLeft() );
   
   m_pGrid.reset( new SEGrid );
   m_key = m_pSceneManager->Add( m_pGrid );
@@ -212,6 +203,7 @@ TreeItemCanvasGrid::TreeItemCanvasGrid(
 }
 
 TreeItemCanvasGrid::~TreeItemCanvasGrid( void ) {
+  if ( m_bReceivingEvents ) RemoveSelected();
   m_bActive = false;
   m_slotTimer.disconnect();
   wxApp::GetInstance()->Unbind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this );
@@ -219,15 +211,21 @@ TreeItemCanvasGrid::~TreeItemCanvasGrid( void ) {
 }
 
 void TreeItemCanvasGrid::SetSelected( void ) {
-  m_pSceneManager->Bind( wxEVT_MOUSEWHEEL, &TreeItemCanvasGrid::HandleMouseWheel, this );
-  m_pSceneManager->Bind( wxEVT_MOTION, &TreeItemCanvasGrid::HandleMouseMoved, this );
-  m_pSceneManager->Bind( wxEVT_LEFT_DOWN, &TreeItemCanvasGrid::HandleMouseLeftDown, this );
+  if ( !m_bReceivingEvents ) {
+    m_pSceneManager->Bind( wxEVT_MOUSEWHEEL, &TreeItemCanvasGrid::HandleMouseWheel, this );
+    m_pSceneManager->Bind( wxEVT_MOTION, &TreeItemCanvasGrid::HandleMouseMoved, this );
+    m_pSceneManager->Bind( wxEVT_LEFT_DOWN, &TreeItemCanvasGrid::HandleMouseLeftDown, this );
+    m_bReceivingEvents = true;
+  }
 }
 
 void TreeItemCanvasGrid::RemoveSelected( void ) {
-  m_pSceneManager->Unbind( wxEVT_MOUSEWHEEL, &TreeItemCanvasGrid::HandleMouseWheel, this );
-  m_pSceneManager->Unbind( wxEVT_MOTION, &TreeItemCanvasGrid::HandleMouseMoved, this );
-  m_pSceneManager->Unbind( wxEVT_LEFT_DOWN, &TreeItemCanvasGrid::HandleMouseLeftDown, this );
+  if ( m_bReceivingEvents ) {
+    m_pSceneManager->Unbind( wxEVT_MOUSEWHEEL, &TreeItemCanvasGrid::HandleMouseWheel, this );
+    m_pSceneManager->Unbind( wxEVT_MOTION, &TreeItemCanvasGrid::HandleMouseMoved, this );
+    m_pSceneManager->Unbind( wxEVT_LEFT_DOWN, &TreeItemCanvasGrid::HandleMouseLeftDown, this );
+    m_bReceivingEvents = false;
+  }
 }
 
 void TreeItemCanvasGrid::HandleRefreshTimer( FpsGenerator::FPS fps ) {
@@ -449,6 +447,7 @@ private:
   
   void SetSelected( void );
   void RemoveSelected( void );
+  void DeletingChild( wxTreeItemId );
   
   void HandleAddPicture( wxCommandEvent& event );
   void HandleAddVideo( wxCommandEvent& event );
@@ -497,6 +496,13 @@ void TreeItemPlaceHolder::RemoveSelected( void ) {
   pOutline_t pOutline;
   m_pPhysicalDisplay->GetFrame()->SetOutline( pOutline );
   m_pPhysicalDisplay->GetFrame()->Refresh();
+}
+
+void TreeItemPlaceHolder::DeletingChild( wxTreeItemId id ) {
+  mapSceneElementInfo_t::iterator iter = m_mapSceneElementInfo.find( id );
+  assert( m_mapSceneElementInfo.end() != iter );
+  iter->second->m_connectGrid.disconnect();
+  m_mapSceneElementInfo.erase( iter );
 }
 
 void TreeItemPlaceHolder::HandleAddGrid( wxCommandEvent& event ) {
@@ -963,11 +969,19 @@ void TreeDisplayManager::Add( const wxTreeItemId& id, pTreeItem_t pTreeItem ) {
 void TreeDisplayManager::Delete( wxTreeItemId id ) {
   //wxTreeItemId id( pTreeItem->GetTreeItemId() );
   if ( 0 == GetChildrenCount( id ) ) {
-    mapDecoder_t::iterator iter = m_mapDecoder.find( id.GetID() );
-    assert( m_mapDecoder.end() != iter );
+    
+    wxTreeItemId idParent = wxTreeCtrl::GetItemParent( id );
+    assert( idParent.IsOk() );
+    mapDecoder_t::iterator iterParent = m_mapDecoder.find( idParent.GetID() );
+    assert( m_mapDecoder.end() != iterParent );
+    iterParent->second->DeletingChild( id );
+    
+    mapDecoder_t::iterator iterChild = m_mapDecoder.find( id.GetID() );
+    assert( m_mapDecoder.end() != iterChild );
+    
     wxTreeCtrl::Delete( id );
     m_idOld.Unset();
-    m_mapDecoder.erase( iter );
+    m_mapDecoder.erase( iterChild );
   }
   else {
     std::cout << "item has children" << std::endl;
@@ -985,6 +999,8 @@ void TreeDisplayManager::CreateControls() {
   wxTreeCtrl::Bind( wxEVT_TREE_SEL_CHANGED, &TreeDisplayManager::HandleSelectionChanged, this );
   wxTreeCtrl::Bind( wxEVT_TREE_SEL_CHANGING, &TreeDisplayManager::HandleSelectionChanging, this );
   wxTreeCtrl::Bind( wxEVT_TREE_ITEM_ACTIVATED, &TreeDisplayManager::HandleItemActivated, this );
+  wxTreeCtrl::Bind( wxEVT_TREE_DELETE_ITEM, &TreeDisplayManager::HandleItemDeleted, this );
+  
   
   wxTreeItemId id = wxTreeCtrl::AddRoot( "Projections" );
   pTreeItem_t pTreeItem( new TreeItemRoot( this, id ) );
@@ -1011,6 +1027,10 @@ void TreeDisplayManager::HandleSelectionChanging( wxTreeEvent& event ) {
 
 void TreeDisplayManager::HandleItemActivated( wxTreeEvent& event ) {
   std::cout << "HandleItemActivated" << std::endl;
+}
+
+void TreeDisplayManager::HandleItemDeleted( wxTreeEvent& event ) {
+  std::cout << "HandleItemDeleted" << std::endl;
 }
 
 wxBitmap TreeDisplayManager::GetBitmapResource( const wxString& name ) {

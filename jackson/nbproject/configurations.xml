@@ -15,7 +15,6 @@
       <itemPath>EventImage.h</itemPath>
       <itemPath>FpsGenerator.h</itemPath>
       <itemPath>Network.h</itemPath>
-      <itemPath>OglGrid.h</itemPath>
       <itemPath>Outline.h</itemPath>
       <itemPath>PhysicalDisplay.h</itemPath>
       <itemPath>SEGrid.h</itemPath>
@@ -56,7 +55,6 @@
       <itemPath>EventGenerateFrame.cpp</itemPath>
       <itemPath>EventImage.cpp</itemPath>
       <itemPath>FpsGenerator.cpp</itemPath>
-      <itemPath>OglGrid.cpp</itemPath>
       <itemPath>Outline.cpp</itemPath>
       <itemPath>PhysicalDisplay.cpp</itemPath>
       <itemPath>SEGrid.cpp</itemPath>
@@ -171,10 +169,6 @@
       <item path="FpsGenerator.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Network.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="OglGrid.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="OglGrid.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Outline.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -339,10 +333,6 @@
       <item path="FpsGenerator.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Network.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="OglGrid.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="OglGrid.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Outline.cpp" ex="false" tool="1" flavor2="0">
       </item>

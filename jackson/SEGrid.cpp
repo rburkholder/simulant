@@ -15,6 +15,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
+// NDS Normalized Device Space: x,y: -1.0,-1.0 -> 1.0, 1.0 ; depth: 0.0 -> 1.0  pg 39
+
 SEGrid::SEGrid( ): SceneElement() {
 
   const GLuint nCols( 10 );  // but will n + 1, iterate 0 .. n
