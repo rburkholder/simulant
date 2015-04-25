@@ -48,8 +48,10 @@ OBJECTFILES= \
 	${OBJECTDIR}/OglGrid.o \
 	${OBJECTDIR}/Outline.o \
 	${OBJECTDIR}/PhysicalDisplay.o \
+	${OBJECTDIR}/SEGrid.o \
 	${OBJECTDIR}/SceneElement.o \
 	${OBJECTDIR}/SceneManager.o \
+	${OBJECTDIR}/ShaderManager.o \
 	${OBJECTDIR}/TreeDisplayManager.o \
 	${OBJECTDIR}/appProjection.o \
 	${OBJECTDIR}/canvasOpenGL.o \
@@ -150,6 +152,11 @@ ${OBJECTDIR}/PhysicalDisplay.o: PhysicalDisplay.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/PhysicalDisplay.o PhysicalDisplay.cpp
 
+${OBJECTDIR}/SEGrid.o: SEGrid.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SEGrid.o SEGrid.cpp
+
 ${OBJECTDIR}/SceneElement.o: SceneElement.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -159,6 +166,11 @@ ${OBJECTDIR}/SceneManager.o: SceneManager.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneManager.o SceneManager.cpp
+
+${OBJECTDIR}/ShaderManager.o: ShaderManager.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/ShaderManager.o ShaderManager.cpp
 
 ${OBJECTDIR}/TreeDisplayManager.o: TreeDisplayManager.cpp 
 	${MKDIR} -p ${OBJECTDIR}

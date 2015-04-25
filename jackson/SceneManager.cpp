@@ -24,48 +24,57 @@ void  callbackSceneManager(GLenum source, GLenum type, GLuint id,
   std::cout << "gl error:  " << message << std::endl;
 }
 
-SceneManager::SceneManager( wxFrame* parent, int* args ): canvasOpenGL<SceneManager>( parent, args ) {
+SceneManager::SceneManager( wxFrame* parent, int* args ): canvasOpenGL<SceneManager>( parent, args ), m_cntMapSceneElement( 0 ) {
 }
 
 SceneManager::~SceneManager( ) {
 }
 
-void SceneManager::Add( pSceneElement_t pSceneElement ) {
-  m_vSceneElement.push_back( pSceneElement );
+SceneManager::key_t SceneManager::Add( pSceneElement_t pSceneElement ) {
+  key_t key( ++m_cntMapSceneElement ); 
+  m_mapSceneElement.insert( mapSceneElement_t::value_type( key, pSceneElement ) );
+  return key;
+}
+
+void SceneManager::Delete( key_t key ) {
+  mapSceneElement_t::const_iterator iter = m_mapSceneElement.find( key );
+  if ( m_mapSceneElement.end() == iter ) {
+    throw std::runtime_error( "key not found" );
+  }
+  else {
+    m_mapSceneElement.erase( iter );
+  }
 }
 
 void SceneManager::OnPaintInit( void ) {
+  
   std::cout << "init start" << std::endl;
-
-  //glDebugMessageCallback( &callbackOglGrid, 0 );
   
   // stuff goes here
-  BOOST_FOREACH( pSceneElement_t pElement, m_vSceneElement ) {
-    pElement->Init();
+  BOOST_FOREACH( mapSceneElement_t::value_type element, m_mapSceneElement ) {
+    //glDebugMessageCallback( &callbackOglGrid, element.first );
+    element.second->Init();
+    //glDebugMessageCallback( 0, 0 );
   }
-  
-  //glDebugMessageCallback( 0, 0 );
   
   std::cout << "init end" << std::endl;
 }
 
 void SceneManager::OnPaint( void ) {
   
-  //std::cout << "display start" << std::endl;
-  
-  //glDebugMessageCallback( &callbackOglGrid, 0 );
+  //std::cout << "paint start" << std::endl;
   
   // stuff goes here
-  BOOST_FOREACH( pSceneElement_t pElement, m_vSceneElement ) {
-    pElement->Paint();
+  BOOST_FOREACH( mapSceneElement_t::value_type element, m_mapSceneElement ) {
+    //glDebugMessageCallback( &callbackOglGrid, element.first );
+    element.second->Paint();
+    //glDebugMessageCallback( 0, 0 );
   }
 
-  //glDebugMessageCallback( 0, 0 );
-
-  //std::cout << "display end" << std::endl;
+  //std::cout << "paint end" << std::endl;
 }
 
 void SceneManager::OnResize( int w, int h ) {
-  //std::cout << "oglgrid resize " << w << ", " << h << std::endl;
+  //std::cout << "resize " << w << ", " << h << std::endl;
 	glViewport(0, 0, (GLsizei) w, (GLsizei) h);
 }

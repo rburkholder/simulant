@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <vector>
+#include <map>
 
 #include <boost/shared_ptr.hpp>
 
@@ -19,21 +19,25 @@ class SceneManager: public canvasOpenGL<SceneManager> {
   friend class canvasOpenGL<SceneManager>;
 public:
   
+  typedef size_t key_t;
   typedef boost::shared_ptr<SceneElement> pSceneElement_t;
   
   SceneManager( wxFrame* parent, int* args );
   virtual ~SceneManager( );
   
-  void Add( pSceneElement_t );
+  key_t Add( pSceneElement_t );  // returns key element
+  void Delete( size_t key );
   
 protected:
 private:
   
-  typedef std::vector<pSceneElement_t> vSceneElement_t;
+  typedef std::map<key_t,pSceneElement_t> mapSceneElement_t;  
   
   GLuint m_idVertexArray;
   
-  vSceneElement_t m_vSceneElement;
+  size_t m_cntMapSceneElement;
+  
+  mapSceneElement_t m_mapSceneElement;
   
   void OnPaintInit( void );
   void OnPaint( void );

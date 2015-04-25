@@ -1,13 +1,13 @@
 /* 
- * File:   OglGrid.cpp
+ * File:   SEGrid.cpp
  * Author: rpb
  * 
- * Created on April 12, 2015, 10:35 PM
+ * Created on April 25, 2015, 12:20 PM
  */
 
 #define GL_GLEXT_PROTOTYPES
 
-#include "OglGrid.h"
+#include "SEGrid.h"
 
 #include <GL/glext.h>
 
@@ -15,15 +15,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-// NDS Normalized Device Space: x,y: -1.0,-1.0 -> 1.0, 1.0 ; depth: 0.0 -> 1.0  pg 39
+SEGrid::SEGrid( ): SceneElement() {
 
-void  callbackOglGrid(GLenum source,GLenum type, GLuint id,
-   GLenum severity, GLsizei length, const GLchar* message, const void* userParam ) {
-  std::cout << "gl error:  " << message << std::endl;
-}
-
-OglGrid::OglGrid( wxFrame* parent, int* args ): canvasOpenGL<OglGrid>( parent, args ) {
-  
   const GLuint nCols( 10 );  // but will n + 1, iterate 0 .. n
   const GLuint nRows( 10 );  // but will n + 1, iterate 0 .. n
   
@@ -51,18 +44,18 @@ OglGrid::OglGrid( wxFrame* parent, int* args ): canvasOpenGL<OglGrid>( parent, a
   m_mat4Basic *= glm::scale( vScaleTo2 );  // first scale to 0..2
   
   m_mat4Transform = m_mat4Basic;
-
+  
 }
 
-OglGrid::~OglGrid() {
-  if ( m_bPaintInited ) {
+SEGrid::~SEGrid( ) {
+  if ( HadInit() ) {
     glDeleteBuffers(1, &m_idElementBuffer);
     glDeleteBuffers(1, &m_idWindowCoordsVertexBuffer);
     glDeleteVertexArrays(1, &m_idVertexArray);
   }
 }
 
-void OglGrid::UpdateTransform( const glm::mat4& mat4Transform ) {
+void SEGrid::UpdateTransform( const glm::mat4& mat4Transform ) {
   //m_mat4Transform *= mat4Transform;
   glm::vec3 vTranslateToCenter( -1.0f, -1.0f, 0.0f );
   glm::vec3 vTranslateFromCenter( 1.0f, 1.0f, 0.0f );
@@ -71,11 +64,9 @@ void OglGrid::UpdateTransform( const glm::mat4& mat4Transform ) {
   //canvasOpenGL<OglGrid>::Refresh();
 }
 
-void OglGrid::OnPaintInit() {
+void SEGrid::Init( void ) {
   
-  std::cout << "init start" << std::endl;
-
-  //glDebugMessageCallback( &callbackOglGrid, 0 );
+  SceneElement::Init();
   
   std::string prefix( "/home/rpb/projects/simulant/jackson/" );
   m_managerShader.LoadShader( GL_VERTEX_SHADER, prefix + "oglGrid.shvert" );
@@ -115,21 +106,13 @@ void OglGrid::OnPaintInit() {
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * m_vElements.size(), &(m_vElements[0]), GL_STATIC_DRAW);  // copy m_vElements to opengl
   
   glUseProgram(0);
-
-  // **** aspect ratio comes from screen coordinates and how they map to window coordinates (-1,-1,1,1)
-  
-  //glDebugMessageCallback( 0, 0 );
-  
-  std::cout << "init end" << std::endl;
   
 }
 
-void OglGrid::OnPaint() {
+void SEGrid::Paint( void ) {
   
-  //std::cout << "display start" << std::endl;
+  SceneElement::Paint();
   
-  //glDebugMessageCallback( &callbackOglGrid, 0 );
-
   glUseProgram(m_idProgram);
 
   //m_idUniformTransform = glGetUniformLocation( m_idProgram, "mTransform" );
@@ -143,15 +126,5 @@ void OglGrid::OnPaint() {
   glDrawElements(GL_LINES, m_vElements.size(), GL_UNSIGNED_INT, 0);
   
   glUseProgram(0);
-
-  //glDebugMessageCallback( 0, 0 );
-
-  //std::cout << "display end" << std::endl;
-}
-
-//Called whenever the window is resized. The new window size is given, in pixels.
-//This is an opportunity to call glViewport or glScissor to keep up with the change in size.
-void OglGrid::OnResize (int w, int h) {
-  //std::cout << "oglgrid resize " << w << ", " << h << std::endl;
-	glViewport(0, 0, (GLsizei) w, (GLsizei) h);
+  
 }

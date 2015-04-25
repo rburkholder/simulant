@@ -69,9 +69,9 @@ void tex2::OnPaintInit() {
   std::cout << "path: " << path << std::endl;
   
   std::string prefix( "../projects/simulant/jackson/" );
-  CanvasBase::LoadShader( GL_VERTEX_SHADER, prefix + "tex2.shvert" );
-  CanvasBase::LoadShader( GL_FRAGMENT_SHADER, prefix + "tex2.shfrag" );
-	InitializeProgram();
+  m_managerShader.LoadShader( GL_VERTEX_SHADER, prefix + "tex2.shvert" );
+  m_managerShader.LoadShader( GL_FRAGMENT_SHADER, prefix + "tex2.shfrag" );
+	m_managerShader.InitializeProgram( m_idProgram );
   
   std::cout << "init linked" << std::endl;
   

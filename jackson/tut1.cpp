@@ -61,9 +61,9 @@ void tut1::InitializeVertexBuffer() {
 //Called after the window and OpenGL are initialized. Called exactly once, before the main loop.
 void tut1::OnPaintInit() {
   
-  CanvasBase::AddShader( GL_VERTEX_SHADER, strVertexShader );
-  CanvasBase::AddShader( GL_FRAGMENT_SHADER, strFragmentShader );
-	InitializeProgram();
+  m_managerShader.AddShader( GL_VERTEX_SHADER, strVertexShader );
+  m_managerShader.AddShader( GL_FRAGMENT_SHADER, strFragmentShader );
+	m_managerShader.InitializeProgram( m_idProgram );
   
 	InitializeVertexBuffer();
 

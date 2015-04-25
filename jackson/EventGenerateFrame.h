@@ -5,8 +5,7 @@
  * Created on April 18, 2015, 8:38 PM
  */
 
-#ifndef EVENTGENERATEFRAME_H
-#define	EVENTGENERATEFRAME_H
+#pragma once
 
 #include <wx/event.h>
 
@@ -26,6 +25,3 @@ private:
 };
 
 wxDECLARE_EVENT( EVENT_GENERATEFRAME, EventGenerateFrame );
-
-#endif	/* EVENTGENERATEFRAME_H */
-

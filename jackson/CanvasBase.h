@@ -5,8 +5,7 @@
  * Created on April 4, 2015, 10:55 PM
  */
 
-#ifndef CANVASBASE_H
-#define	CANVASBASE_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -16,16 +15,7 @@
 #include <wx/wx.h>
 #include <wx/glcanvas.h>
 
-#define GL_GLEXT_PROTOTYPES
-
-#ifdef __WXMAC__
-#include "OpenGL/glu.h"
-#include "OpenGL/gl.h"
-#else
-#include <GL/glu.h>
-#include <GL/gl.h>
-#include <GL/glext.h>
-#endif
+#include "ShaderManager.h"
 
 #include <glm/glm.hpp>
 
@@ -46,27 +36,14 @@ public:
   void SetName( const std::string& sName ) { m_sName = sName; }
   const std::string GetName( void ) { return m_sName; }
   
-  // GL_VERTEX_SHADER, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER
-  void AddShader( GLenum eShaderType, const std::string& strShaderCode );
-  void LoadShader( GLenum eShaderType, const std::string& strShaderFileName );
-  void InitializeProgram();
-  
 protected:
   
-  typedef std::vector<GLuint> vShader_t;
-  
-  vShader_t m_vShader;
-  
   GLuint m_idProgram;
+  
+  ShaderManager m_managerShader;
   
 private:
   
   std::string m_sName;
   
-  GLuint CreateShader( GLenum eShaderType, const std::string& strShaderCode );
-  bool CreateProgram( const vShader_t& shaderList, GLuint& program );
-  
 };
-
-#endif	/* CANVASBASE_H */
-
