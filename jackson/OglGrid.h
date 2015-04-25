@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "canvasOpenGL.h"
+#include "SEGrid.h"
 
 class OglGrid: public canvasOpenGL<OglGrid> {
   friend class canvasOpenGL<OglGrid>;
@@ -27,16 +28,7 @@ public:
 protected:
 private:
   
-  GLuint m_idVertexArray;
-  GLuint m_idUniformTransform;
-  GLuint m_idWindowCoordsVertexBuffer;
-  GLuint m_idElementBuffer;
-  
-  std::vector<glm::vec2> m_vCoords;
-  std::vector<GLuint> m_vElements;
-  
-  glm::mat4 m_mat4Transform;
-  glm::mat4 m_mat4Basic;
+  SEGrid m_seGrid;
   
   void OnPaintInit();
   void OnPaint();
