@@ -26,7 +26,7 @@ private:
   void OnPaintInit() {};  // empty placeholder for crtp
   void OnResize( int w, int h ) {};  // empty placeholder for crtp
   
-  void HnadleResize( wxSizeEvent& event );
+  void HandleResize( wxSizeEvent& event );
   void HandlePaint( wxPaintEvent& event );
 };
 
@@ -42,7 +42,7 @@ canvasOpenGL<CRTP>::canvasOpenGL( wxFrame* parent, int* args )
   SetBackgroundStyle( wxBG_STYLE_CUSTOM );
   
   wxGLCanvas::Bind( wxEVT_PAINT, &canvasOpenGL<CRTP>::HandlePaint, this );
-  wxGLCanvas::Bind( wxEVT_SIZE, &canvasOpenGL<CRTP>::HnadleResize, this );
+  wxGLCanvas::Bind( wxEVT_SIZE, &canvasOpenGL<CRTP>::HandleResize, this );
 }
 
 template <typename CRTP>
@@ -103,7 +103,7 @@ void canvasOpenGL<CRTP>::HandlePaint( wxPaintEvent& event ) {
 }
 
 template <typename CRTP>
-void canvasOpenGL<CRTP>::HnadleResize( wxSizeEvent& event ) {
+void canvasOpenGL<CRTP>::HandleResize( wxSizeEvent& event ) {
   //	wxGLCanvas::OnSize(evt);
   
   if ( &canvasOpenGL<CRTP>::OnResize != &CRTP::OnResize ) {

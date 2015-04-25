@@ -5,9 +5,6 @@
  * Created on April 4, 2015, 10:55 PM
  */
 
-#include <sstream>
-#include <fstream>
-
 #define GL_GLEXT_PROTOTYPES
 
 #include "CanvasBase.h"

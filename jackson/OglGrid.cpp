@@ -73,7 +73,7 @@ void OglGrid::UpdateTransform( const glm::mat4& mat4Transform ) {
 
 void OglGrid::OnPaintInit() {
   
-  std::cout << "init start" << std::endl;
+  //std::cout << "init start" << std::endl;
 
   //glDebugMessageCallback( &callbackOglGrid, 0 );
   
@@ -120,7 +120,7 @@ void OglGrid::OnPaintInit() {
   
   //glDebugMessageCallback( 0, 0 );
   
-  std::cout << "init end" << std::endl;
+  //std::cout << "init end" << std::endl;
   
 }
 

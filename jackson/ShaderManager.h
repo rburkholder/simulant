@@ -30,7 +30,7 @@ public:
   // GL_VERTEX_SHADER, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER
   void AddShader( GLenum eShaderType, const std::string& strShaderCode );
   void LoadShader( GLenum eShaderType, const std::string& strShaderFileName );
-  void InitializeProgram( GLuint idProgram );
+  void InitializeProgram( GLuint& idProgram );
   
 private:
 

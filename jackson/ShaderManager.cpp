@@ -85,10 +85,11 @@ bool ShaderManager::CreateProgram( const vShader_t& vShader, GLuint& idProgram )
 	return bOk;
 }
 
-void ShaderManager::InitializeProgram( GLuint idProgram ) {
+void ShaderManager::InitializeProgram( GLuint& idProgram ) {
   
   if ( !CreateProgram( m_vShader, idProgram ) ) {  // https://www.khronos.org/opengles/sdk/docs/man/xhtml/glCreateProgram.xml
 //    assert( false );  // need to fix this
+    std::cout << "CreateProgram Problems " << std::endl;
   };
   
 //  std::for_each(m_vShader.begin(), m_vShader.end(), glDeleteShader);

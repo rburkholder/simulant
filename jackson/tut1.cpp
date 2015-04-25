@@ -51,9 +51,9 @@ const GLfloat vertexPositions[] = {
 };
 
 void tut1::InitializeVertexBuffer() {
-	glGenBuffers(1, &boPosition);
+	glGenBuffers(1, &m_boPosition);
 
-	glBindBuffer(GL_ARRAY_BUFFER, boPosition);
+	glBindBuffer(GL_ARRAY_BUFFER, m_boPosition);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions), vertexPositions, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
@@ -81,7 +81,7 @@ void tut1::OnPaint() {
 
 	glUseProgram(m_idProgram);
 
-	glBindBuffer(GL_ARRAY_BUFFER, boPosition);
+	glBindBuffer(GL_ARRAY_BUFFER, m_boPosition);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
 

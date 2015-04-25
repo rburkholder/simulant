@@ -24,7 +24,7 @@ protected:
   void InitializeVertexBuffer();
 private:
   
-  GLuint boPosition;
+  GLuint m_boPosition;
   GLuint m_vao;
 
 };
