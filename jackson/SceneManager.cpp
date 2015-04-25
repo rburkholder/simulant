@@ -35,9 +35,7 @@ SceneManager::~SceneManager( ) {
 SceneManager::key_t SceneManager::Add( pSceneElement_t pSceneElement ) {
   key_t key( ++m_cntMapSceneElement ); 
   m_mapSceneElement.insert( mapSceneElement_t::value_type( key, pSceneElement ) );
-  if ( Initialized() ) {
-    pSceneElement->Init();
-  }
+  m_vSceneElementToInit.push_back( pSceneElement );
   return key;
 }
 
@@ -74,6 +72,13 @@ void SceneManager::OnPaint( void ) {
   // Clear the screen to black
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
+  
+  if ( !m_vSceneElementToInit.empty() ) {
+    BOOST_FOREACH( pSceneElement_t p, m_vSceneElementToInit ) {
+      p->Init();
+    }
+    m_vSceneElementToInit.clear();
+  }  
 
   BOOST_FOREACH( mapSceneElement_t::value_type element, m_mapSceneElement ) {
     glDebugMessageCallback( &callbackSceneManager, (const void*) element.first );

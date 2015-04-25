@@ -8,6 +8,7 @@
 #pragma once
 
 #include <map>
+#include <vector>
 
 #include <boost/shared_ptr.hpp>
 
@@ -32,12 +33,14 @@ protected:
 private:
   
   typedef std::map<key_t,pSceneElement_t> mapSceneElement_t;  
+  typedef std::vector<pSceneElement_t> vSceneElement_t;
   
   GLuint m_idVertexArray;
   
   size_t m_cntMapSceneElement;
   
   mapSceneElement_t m_mapSceneElement;
+  vSceneElement_t m_vSceneElementToInit;
   
   void OnPaintInit( void );
   void OnPaint( void );

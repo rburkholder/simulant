@@ -162,6 +162,9 @@ private:
   
   void ResetTransformMatrix( void );
   void UpdateTransformMatrix( void );
+
+  void SetSelected( void );  // from tree menu
+  void RemoveSelected( void );  // from tree menu
   
   void HandleDelete( wxCommandEvent& event );
   void HandleReset( wxCommandEvent& event );
@@ -195,10 +198,6 @@ TreeItemCanvasGrid::TreeItemCanvasGrid(
   m_pGrid.reset( new SEGrid );
   m_key = m_pSceneManager->Add( m_pGrid );
  
-  m_pSceneManager->Bind( wxEVT_MOUSEWHEEL, &TreeItemCanvasGrid::HandleMouseWheel, this );
-  m_pSceneManager->Bind( wxEVT_MOTION, &TreeItemCanvasGrid::HandleMouseMoved, this );
-  m_pSceneManager->Bind( wxEVT_LEFT_DOWN, &TreeItemCanvasGrid::HandleMouseLeftDown, this );
-  
   wxApp::GetInstance()->Bind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this ); 
   //m_pScreenFrame->GetFrame()->Bind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this );  // doesn't propgate properly
   
@@ -216,10 +215,19 @@ TreeItemCanvasGrid::~TreeItemCanvasGrid( void ) {
   m_bActive = false;
   m_slotTimer.disconnect();
   wxApp::GetInstance()->Unbind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this );
+  m_pSceneManager->Delete( m_key );
+}
+
+void TreeItemCanvasGrid::SetSelected( void ) {
+  m_pSceneManager->Bind( wxEVT_MOUSEWHEEL, &TreeItemCanvasGrid::HandleMouseWheel, this );
+  m_pSceneManager->Bind( wxEVT_MOTION, &TreeItemCanvasGrid::HandleMouseMoved, this );
+  m_pSceneManager->Bind( wxEVT_LEFT_DOWN, &TreeItemCanvasGrid::HandleMouseLeftDown, this );
+}
+
+void TreeItemCanvasGrid::RemoveSelected( void ) {
   m_pSceneManager->Unbind( wxEVT_MOUSEWHEEL, &TreeItemCanvasGrid::HandleMouseWheel, this );
   m_pSceneManager->Unbind( wxEVT_MOTION, &TreeItemCanvasGrid::HandleMouseMoved, this );
   m_pSceneManager->Unbind( wxEVT_LEFT_DOWN, &TreeItemCanvasGrid::HandleMouseLeftDown, this );
-  m_pSceneManager->Delete( m_key );
 }
 
 void TreeItemCanvasGrid::HandleRefreshTimer( FpsGenerator::FPS fps ) {
@@ -230,8 +238,6 @@ void TreeItemCanvasGrid::HandleRefreshTimer( FpsGenerator::FPS fps ) {
 
 void TreeItemCanvasGrid::HandleRefresh( EventGenerateFrame& event ) {
   if ( m_pPhysicalDisplay->GetFrame()->GetId() == event.GetId() ) {
-    //m_pOglGrid->Refresh();
-    //m_pGrid->Refresh();
     m_pSceneManager->Refresh(); // this isn't the right way, as it will get called to many times
     //  when registering, registers with a specific fps queue
     // this should set a flag, so SceneManager draws everything, or does an auto refresh.
