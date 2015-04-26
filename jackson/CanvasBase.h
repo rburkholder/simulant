@@ -38,7 +38,7 @@ public:
   
 protected:
   
-  GLuint m_idProgram;
+  GLuint m_idProgram;  // to be deprecated?
   
   ShaderManager m_managerShader;
   

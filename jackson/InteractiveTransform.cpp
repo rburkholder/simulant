@@ -10,13 +10,35 @@
 #include "InteractiveTransform.h"
 
 InteractiveTransform::InteractiveTransform( int width, int height ) 
-: m_fWidth( width ), m_fHeight( height ), m_floatFactor( 1.0f )
+: m_fWidth( width ), m_fHeight( height ), m_floatFactor( 1.0f ), m_bReceivingEvents( false ), m_pWin( 0 )
 {
 }
 
 InteractiveTransform::~InteractiveTransform( ) {
+  if ( m_bReceivingEvents ) DeActivate();
 }
 
+void InteractiveTransform::Activate( wxWindow* win ) {
+  if ( !m_bReceivingEvents ) {
+    win->Bind( wxEVT_MOUSEWHEEL, &InteractiveTransform::HandleMouseWheel, this );
+    win->Bind( wxEVT_MOTION, &InteractiveTransform::HandleMouseMoved, this );
+    win->Bind( wxEVT_LEFT_DOWN, &InteractiveTransform::HandleMouseLeftDown, this );
+    m_pWin = win;
+    m_bReceivingEvents = true;
+  }
+}
+
+void InteractiveTransform::DeActivate( void ) {
+  assert( 0 != m_pWin );
+  if ( m_bReceivingEvents ) {
+    m_pWin->Unbind( wxEVT_MOUSEWHEEL, &InteractiveTransform::HandleMouseWheel, this );
+    m_pWin->Unbind( wxEVT_MOTION, &InteractiveTransform::HandleMouseMoved, this );
+    m_pWin->Unbind( wxEVT_LEFT_DOWN, &InteractiveTransform::HandleMouseLeftDown, this );
+    m_pWin = 0;
+    m_bReceivingEvents = false;
+  }
+}
+  
 void InteractiveTransform::ResetTransformMatrix( void ) {
   
   m_mat4Transform = glm::mat4( 1.0f );

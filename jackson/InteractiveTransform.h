@@ -21,6 +21,9 @@ protected:
   
   glm::mat4 m_mat4Transform;
   
+  void Activate( wxWindow* );
+  void DeActivate( void );
+  
   void ResetTransformMatrix( void );
   void HandleMouseWheel( wxMouseEvent& event );
   void HandleMouseMoved( wxMouseEvent& event );
@@ -36,5 +39,9 @@ private:
   
   int m_intMouseX;
   int m_intMouseY;
+  
+  bool m_bReceivingEvents;
+  
+  wxWindow* m_pWin;
   
 };
