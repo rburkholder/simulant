@@ -45,6 +45,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/EventGenerateFrame.o \
 	${OBJECTDIR}/EventImage.o \
 	${OBJECTDIR}/FpsGenerator.o \
+	${OBJECTDIR}/InteractiveTransform.o \
 	${OBJECTDIR}/Outline.o \
 	${OBJECTDIR}/PhysicalDisplay.o \
 	${OBJECTDIR}/SEGrid.o \
@@ -136,6 +137,11 @@ ${OBJECTDIR}/FpsGenerator.o: FpsGenerator.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/FpsGenerator.o FpsGenerator.cpp
+
+${OBJECTDIR}/InteractiveTransform.o: InteractiveTransform.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/InteractiveTransform.o InteractiveTransform.cpp
 
 ${OBJECTDIR}/Outline.o: Outline.cpp 
 	${MKDIR} -p ${OBJECTDIR}

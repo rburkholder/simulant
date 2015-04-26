@@ -53,6 +53,7 @@ extern "C" {
 #include "SEGrid.h"
 #include "SceneManager.h"
 
+#include "InteractiveTransform.h"
 #include "TreeDisplayManager.h"
 
 FpsGenerator fps;  // generate signals for frame rate control
@@ -104,7 +105,7 @@ private:
 
 // ================
 
-class TreeItemCanvasGrid: public TreeItemBase {
+class TreeItemCanvasGrid: public TreeItemBase, public InteractiveTransform {
   // so can add/delete the grid object, and possibly handle the mouse stuff for setting up the transform
 public:
   
@@ -144,12 +145,7 @@ private:
   
   volatile bool m_bActive;
   
-  float m_floatFactor;
-  
   bool m_bReceivingEvents;
-  
-  int m_intMouseX;
-  int m_intMouseY;
   
   pPhysicalDisplay_t m_pPhysicalDisplay;
   pSceneManager_t m_pSceneManager;
@@ -160,8 +156,6 @@ private:
   pSETexture_t m_pTexture;
   key_t m_keyTexture;
   
-  glm::mat4 m_mat4Transform;
-  
   wxString m_sPictureDirectory;
   wxString m_sVideoDirectory;
   
@@ -171,8 +165,7 @@ private:
   
   boost::signals2::connection m_slotTimer;
   
-  void ResetTransformMatrix( void );
-  void UpdateTransformMatrix( void );
+  virtual void UpdateTransformMatrix( void );
 
   void SetSelected( void );  // from tree menu
   void RemoveSelected( void );  // from tree menu
@@ -181,10 +174,6 @@ private:
   void HandleReset( wxCommandEvent& event );
   void HandleLoadPicture( wxCommandEvent& event );
   
-  void HandleMouseWheel( wxMouseEvent& event );
-  void HandleMouseMoved( wxMouseEvent& event );
-  void HandleMouseLeftDown( wxMouseEvent& event );
-  
   void HandleRefreshTimer( FpsGenerator::FPS fps );  // is in work thread
   void HandleRefresh( EventGenerateFrame& event );
   
@@ -192,8 +181,10 @@ private:
 
 TreeItemCanvasGrid::TreeItemCanvasGrid( 
   TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay, pOutline_t pOutline, pSceneManager_t pSceneManager)
-: TreeItemBase( pTree_, id_ ), m_pPhysicalDisplay( pPhysicalDisplay ), m_pSceneManager( pSceneManager), 
-  m_floatFactor( 1.0f ), m_bActive( false ), m_bReceivingEvents( false ), m_keyGrid( 0 ), m_keyTexture( 0 )
+: TreeItemBase( pTree_, id_ ), 
+  InteractiveTransform( pPhysicalDisplay->GetFrame()->GetClientSize().GetWidth(), pPhysicalDisplay->GetFrame()->GetClientSize().GetHeight() ), 
+  m_pPhysicalDisplay( pPhysicalDisplay ), m_pSceneManager( pSceneManager), 
+  m_bActive( false ), m_bReceivingEvents( false ), m_keyGrid( 0 ), m_keyTexture( 0 )
 {
   
   std::cout << "Tree Item Show Grid" << std::endl;
@@ -246,33 +237,10 @@ void TreeItemCanvasGrid::HandleLoadPicture( wxCommandEvent& event ) {
     assert( m_image.LoadFile( dialogOpenFile.GetPath(), wxBITMAP_TYPE_JPEG ) );
     if ( m_image.IsOk() ) {
       //std::cout << "is ok" << std::endl;
-        wxRect rect( 500, 100, 300, 600 );
       m_pTexture.reset( new SETexture );
       m_keyTexture = m_pSceneManager->Add( m_pTexture );
-          Outline::vPoints_t vPoints;
-          vPoints.push_back( rect.GetTopLeft() );
-          vPoints.push_back( rect.GetTopRight() );
-          vPoints.push_back( rect.GetBottomRight() );
-          vPoints.push_back( rect.GetBottomLeft() );
-          // last transform on identity is first applied to vector
-          glm::mat4 mat4Transform = glm::mat4( 1.0f ); // identity matrix
-          mat4Transform *= glm::translate( glm::vec3( -1.0, +1.0 , 0.0 ) );
-          mat4Transform *= glm::scale( glm::vec3( 2.0, -2.0, 1.0f ) );  // invert image and expand to window coordinates
-          mat4Transform *= glm::scale( glm::vec3( 1.0 / rect.GetWidth(), 1.0 / rect.GetHeight(), 1.0f ) );  // invert image and expand to window coordinates
-          mat4Transform *= glm::translate( glm::vec3( -rect.GetLeft(), -rect.GetTop(), 0.0f ) );  // translate to window coordinates
-
-          std::vector<glm::vec4> vCoords;
-          for ( size_t ix = 0; ix < vPoints.size(); ++ix ) {
-            //vCoords.push_back( mat4Transform * glm::vec4( vPoints[ix].x, vPoints[ix].y, 0.0, 1.0 ) );
-            vCoords.push_back( glm::vec4( vPoints[ix].x, vPoints[ix].y, 0.0, 1.0 ) );
-          }
-          //m_pTex->SetWindowCoords( vCoords );
-          //m_pTexture->SetWindowCoords( vCoords );
-//        }
-        //m_pTex->SetImage( &m_image );
-          m_pTexture->SetTransform( m_mat4Transform );
-          m_pTexture->SetImage( SETexture::pImage_t( new wxImage( m_image ) ) );
-//      }
+      m_pTexture->SetTransform( m_mat4Transform );
+      m_pTexture->SetImage( SETexture::pImage_t( new wxImage( m_image ) ) );
     }
   }
   
@@ -315,32 +283,6 @@ void TreeItemCanvasGrid::HandleRefresh( EventGenerateFrame& event ) {
   event.Skip( true );  // let other ones process this as well
 }
 
-void TreeItemCanvasGrid::ResetTransformMatrix( void ) {
-  
-  m_mat4Transform = glm::mat4( 1.0f );
-  
-  float floatHeightScale( 1.0f );
-  float floatWidthScale( 1.0f );
-  
-  //float height = m_pOglGrid->GetClientSize().GetHeight();
-  float height = m_pPhysicalDisplay->GetFrame()->GetClientSize().GetHeight();
-  //float width = m_pOglGrid->GetClientSize().GetWidth();
-  float width = m_pPhysicalDisplay->GetFrame()->GetClientSize().GetWidth();
-  float ar = height / width;  // aspect ratio
-  
-  if ( 1.0 != ar ) {  // rescale if not a square
-    if ( 1.0 < ar ) { // height > width, so scale to width
-      floatHeightScale = 1.0f / ar;
-    }
-    else { // width > height, so scale to height
-      floatWidthScale = 1.0f * ar;
-    }
-  }
-  
-  m_mat4Transform *= glm::scale( glm::vec3( floatWidthScale, floatHeightScale, 0.0f ) );
-  std::cout << "ar " << floatWidthScale << ", " << floatHeightScale << std::endl;
-}
-
 void TreeItemCanvasGrid::UpdateTransformMatrix( void ) {
   //m_pOglGrid->UpdateTransform( m_mat4Transform );
   m_pGrid->UpdateTransform( m_mat4Transform );
@@ -348,85 +290,6 @@ void TreeItemCanvasGrid::UpdateTransformMatrix( void ) {
     m_pTexture->SetTransform( m_mat4Transform );
   }
   m_signalTransformUpdated( m_mat4Transform );
-}
-
-void TreeItemCanvasGrid::HandleMouseWheel( wxMouseEvent& event ) {
-  //std::cout << "mouse wheel " << event.GetWheelDelta() << ", " << event.GetWheelRotation() << std::endl;
-  static const float scaleMajor( 0.10f );
-  static const float scaleMinor( 0.01f );
-  
-  int n( event.GetWheelRotation() );
-  if ( 0 != n ) {
-    if ( event.m_controlDown ) { // control selects rotation about z axis
-      float degrees = event.ShiftDown() ? 0.01f : 0.10f;
-      glm::vec3 vRotate = glm::vec3( 0.0f, 0.0f, 1.0f );
-      if ( 0 < n ) { //positive
-        m_mat4Transform *= glm::rotate( degrees, vRotate );
-      }
-      else {
-        m_mat4Transform *= glm::rotate( -degrees, vRotate );
-      }
-    }
-    else { // scale xy together
-      float factor( 1.0f );
-      glm::vec3 vScale;
-      if ( 0 < n ) { // positive
-        // zoom in, and update transform matrix
-        factor = 1.0f + ( event.ShiftDown() ? scaleMinor : scaleMajor );
-        vScale = glm::vec3( factor, factor, 0.0f );
-      }
-      else { // negative
-        // zoom out, and update transform matrix
-        factor = 1.0f / ( 1.0f + ( event.ShiftDown() ? scaleMinor : scaleMajor ) );
-        vScale = glm::vec3( factor, factor, 0.0f );
-      }
-      m_floatFactor *= factor;
-      //std::cout << "scale factor: " << m_floatFactor << std::endl;
-      m_mat4Transform *= glm::scale( vScale );
-    }
-    UpdateTransformMatrix();
-  }
-  event.Skip( false );
-}
-
-void TreeItemCanvasGrid::HandleMouseLeftDown( wxMouseEvent& event ) {
-  //std::cout << "left down " << event.GetX() << ", " << event.GetY() << std::endl;
-  m_intMouseX = event.GetX();
-  m_intMouseY = event.GetY();
-}
-
-void TreeItemCanvasGrid::HandleMouseMoved( wxMouseEvent& event ) {
-  //std::cout << "mouse moved " << event.GetX() << ", " << event.GetY() << std::endl;
-  if ( event.LeftIsDown() ) {
-    int difX = event.GetX() - m_intMouseX;
-    int difY = event.GetY() - m_intMouseY;
-    // need to use aspect ratio for following so consistent ratios in each direction
-    //float ratioX = (float) difX / (float) m_pOglGrid->GetClientSize().GetWidth();
-    float ratioX = (float) difX / (float) m_pPhysicalDisplay->GetFrame()->GetClientSize().GetWidth();
-    //float ratioY = (float) difY / (float) m_pOglGrid->GetClientSize().GetHeight();
-    float ratioY = (float) difY / (float) m_pPhysicalDisplay->GetFrame()->GetClientSize().GetHeight();
-    //std::cout << "drag " << difX << ", " << difY << ", " << ratioX << ", " << ratioY << std::endl;
-    if ( event.ControlDown() ) { // rotation
-      glm::vec3 vRotate;
-      float degrees = event.ShiftDown() ? 0.1f : 1.0f;
-      vRotate = glm::vec3( 0.0f, 1.0f, 0.0f );
-      m_mat4Transform *= glm::rotate( ratioX * degrees, vRotate );
-      vRotate = glm::vec3( 1.0f, 0.0f, 0.0f );
-      m_mat4Transform *= glm::rotate( ratioY * degrees, vRotate );
-    }
-    else { // translation
-      float multiplier = 2.0 * ( event.ShiftDown() ? 0.1f : 1.0f );
-      //std::cout << "multiplier " << multiplier << std::endl;
-      glm::vec3 vTranslate = glm::vec3( multiplier * ratioX, -multiplier * ratioY, 0.0f );
-      m_mat4Transform *= glm::translate( vTranslate );
-    }
-    UpdateTransformMatrix();
-  }
-  
-  m_intMouseX = event.GetX();
-  m_intMouseY = event.GetY();
-  
-  event.Skip( false );
 }
 
 void TreeItemCanvasGrid::ShowContextMenu( void ) {
@@ -448,7 +311,7 @@ void TreeItemCanvasGrid::ShowContextMenu( void ) {
 }
 
 void TreeItemCanvasGrid::HandleDelete( wxCommandEvent& event ) {
-  std::cout << "Tree Item Delete" << std::endl;
+  std::cout << "Tree Item Canvas Grid Delete" << std::endl;
   m_pTree->Delete( this->m_id );
 }
 

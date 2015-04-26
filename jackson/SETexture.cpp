@@ -52,11 +52,14 @@ SETexture::SETexture( ): SceneElement() {
     ;
   
   // initial transform: full scale
-  m_mat4BasicTransform = glm::mat4( 1.0f ); // identity matrix
+  //m_mat4BasicTransform = glm::mat4( 1.0f ); // identity matrix
 //  m_mat4BasicTransform *= glm::translate( glm::vec3( -1.0f, 1.0f, 0.0f ) );  // translate to window coordinates
 //  m_mat4BasicTransform *= glm::scale( glm::vec3( 2.0f, -2.0f, 1.0f ) );  // invert image and expand to window coordinates
 //  m_mat4BasicTransform *= glm::translate( glm::vec3( 1.0f, 1.0f, 0.0f ) );  // translate to window coordinates
-  m_mat4BasicTransform *= glm::scale( glm::vec3( 1.0f, -1.0f, 1.0f ) );  // invert image
+  //m_mat4BasicTransform *= glm::scale( glm::vec3( 1.0f, -1.0f, 1.0f ) );  // invert image
+  m_mat4BasicTransform = glm::scale( glm::vec3( 1.0f, -1.0f, 1.0f ) );  // invert image
+  //glm::vec3 vAxis( 1.0f, 0.0f, 0.0f );
+  //m_mat4BasicTransform = glm::rotate( 180.0f, vAxis );  // invert image
   
   SetTransform( glm::mat4( 1.0f ) ); // identity matrix
 
@@ -64,6 +67,8 @@ SETexture::SETexture( ): SceneElement() {
 
 SETexture::~SETexture( ) {
   if ( HadInit() ) {
+    // m_idVapWindowCoords ?
+    // m_idVapTextureCoords ?
     glDeleteBuffers(1, &m_idElements);
     glDeleteBuffers(1, &m_idVertexBufferForWindowCoords);
     glDeleteBuffers(1, &m_idVertexBufferForTextureCoords);
@@ -165,6 +170,7 @@ void SETexture::Paint( void ) {
   SceneElement::Paint();
   
   glUseProgram(m_idProgram);
+  
   glBindVertexArray(m_idVertexArray);
   
   glEnableVertexAttribArray(m_idVapWindowCoords);
