@@ -244,30 +244,12 @@ void TreeItemCanvasGrid::HandleLoadPicture( wxCommandEvent& event ) {
     std::cout << "chose " << dialogOpenFile.GetPath() << std::endl;
     std::cout << "dir " << m_sPictureDirectory << std::endl;
     assert( m_image.LoadFile( dialogOpenFile.GetPath(), wxBITMAP_TYPE_JPEG ) );
-    //wxBitmap bitmap( m_image );
-//    FrameProjection* pfp = m_pPhysicalDisplay->GetFrame();
-//    wxClientDC dc( pfp );
-//    dc.DrawBitmap( bitmap, wxPoint( 0, 0 ) );
     if ( m_image.IsOk() ) {
       //std::cout << "is ok" << std::endl;
-//      if ( 0 == m_pTex ) {
-        //int argsCanvas[] = { WX_GL_CORE_PROFILE, WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
-        //int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
-        //m_pTex = new tex2( m_pPhysicalDisplay->GetFrame(), argsCanvas );
-        //m_pTex->SetSize( m_image.GetWidth(), m_image.GetHeight() );
         wxRect rect( 500, 100, 300, 600 );
-        //pOutline_t pOutline( m_pPhysicalDisplay->GetFrame()->GetOutline() );
-        //if ( 0 != pOutline.use_count() ) {
-        //  rect = pOutline->GetBoundingBox();
-        //}
-        //m_pTex->SetSize( rect.GetSize() );
-        //m_pTex->Move( rect.GetTopLeft() );
       m_pTexture.reset( new SETexture );
       m_keyTexture = m_pSceneManager->Add( m_pTexture );
-//        if ( 0 != pOutline.use_count() ) {
           Outline::vPoints_t vPoints;
-          //pOutline->GetCoords( vPoints );
-          //assert( 4 == vPoints.size() );
           vPoints.push_back( rect.GetTopLeft() );
           vPoints.push_back( rect.GetTopRight() );
           vPoints.push_back( rect.GetBottomRight() );
@@ -281,12 +263,14 @@ void TreeItemCanvasGrid::HandleLoadPicture( wxCommandEvent& event ) {
 
           std::vector<glm::vec4> vCoords;
           for ( size_t ix = 0; ix < vPoints.size(); ++ix ) {
-            vCoords.push_back( mat4Transform * glm::vec4( vPoints[ix].x, vPoints[ix].y, 0.0, 1.0 ) );
+            //vCoords.push_back( mat4Transform * glm::vec4( vPoints[ix].x, vPoints[ix].y, 0.0, 1.0 ) );
+            vCoords.push_back( glm::vec4( vPoints[ix].x, vPoints[ix].y, 0.0, 1.0 ) );
           }
           //m_pTex->SetWindowCoords( vCoords );
-          m_pTexture->SetWindowCoords( vCoords );
+          //m_pTexture->SetWindowCoords( vCoords );
 //        }
         //m_pTex->SetImage( &m_image );
+          m_pTexture->SetTransform( m_mat4Transform );
           m_pTexture->SetImage( SETexture::pImage_t( new wxImage( m_image ) ) );
 //      }
     }
@@ -360,6 +344,9 @@ void TreeItemCanvasGrid::ResetTransformMatrix( void ) {
 void TreeItemCanvasGrid::UpdateTransformMatrix( void ) {
   //m_pOglGrid->UpdateTransform( m_mat4Transform );
   m_pGrid->UpdateTransform( m_mat4Transform );
+  if ( 0 != m_pTexture.get() ) {
+    m_pTexture->SetTransform( m_mat4Transform );
+  }
   m_signalTransformUpdated( m_mat4Transform );
 }
 

@@ -28,6 +28,7 @@ public:
   
   // need to send in transformation matrix instead
   void SetWindowCoords( std::vector<glm::vec4>&  vCoords );
+  void SetTransform( const glm::mat4& mat4Transform );
   
   void SetImage( pImage_t pImage ) {
     assert( 0 != pImage.use_count() );
@@ -51,7 +52,9 @@ private:
   
   pImage_t m_pImage;  // should be shared_ptr so can be overwritten and self delete
   
-  glm::mat4 m_mat4Transform;
+  glm::mat4 m_mat4BasicTransform;
+  glm::mat4 m_mat4SuppliedTransform;
+  glm::mat4 m_mat4FinalTransform;
   
   std::vector<glm::vec2> m_vtxWindowCoords;
   std::vector<glm::vec2> m_vtxTextureCoords;

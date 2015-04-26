@@ -29,10 +29,14 @@ SETexture::SETexture( ): SceneElement() {
   using namespace boost::assign;
   
   m_vtxWindowCoords +=
-       glm::vec2( 0.0f,  0.0f ), // Bottom-left
-       glm::vec2( 1.0f,  0.0f ), // Bottom-right
-       glm::vec2( 1.0f,  1.0f ), // Top-right
-       glm::vec2( 0.0f,  1.0f )  // Top-left
+//       glm::vec2( 0.0f,  0.0f ), // Bottom-left
+//       glm::vec2( 1.0f,  0.0f ), // Bottom-right
+//       glm::vec2( 1.0f,  1.0f ), // Top-right
+//       glm::vec2( 0.0f,  1.0f )  // Top-left
+       glm::vec2( -1.0f,  1.0f ), // Top-left
+       glm::vec2(  1.0f,  1.0f ), // Top-right
+       glm::vec2(  1.0f, -1.0f ), // Bottom-right
+       glm::vec2( -1.0f, -1.0f )  // Bottom-left
     ;
   
   m_vtxTextureCoords +=  // element order for inverted mapping to texture onto projection... maybe use projection matrix at some point
@@ -42,16 +46,19 @@ SETexture::SETexture( ): SceneElement() {
        glm::vec2( 0.0f,  0.0f )   // Bottom-left
     ;
   
-  m_vElements += // natural order for 
+  m_vElements += // natural order for two triangles from four vertices
       0, 1, 2,
       0, 2, 3
     ;
   
-  m_mat4Transform = glm::mat4( 1.0f ); // identity matrix
-  m_mat4Transform *= glm::translate( glm::vec3( -1.0f, 1.0f, 0.0f ) );  // translate to window coordinates
-//  mat4Transform *= glm::scale( glm::vec3( 2.0f, -2.0f, 1.0f ) );  // invert image and expand to window coordinates
-//  mat4Transform *= glm::translate( glm::vec3( 1.0f, 1.0f, 0.0f ) );  // translate to window coordinates
-//  mat4Transform *= glm::scale( glm::vec3( 1.0f, 1.0f, 1.0f ) );  // invert image and expand to window coordinates
+  // initial transform: full scale
+  m_mat4BasicTransform = glm::mat4( 1.0f ); // identity matrix
+//  m_mat4BasicTransform *= glm::translate( glm::vec3( -1.0f, 1.0f, 0.0f ) );  // translate to window coordinates
+//  m_mat4BasicTransform *= glm::scale( glm::vec3( 2.0f, -2.0f, 1.0f ) );  // invert image and expand to window coordinates
+//  m_mat4BasicTransform *= glm::translate( glm::vec3( 1.0f, 1.0f, 0.0f ) );  // translate to window coordinates
+  m_mat4BasicTransform *= glm::scale( glm::vec3( 1.0f, -1.0f, 1.0f ) );  // invert image
+  
+  SetTransform( glm::mat4( 1.0f ) ); // identity matrix
 
 }
 
@@ -66,11 +73,17 @@ SETexture::~SETexture( ) {
 }
 
 void SETexture::SetWindowCoords( std::vector<glm::vec4>&  vCoords ) {
+  assert( 4 == vCoords.size() );
   m_vtxWindowCoords.clear();
   for ( size_t ix = 0; ix < vCoords.size(); ++ix ) {
     m_vtxWindowCoords.push_back( glm::vec2( vCoords[ix].x, vCoords[ix].y ) );
     std::cout << "coords set: "  << vCoords[ix].x << ", " << vCoords[ix].y << std::endl;
   }
+}
+
+void SETexture::SetTransform( const glm::mat4& mat4Transform ) { 
+  m_mat4SuppliedTransform = mat4Transform; 
+  m_mat4FinalTransform = m_mat4BasicTransform * m_mat4SuppliedTransform;
 }
 
 void SETexture::Init( void ) {
@@ -136,11 +149,10 @@ void SETexture::Init( void ) {
 
   // Specify the layout of the vertex data
   m_idVapTextureCoords = glGetAttribLocation(m_idProgram, "vTextureCoords");
-  //glEnableVertexAttribArray(m_idVapTextureCoords);
   glVertexAttribPointer(m_idVapTextureCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
   glDisableVertexAttribArray(m_idVapTextureCoords);
 
-  // Create an element array
+  // Create an element array - uses arrays enabled via glEnableVertexAttribArray
   glGenBuffers(1, &m_idElements);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_idElements);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*m_vElements.size(), &m_vElements[0], GL_STATIC_DRAW);  // copy elements to opengl
@@ -157,11 +169,11 @@ void SETexture::Paint( void ) {
   
   glEnableVertexAttribArray(m_idVapWindowCoords);
   glEnableVertexAttribArray(m_idVapTextureCoords);
+  
+  glBindTexture(GL_TEXTURE_2D, m_idTexture);
 
-  glUniformMatrix4fv(m_idUniformTransform, 1, GL_FALSE, &m_mat4Transform[0][0]);
+  glUniformMatrix4fv(m_idUniformTransform, 1, GL_FALSE, &m_mat4FinalTransform[0][0]);
 
-  // this is probably a problem as we need to identify the specific elements.
-  // Draw a rectangle from the 2 triangles using 6 indices
   glDrawElements(GL_TRIANGLES, m_vElements.size(), GL_UNSIGNED_INT, 0);
   
   glDisableVertexAttribArray(m_idVapTextureCoords);
