@@ -89,18 +89,18 @@ void SEGrid::Init( void ) {
   
   // Create a Vertex Buffer Object and copy the vertex data to it
   glGenBuffers(1, &m_idWindowCoordsVertexBuffer);
-  
   glBindBuffer(GL_ARRAY_BUFFER, m_idWindowCoordsVertexBuffer); // works with vertex array object
   // notice this uses an implicit buffer id, need to figure out how this works
   int s1 = sizeof( glm::vec2 ) * m_vCoords.size();
-  int s2 = m_vElements.size();
-  std::cout << "s values: " << s1 << ", " << s2 << std::endl;
-  glBufferData(GL_ARRAY_BUFFER, s1, &m_vCoords[0], GL_STATIC_DRAW);  // copy vertices to opengl
+  //int s2 = m_vElements.size();
+  //std::cout << "s values: " << s1 << ", " << s2 << std::endl;
+  glBufferData(GL_ARRAY_BUFFER, s1, &m_vCoords[0], GL_STATIC_DRAW);  // assumes just allocated buffer
 
   // Specify the layout of the vertex data - works with vertex array object
-  GLuint attribWindowCoords = glGetAttribLocation(m_idProgram, "vWindowCoords");
-  glEnableVertexAttribArray( attribWindowCoords );
-  glVertexAttribPointer(attribWindowCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
+  m_idVapWindowCoords = glGetAttribLocation(m_idProgram, "vWindowCoords");  
+  glVertexAttribPointer(m_idVapWindowCoords, 2, GL_FLOAT, GL_FALSE, 0, 0); // assumes GL_ARRAY_BUFFER, set in the VertexArrayObject
+  //glEnableVertexAttribArray( m_idVapWindowCoords );
+  glDisableVertexAttribArray( m_idVapWindowCoords ); // keep off until we require it
   
   // Create an element array
   glGenBuffers(1, &m_idElementBuffer);
@@ -116,16 +116,23 @@ void SEGrid::Paint( void ) {
   SceneElement::Paint();
   
   glUseProgram(m_idProgram);
+  glBindVertexArray( m_idVertexArray );  
+  
+  glEnableVertexAttribArray( m_idVapWindowCoords );
 
-  //m_idUniformTransform = glGetUniformLocation( m_idProgram, "mTransform" );
+  // optimize this out, can we update only on change?  
+  // may need to ensure we have the correct vertex array object selected
   glUniformMatrix4fv(m_idUniformTransform, 1, GL_FALSE, &m_mat4Transform[0][0]);
 
-  // Clear the screen to black
-//  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-//  glClear(GL_COLOR_BUFFER_BIT);
-
   // Draw the grid -- https://www.khronos.org/opengles/sdk/docs/man/xhtml/glDrawElements.xml
+  // OpenGL Programming Guide, 8e, v4.3, pg116:
+  // ... causes vertices to be read from the enabled vertex-attribute arrays and used to construct primitives of the type
+  // specified by mode. Vertex-attribute arrays are enabled using glEnableVertexAttribArray(). glDrawElements() uses the
+  //indices in the element array buffer to index into the vertex attribute arrays.
+  
   glDrawElements(GL_LINES, m_vElements.size(), GL_UNSIGNED_INT, 0);
+  
+  glDisableVertexAttribArray( m_idVapWindowCoords );
   
   glUseProgram(0);
   

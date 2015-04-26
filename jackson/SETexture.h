@@ -37,12 +37,26 @@ public:
 protected:
   
 private:
-
+  
+  GLuint m_idVertexArray;
   GLuint m_idTexture;
+  GLuint m_idVertexBufferForWindowCoords;
+  GLuint m_idVertexBufferForTextureCoords;
+  GLuint m_idElements;
+  
+  GLuint m_idVapWindowCoords;
+  GLuint m_idVapTextureCoords;
+  
+  GLuint m_idUniformTransform;
   
   pImage_t m_pImage;  // should be shared_ptr so can be overwritten and self delete
   
+  glm::mat4 m_mat4Transform;
+  
   std::vector<glm::vec2> m_vtxWindowCoords;
+  std::vector<glm::vec2> m_vtxTextureCoords;
+  
+  std::vector<GLuint> m_vElements;
   
 };
 

@@ -25,16 +25,44 @@
 #include <glm/gtx/transform.hpp>
 
 SETexture::SETexture( ): SceneElement() {
+  
   using namespace boost::assign;
+  
   m_vtxWindowCoords +=
        glm::vec2( 0.0f,  0.0f ), // Bottom-left
        glm::vec2( 1.0f,  0.0f ), // Bottom-right
        glm::vec2( 1.0f,  1.0f ), // Top-right
        glm::vec2( 0.0f,  1.0f )  // Top-left
     ;
+  
+  m_vtxTextureCoords +=  // element order for inverted mapping to texture onto projection... maybe use projection matrix at some point
+       glm::vec2( 0.0f,  1.0f ),  // Top-left
+       glm::vec2( 1.0f,  1.0f ),  // Top-right
+       glm::vec2( 1.0f,  0.0f ),  // Bottom-right
+       glm::vec2( 0.0f,  0.0f )   // Bottom-left
+    ;
+  
+  m_vElements += // natural order for 
+      0, 1, 2,
+      0, 2, 3
+    ;
+  
+  m_mat4Transform = glm::mat4( 1.0f ); // identity matrix
+  m_mat4Transform *= glm::translate( glm::vec3( -1.0f, 1.0f, 0.0f ) );  // translate to window coordinates
+//  mat4Transform *= glm::scale( glm::vec3( 2.0f, -2.0f, 1.0f ) );  // invert image and expand to window coordinates
+//  mat4Transform *= glm::translate( glm::vec3( 1.0f, 1.0f, 0.0f ) );  // translate to window coordinates
+//  mat4Transform *= glm::scale( glm::vec3( 1.0f, 1.0f, 1.0f ) );  // invert image and expand to window coordinates
+
 }
 
 SETexture::~SETexture( ) {
+  if ( HadInit() ) {
+    glDeleteBuffers(1, &m_idElements);
+    glDeleteBuffers(1, &m_idVertexBufferForWindowCoords);
+    glDeleteBuffers(1, &m_idVertexBufferForTextureCoords);
+    glDeleteTextures(1, &m_idTexture);
+    glDeleteVertexArrays(1, &m_idVertexArray);
+  }
 }
 
 void SETexture::SetWindowCoords( std::vector<glm::vec4>&  vCoords ) {
@@ -58,53 +86,24 @@ void SETexture::Init( void ) {
   m_managerShader.LoadShader( GL_FRAGMENT_SHADER, prefix + "tex2.shfrag" );
 	m_managerShader.InitializeProgram( m_idProgram );
   
-}
-
-void SETexture::Paint( void ) {
-  
-  SceneElement::Paint();
-  
   glUseProgram(m_idProgram);
-
-  // stuff goes here
-
-  wxImagePixelData data( *m_pImage );
-  int width = data.GetWidth();
-  int height = data.GetHeight();
-  int stride = data.GetRowStride();
-  wxSize size = data.GetSize();
-  wxImagePixelData::Iterator pDest( data );
   
-  // pg 148 texture coordinates are 0.0 - 1.0
-  
-  // vertex array object (VAO), an object that represents the
-  // vertex fetch stage of the OpenGL pipeline and is used to supply input to
-  // the vertex shader  (can go in startup)
-  GLuint vao;
-  glGenVertexArrays(1, &vao);
-  glBindVertexArray(vao);
+  glGenVertexArrays(1, &m_idVertexArray);
+  glBindVertexArray(m_idVertexArray);
 
-  glm::mat4 mat4Transform = glm::mat4( 1.0f ); // identity matrix
-  mat4Transform *= glm::translate( glm::vec3( -1.0f, 1.0f, 0.0f ) );  // translate to window coordinates
-//  mat4Transform *= glm::scale( glm::vec3( 2.0f, -2.0f, 1.0f ) );  // invert image and expand to window coordinates
-//  mat4Transform *= glm::translate( glm::vec3( 1.0f, 1.0f, 0.0f ) );  // translate to window coordinates
-//  mat4Transform *= glm::scale( glm::vec3( 1.0f, 1.0f, 1.0f ) );  // invert image and expand to window coordinates
-
-  //glUseProgram( m_idProgram );
+  m_idUniformTransform = glGetUniformLocation( m_idProgram, "mTransform" );
 
   // Create a Vertex Buffer Object and copy the vertex data to it
-  GLuint vbWindowCoords;  // vertices to be deprecated
-  glGenBuffers(1, &vbWindowCoords);
-  glBindBuffer(GL_ARRAY_BUFFER, vbWindowCoords);
+  glGenBuffers(1, &m_idVertexBufferForWindowCoords);
+  glBindBuffer(GL_ARRAY_BUFFER, m_idVertexBufferForWindowCoords);
   int s1 = sizeof( glm::vec2 ) * m_vtxWindowCoords.size();
-//  int s2 = sizeof(vtxTextureCoords);
-//  std::cout << "s values: " << s1 << ", " << s2 << std::endl;
-  glBufferData(GL_ARRAY_BUFFER, s1, &m_vtxWindowCoords[0], GL_STATIC_DRAW);  // copy vertices to opengl
+  glBufferData(GL_ARRAY_BUFFER, s1, &m_vtxWindowCoords[0], GL_STATIC_DRAW);
 
   // Specify the layout of the vertex data
-  GLint attribWindowCoords = glGetAttribLocation(m_idProgram, "vWindowCoords");
-  glEnableVertexAttribArray(attribWindowCoords);
-  glVertexAttribPointer(attribWindowCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
+  m_idVapWindowCoords = glGetAttribLocation(m_idProgram, "vWindowCoords");
+  glVertexAttribPointer(m_idVapWindowCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
+  //glEnableVertexAttribArray(m_idVapWindowCoords);
+  glDisableVertexAttribArray(m_idVapWindowCoords);
 
   glGenTextures(1, &m_idTexture);
   glActiveTexture(GL_TEXTURE0);
@@ -117,58 +116,57 @@ void SETexture::Paint( void ) {
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
+  wxImagePixelData data( *m_pImage );
+  int width = data.GetWidth();
+  int height = data.GetHeight();
+  //int stride = data.GetRowStride();
+  //wxSize size = data.GetSize();
+  wxImagePixelData::Iterator pDest( data );
+  
   // http://stackoverflow.com/questions/10918684/strange-color-shift-after-loading-a-gl-rgb-texture
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // GL doesn't like packed structures, used to get the RGB out
   //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, pData);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pDest.m_pRGB );
   //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 10, 10, 0, GL_RGB, GL_UNSIGNED_BYTE, col );
 
-  glm::vec2 vtxTextureCoords[] = { // element order for inverted mapping to texture onto projection... maybe use projection matrix at some point
-       glm::vec2( 0.0f,  1.0f ),  // Top-left
-       glm::vec2( 1.0f,  1.0f ),  // Top-right
-       glm::vec2( 1.0f,  0.0f ),  // Bottom-right
-       glm::vec2( 0.0f,  0.0f ),  // Bottom-left
-  };
-  
   // Create a Vertex Buffer Object and copy the vertex data to it
-  GLuint vbTextureCoords;  // vertices to be deprecated
-  glGenBuffers(1, &vbTextureCoords);
-  glBindBuffer(GL_ARRAY_BUFFER, vbTextureCoords);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vtxTextureCoords), vtxTextureCoords, GL_STATIC_DRAW);  // copy vertices to opengl
-
-  GLuint elements[] = {  // natural order for 
-      0, 1, 2,
-      0, 2, 3
-  };
-  
-  // Create an element array
-  GLuint ebo;
-  glGenBuffers(1, &ebo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);  // copy elements to opengl
+  glGenBuffers(1, &m_idVertexBufferForTextureCoords);
+  glBindBuffer(GL_ARRAY_BUFFER, m_idVertexBufferForTextureCoords);
+  glBufferData(GL_ARRAY_BUFFER, sizeof( glm::vec2) * m_vtxTextureCoords.size(), &m_vtxTextureCoords[0], GL_STATIC_DRAW);
 
   // Specify the layout of the vertex data
-  GLint attribTextureCoords = glGetAttribLocation(m_idProgram, "vTextureCoords");
-  glEnableVertexAttribArray(attribTextureCoords);
-  glVertexAttribPointer(attribTextureCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
+  m_idVapTextureCoords = glGetAttribLocation(m_idProgram, "vTextureCoords");
+  //glEnableVertexAttribArray(m_idVapTextureCoords);
+  glVertexAttribPointer(m_idVapTextureCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
+  glDisableVertexAttribArray(m_idVapTextureCoords);
 
-  GLint uniformTransform = glGetUniformLocation( m_idProgram, "mTransform" );
-  glUniformMatrix4fv(uniformTransform, 1, GL_FALSE, &mat4Transform[0][0]);
+  // Create an element array
+  glGenBuffers(1, &m_idElements);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_idElements);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*m_vElements.size(), &m_vElements[0], GL_STATIC_DRAW);  // copy elements to opengl
 
-  // Draw a rectangle from the 2 triangles using 6 indices
-  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+  glUseProgram(0);
+}
 
-  glDeleteTextures(1, &m_idTexture);
-        
-  // uncomment after testing and clean up
-  glDeleteBuffers(1, &ebo);
-  glDeleteBuffers(1, &vbWindowCoords);
-  glDeleteBuffers(1, &vbTextureCoords);
-
-  glDeleteVertexArrays(1, &vao);
-
-  //SOIL_free_image_data(pData);        
+void SETexture::Paint( void ) {
   
+  SceneElement::Paint();
+  
+  glUseProgram(m_idProgram);
+  glBindVertexArray(m_idVertexArray);
+  
+  glEnableVertexAttribArray(m_idVapWindowCoords);
+  glEnableVertexAttribArray(m_idVapTextureCoords);
+
+  glUniformMatrix4fv(m_idUniformTransform, 1, GL_FALSE, &m_mat4Transform[0][0]);
+
+  // this is probably a problem as we need to identify the specific elements.
+  // Draw a rectangle from the 2 triangles using 6 indices
+  glDrawElements(GL_TRIANGLES, m_vElements.size(), GL_UNSIGNED_INT, 0);
+  
+  glDisableVertexAttribArray(m_idVapTextureCoords);
+  glDisableVertexAttribArray(m_idVapWindowCoords);
+
   glUseProgram(0);
   
 }

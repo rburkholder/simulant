@@ -79,12 +79,12 @@ void SceneManager::OnPaint( void ) {
     }
     m_vSceneElementToInit.clear();
   }  
-
+  
   BOOST_FOREACH( mapSceneElement_t::value_type element, m_mapSceneElement ) {
     glDebugMessageCallback( &callbackSceneManager, (const void*) element.first );
-    std::cout << "painting " << element.first << std::endl;
+    //std::cout << "painting " << element.first << std::endl;
     element.second->Paint();
-    std::cout << "done painting" << std::endl;
+    //std::cout << "done painting" << std::endl;
     glDebugMessageCallback( 0, 0 );
   }
 
