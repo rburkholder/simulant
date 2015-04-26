@@ -319,6 +319,7 @@ private:
   virtual void UpdateTransformMatrix( void );
   
   void LoadPicture( void );
+  void LoadPictureCommon( void );
 
   void SetSelected( void );  // from tree menu
   void RemoveSelected( void );  // from tree menu
@@ -375,10 +376,29 @@ TreeItemPicture::~TreeItemPicture( void ) {
 
 void TreeItemPicture::HandleLoadPicture( wxCommandEvent& event ) {
   // may have an issue with aspect if carried from previous picture
-  LoadPicture();
+  // this simply reloads the texture
+  LoadPictureCommon();
+  if ( m_image.IsOk() ) {
+    //std::cout << "is ok" << std::endl;
+    //m_pTexture.reset( new SETexture );
+    //m_keyTexture = m_pSceneManager->Add( m_pTexture );
+    //m_pTexture->SetTransform( m_mat4Transform );
+    m_pTexture->SetImage( SETexture::pImage_t( new wxImage( m_image ) ) );
+  }
 }
 
-void TreeItemPicture::LoadPicture( void ) {
+void TreeItemPicture::LoadPicture( void ) {  // load picture and create object
+  LoadPictureCommon();
+  if ( m_image.IsOk() ) {
+    //std::cout << "is ok" << std::endl;
+    m_pTexture.reset( new SETexture );
+    m_keyTexture = m_pSceneManager->Add( m_pTexture );
+    m_pTexture->SetTransform( m_mat4Transform );
+    m_pTexture->SetImage( SETexture::pImage_t( new wxImage( m_image ) ) );
+  }
+}
+
+void TreeItemPicture::LoadPictureCommon( void ) {
   
   std::cout << "TreeItemCanvasGrid LoadPicture" << std::endl;  
   
@@ -392,16 +412,8 @@ void TreeItemPicture::LoadPicture( void ) {
     std::cout << "chose " << dialogOpenFile.GetPath() << std::endl;
     std::cout << "dir " << m_sPictureDirectory << std::endl;
     assert( m_image.LoadFile( dialogOpenFile.GetPath(), wxBITMAP_TYPE_JPEG ) );
-    if ( m_image.IsOk() ) {
-      //std::cout << "is ok" << std::endl;
-      m_pTexture.reset( new SETexture );
-      m_keyTexture = m_pSceneManager->Add( m_pTexture );
-      m_pTexture->SetTransform( m_mat4Transform );
-      m_pTexture->SetImage( SETexture::pImage_t( new wxImage( m_image ) ) );
-    }
   }
   
-  // add a  tree item to the end for state management
 }
 
 void TreeItemPicture::SetSelected( void ) {

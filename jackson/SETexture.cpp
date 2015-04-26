@@ -77,11 +77,6 @@ SETexture::~SETexture( ) {
   }
 }
 
-void SETexture::SetImage( pImage_t pImage ) {
-  assert( 0 != pImage.use_count() );
-  m_pImage = pImage;
-}
-  
 void SETexture::SetWindowCoords( std::vector<glm::vec4>&  vCoords ) {
   assert( 4 == vCoords.size() );
   m_vtxWindowCoords.clear();
@@ -94,6 +89,54 @@ void SETexture::SetWindowCoords( std::vector<glm::vec4>&  vCoords ) {
 void SETexture::SetTransform( const glm::mat4& mat4Transform ) { 
   m_mat4SuppliedTransform = mat4Transform; 
   m_mat4FinalTransform = m_mat4BasicTransform * m_mat4SuppliedTransform;
+}
+
+void SETexture::SetImage( pImage_t pImage ) {
+  assert( 0 != pImage.use_count() );
+  m_pImage = pImage;
+  GLboolean b = glIsTexture( m_idTexture );
+  if ( GL_TRUE == b ) {
+//    glDeleteTextures(1, &m_idTexture);
+//    b = glIsTexture( m_idTexture );
+    wxImagePixelData data( *pImage );
+    int width = data.GetWidth();
+    int height = data.GetHeight();
+    wxImagePixelData::Iterator pDest( data );
+    // http://stackoverflow.com/questions/10918684/strange-color-shift-after-loading-a-gl-rgb-texture
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // GL doesn't like packed structures, used to get the RGB out
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, pData);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pDest.m_pRGB );
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 10, 10, 0, GL_RGB, GL_UNSIGNED_BYTE, col );
+  }
+  //LoadTexture();
+}
+  
+void SETexture::LoadTexture( void ) {
+  
+  glGenTextures(1, &m_idTexture);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, m_idTexture);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );//GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );//GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT ); // GL_MIRRORED_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT ); // GL_MIRRORED_REPEAT);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+  wxImagePixelData data( *m_pImage );
+  int width = data.GetWidth();
+  int height = data.GetHeight();
+  //int stride = data.GetRowStride();
+  //wxSize size = data.GetSize();
+  wxImagePixelData::Iterator pDest( data );
+  
+  // http://stackoverflow.com/questions/10918684/strange-color-shift-after-loading-a-gl-rgb-texture
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // GL doesn't like packed structures, used to get the RGB out
+  //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, pData);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pDest.m_pRGB );
+  //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 10, 10, 0, GL_RGB, GL_UNSIGNED_BYTE, col );
+
 }
 
 void SETexture::Init( void ) {
@@ -128,30 +171,8 @@ void SETexture::Init( void ) {
   //glEnableVertexAttribArray(m_idVapWindowCoords);
   glDisableVertexAttribArray(m_idVapWindowCoords);
 
-  glGenTextures(1, &m_idTexture);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, m_idTexture);
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );//GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );//GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT ); // GL_MIRRORED_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT ); // GL_MIRRORED_REPEAT);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-  wxImagePixelData data( *m_pImage );
-  int width = data.GetWidth();
-  int height = data.GetHeight();
-  //int stride = data.GetRowStride();
-  //wxSize size = data.GetSize();
-  wxImagePixelData::Iterator pDest( data );
+  LoadTexture();
   
-  // http://stackoverflow.com/questions/10918684/strange-color-shift-after-loading-a-gl-rgb-texture
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // GL doesn't like packed structures, used to get the RGB out
-  //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, pData);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pDest.m_pRGB );
-  //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 10, 10, 0, GL_RGB, GL_UNSIGNED_BYTE, col );
-
   // Create a Vertex Buffer Object and copy the vertex data to it
   glGenBuffers(1, &m_idVertexBufferForTextureCoords);
   glBindBuffer(GL_ARRAY_BUFFER, m_idVertexBufferForTextureCoords);
@@ -182,6 +203,7 @@ void SETexture::Paint( void ) {
   glEnableVertexAttribArray(m_idVapTextureCoords);
   
   glBindTexture(GL_TEXTURE_2D, m_idTexture);
+  glActiveTexture(GL_TEXTURE0);
 
   glUniformMatrix4fv(m_idUniformTransform, 1, GL_FALSE, &m_mat4FinalTransform[0][0]);
 

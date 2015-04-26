@@ -58,5 +58,7 @@ private:
   
   std::vector<GLuint> m_vElements;
   
+  void LoadTexture( void );
+  
 };
 
