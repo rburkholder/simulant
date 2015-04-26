@@ -153,9 +153,12 @@ private:
   
   pPhysicalDisplay_t m_pPhysicalDisplay;
   pSceneManager_t m_pSceneManager;
+  
   pSEGrid_t m_pGrid;
+  key_t m_keyGrid;
+  
   pSETexture_t m_pTexture;
-  key_t m_key;
+  key_t m_keyTexture;
   
   glm::mat4 m_mat4Transform;
   
@@ -190,7 +193,7 @@ private:
 TreeItemCanvasGrid::TreeItemCanvasGrid( 
   TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay, pOutline_t pOutline, pSceneManager_t pSceneManager)
 : TreeItemBase( pTree_, id_ ), m_pPhysicalDisplay( pPhysicalDisplay ), m_pSceneManager( pSceneManager), 
-  m_floatFactor( 1.0f ), m_bActive( false ), m_bReceivingEvents( false )
+  m_floatFactor( 1.0f ), m_bActive( false ), m_bReceivingEvents( false ), m_keyGrid( 0 ), m_keyTexture( 0 )
 {
   
   std::cout << "Tree Item Show Grid" << std::endl;
@@ -201,7 +204,7 @@ TreeItemCanvasGrid::TreeItemCanvasGrid(
   m_sVideoDirectory = wxT( "~/Videos/");
 
   m_pGrid.reset( new SEGrid );
-  m_key = m_pSceneManager->Add( m_pGrid );
+  m_keyGrid = m_pSceneManager->Add( m_pGrid );
  
   wxApp::GetInstance()->Bind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this ); 
   //m_pScreenFrame->GetFrame()->Bind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this );  // doesn't propgate properly
@@ -221,12 +224,14 @@ TreeItemCanvasGrid::~TreeItemCanvasGrid( void ) {
   m_bActive = false;
   m_slotTimer.disconnect();
   wxApp::GetInstance()->Unbind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this );
-  m_pSceneManager->Delete( m_key );
+  if ( 0 != m_keyGrid ) m_pSceneManager->Delete( m_keyGrid );
+  if ( 0 != m_keyTexture ) m_pSceneManager->Delete( m_keyTexture );
 }
 
 void TreeItemCanvasGrid::HandleLoadPicture( wxCommandEvent& event ) {
   
   std::cout << "TreeItemCanvasGrid LoadPicture" << std::endl;  
+  
   wxFileDialog dialogOpenFile( 
     m_pPhysicalDisplay->GetFrame(), wxT("Select Image" ), m_sPictureDirectory, "", 
     //"JPG Files (*.jpg)|*.jpg", 
@@ -237,7 +242,7 @@ void TreeItemCanvasGrid::HandleLoadPicture( wxCommandEvent& event ) {
     std::cout << "chose " << dialogOpenFile.GetPath() << std::endl;
     std::cout << "dir " << m_sPictureDirectory << std::endl;
     assert( m_image.LoadFile( dialogOpenFile.GetPath(), wxBITMAP_TYPE_JPEG ) );
-    wxBitmap bitmap( m_image );
+    //wxBitmap bitmap( m_image );
 //    FrameProjection* pfp = m_pPhysicalDisplay->GetFrame();
 //    wxClientDC dc( pfp );
 //    dc.DrawBitmap( bitmap, wxPoint( 0, 0 ) );
@@ -256,6 +261,7 @@ void TreeItemCanvasGrid::HandleLoadPicture( wxCommandEvent& event ) {
         //m_pTex->SetSize( rect.GetSize() );
         //m_pTex->Move( rect.GetTopLeft() );
       m_pTexture.reset( new SETexture );
+      m_keyGrid = m_pSceneManager->Add( m_pTexture );
 //        if ( 0 != pOutline.use_count() ) {
           Outline::vPoints_t vPoints;
           //pOutline->GetCoords( vPoints );
@@ -279,7 +285,7 @@ void TreeItemCanvasGrid::HandleLoadPicture( wxCommandEvent& event ) {
           m_pTexture->SetWindowCoords( vCoords );
 //        }
         //m_pTex->SetImage( &m_image );
-          m_pTexture->SetImage( &m_image );
+          m_pTexture->SetImage( SETexture::pImage_t( new wxImage( m_image ) ) );
 //      }
     }
   }
@@ -843,7 +849,7 @@ void TreeItemPhysicalDisplay::Image2OpenGL( void ) {
         }
         m_pTex->SetWindowCoords( vCoords );
       }
-      m_pTex->SetImage( &m_image );
+      m_pTex->SetImage( SETexture::pImage_t( new wxImage( m_image ) ) );
     }
   }
 }

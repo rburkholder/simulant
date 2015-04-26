@@ -22,7 +22,7 @@ public:
   
   void SetWindowCoords( std::vector<glm::vec4>&  vCoords ) { m_seTexture.SetWindowCoords( vCoords ); }
   
-  void SetImage( wxImage* pImage ) { m_seTexture.SetImage( pImage ); }
+  void SetImage( SETexture::pImage_t pImage ) { m_seTexture.SetImage( pImage ); }
   
   void OnPaintInit();
   void OnPaint();

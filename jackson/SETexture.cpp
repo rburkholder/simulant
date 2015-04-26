@@ -24,7 +24,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-SETexture::SETexture( ): SceneElement(), m_pImage( 0 ){
+SETexture::SETexture( ): SceneElement() {
   using namespace boost::assign;
   m_vtxWindowCoords +=
        glm::vec2( 0.0f,  0.0f ), // Bottom-left
@@ -35,10 +35,6 @@ SETexture::SETexture( ): SceneElement(), m_pImage( 0 ){
 }
 
 SETexture::~SETexture( ) {
-  if ( 0 != m_pImage ) {
-    delete m_pImage;
-    m_pImage = 0;
-  }
 }
 
 void SETexture::SetWindowCoords( std::vector<glm::vec4>&  vCoords ) {
@@ -158,10 +154,6 @@ void SETexture::Paint( void ) {
 
   GLint uniformTransform = glGetUniformLocation( m_idProgram, "mTransform" );
   glUniformMatrix4fv(uniformTransform, 1, GL_FALSE, &mat4Transform[0][0]);
-
-  // Clear the screen to black
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
 
   // Draw a rectangle from the 2 triangles using 6 indices
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

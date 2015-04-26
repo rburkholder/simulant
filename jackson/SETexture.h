@@ -9,12 +9,16 @@
 
 //SceneElement Texture
 
+#include <boost/shared_ptr.hpp>
+
 #include "SceneElement.h"
 
 #include <glm/glm.hpp>
 
 class SETexture: public SceneElement {
 public:
+  
+  typedef boost::shared_ptr<wxImage> pImage_t;
   
   SETexture( );
   virtual ~SETexture( );
@@ -25,12 +29,8 @@ public:
   // need to send in transformation matrix instead
   void SetWindowCoords( std::vector<glm::vec4>&  vCoords );
   
-  void SetImage( wxImage* pImage ) {  // deletes image on destruction, should be shared ptr
-    assert( 0 != pImage );
-//    if ( 0 != m_pImage ) {
-//      delete m_pImage;
-//      m_pImage = 0;
-//    }
+  void SetImage( pImage_t pImage ) {
+    assert( 0 != pImage.use_count() );
     m_pImage = pImage;
   }
   
@@ -40,7 +40,7 @@ private:
 
   GLuint m_idTexture;
   
-  wxImage* m_pImage;  // should be shared_ptr so can be overwritten and self delete
+  pImage_t m_pImage;  // should be shared_ptr so can be overwritten and self delete
   
   std::vector<glm::vec2> m_vtxWindowCoords;
   
