@@ -224,8 +224,10 @@ TreeItemCanvasGrid::~TreeItemCanvasGrid( void ) {
   m_bActive = false;
   m_slotTimer.disconnect();
   wxApp::GetInstance()->Unbind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this );
-  if ( 0 != m_keyGrid ) m_pSceneManager->Delete( m_keyGrid );
-  if ( 0 != m_keyTexture ) m_pSceneManager->Delete( m_keyTexture );
+  if ( 0 != m_keyGrid ) 
+    m_pSceneManager->Delete( m_keyGrid );
+  if ( 0 != m_keyTexture ) 
+    m_pSceneManager->Delete( m_keyTexture );
 }
 
 void TreeItemCanvasGrid::HandleLoadPicture( wxCommandEvent& event ) {
@@ -261,7 +263,7 @@ void TreeItemCanvasGrid::HandleLoadPicture( wxCommandEvent& event ) {
         //m_pTex->SetSize( rect.GetSize() );
         //m_pTex->Move( rect.GetTopLeft() );
       m_pTexture.reset( new SETexture );
-      m_keyGrid = m_pSceneManager->Add( m_pTexture );
+      m_keyTexture = m_pSceneManager->Add( m_pTexture );
 //        if ( 0 != pOutline.use_count() ) {
           Outline::vPoints_t vPoints;
           //pOutline->GetCoords( vPoints );
