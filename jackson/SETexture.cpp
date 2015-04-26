@@ -77,6 +77,11 @@ SETexture::~SETexture( ) {
   }
 }
 
+void SETexture::SetImage( pImage_t pImage ) {
+  assert( 0 != pImage.use_count() );
+  m_pImage = pImage;
+}
+  
 void SETexture::SetWindowCoords( std::vector<glm::vec4>&  vCoords ) {
   assert( 4 == vCoords.size() );
   m_vtxWindowCoords.clear();

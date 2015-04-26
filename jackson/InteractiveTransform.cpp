@@ -7,6 +7,7 @@
 
 #include <iostream>
 
+#include "AspectRatio.h"
 #include "InteractiveTransform.h"
 
 InteractiveTransform::InteractiveTransform( int width, int height ) 
@@ -40,29 +41,7 @@ void InteractiveTransform::DeActivate( void ) {
 }
   
 void InteractiveTransform::ResetTransformMatrix( void ) {
-  
-  m_mat4Transform = glm::mat4( 1.0f );
-  
-  float floatHeightScale( 1.0f );
-  float floatWidthScale( 1.0f );
-  
-  //float height = m_pOglGrid->GetClientSize().GetHeight();
-  //float height = m_pPhysicalDisplay->GetFrame()->GetClientSize().GetHeight();
-  //float width = m_pOglGrid->GetClientSize().GetWidth();
-  //float width = m_pPhysicalDisplay->GetFrame()->GetClientSize().GetWidth();
-  float ar = m_fHeight / m_fWidth;  // aspect ratio
-  
-  if ( 1.0 != ar ) {  // rescale if not a square
-    if ( 1.0 < ar ) { // height > width, so scale to width
-      floatHeightScale = 1.0f / ar;
-    }
-    else { // width > height, so scale to height
-      floatWidthScale = 1.0f * ar;
-    }
-  }
-  
-  m_mat4Transform *= glm::scale( glm::vec3( floatWidthScale, floatHeightScale, 0.0f ) );
-  std::cout << "ar " << ar << " from " << floatWidthScale << ", " << floatHeightScale << std::endl;
+  m_mat4Transform = AspectRatio( m_fHeight, m_fWidth );
 }
 
 void InteractiveTransform::HandleMouseLeftDown( wxMouseEvent& event ) {
