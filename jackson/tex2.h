@@ -12,18 +12,17 @@
 
 #include "canvasOpenGL.h"
 
+#include "SETexture.h"
+
 class tex2: public canvasOpenGL<tex2> {
 public:
   
   tex2( wxFrame* parent, int* args );
   virtual ~tex2();
   
-  void SetWindowCoords( std::vector<glm::vec4>&  vCoords );
+  void SetWindowCoords( std::vector<glm::vec4>&  vCoords ) { m_seTexture.SetWindowCoords( vCoords ); }
   
-  void SetImage( wxImage* pImage ) {
-    assert( 0 != pImage );
-    m_pImage = pImage;
-  }
+  void SetImage( wxImage* pImage ) { m_seTexture.SetImage( pImage ); }
   
   void OnPaintInit();
   void OnPaint();
@@ -32,11 +31,7 @@ public:
 protected:
 private:
   
-  GLuint m_texture;
-  
-  std::vector<glm::vec2> m_vtxWindowCoords;
-  
-  wxImage* m_pImage;  // should be shared_ptr so can be overwritten and self delete
+  SETexture m_seTexture;
 
 };
 

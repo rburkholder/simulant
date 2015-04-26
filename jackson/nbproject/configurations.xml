@@ -18,6 +18,7 @@
       <itemPath>Outline.h</itemPath>
       <itemPath>PhysicalDisplay.h</itemPath>
       <itemPath>SEGrid.h</itemPath>
+      <itemPath>SETexture.h</itemPath>
       <itemPath>SceneElement.h</itemPath>
       <itemPath>SceneManager.h</itemPath>
       <itemPath>ShaderManager.h</itemPath>
@@ -58,6 +59,7 @@
       <itemPath>Outline.cpp</itemPath>
       <itemPath>PhysicalDisplay.cpp</itemPath>
       <itemPath>SEGrid.cpp</itemPath>
+      <itemPath>SETexture.cpp</itemPath>
       <itemPath>SceneElement.cpp</itemPath>
       <itemPath>SceneManager.cpp</itemPath>
       <itemPath>ShaderManager.cpp</itemPath>
@@ -181,6 +183,10 @@
       <item path="SEGrid.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="SEGrid.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="SETexture.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="SETexture.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="SceneElement.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -345,6 +351,10 @@
       <item path="SEGrid.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="SEGrid.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="SETexture.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="SETexture.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="SceneElement.cpp" ex="false" tool="1" flavor2="0">
       </item>

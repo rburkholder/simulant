@@ -134,12 +134,13 @@ private:
   
   enum {
     ID_Null = wxID_HIGHEST,
-    MIDelete, MIReset
+    MIDelete, MIReset, MILoadPicture
   };
   
   //typedef boost::shared_ptr<OglGrid> pOglGrid_t;
   typedef SceneManager::key_t key_t;
   typedef boost::shared_ptr<SEGrid> pSEGrid_t;
+  typedef boost::shared_ptr<SETexture> pSETexture_t;
   
   volatile bool m_bActive;
   
@@ -153,9 +154,15 @@ private:
   pPhysicalDisplay_t m_pPhysicalDisplay;
   pSceneManager_t m_pSceneManager;
   pSEGrid_t m_pGrid;
+  pSETexture_t m_pTexture;
   key_t m_key;
   
   glm::mat4 m_mat4Transform;
+  
+  wxString m_sPictureDirectory;
+  wxString m_sVideoDirectory;
+  
+  wxImage m_image;
   
   signalTransformUpdated_t m_signalTransformUpdated;
   
@@ -169,6 +176,8 @@ private:
   
   void HandleDelete( wxCommandEvent& event );
   void HandleReset( wxCommandEvent& event );
+  void HandleLoadPicture( wxCommandEvent& event );
+  
   void HandleMouseWheel( wxMouseEvent& event );
   void HandleMouseMoved( wxMouseEvent& event );
   void HandleMouseLeftDown( wxMouseEvent& event );
@@ -186,6 +195,11 @@ TreeItemCanvasGrid::TreeItemCanvasGrid(
   
   std::cout << "Tree Item Show Grid" << std::endl;
   
+  wxImage::AddHandler( new wxJPEGHandler );
+
+  m_sPictureDirectory = wxT( "~/Pictures/");
+  m_sVideoDirectory = wxT( "~/Videos/");
+
   m_pGrid.reset( new SEGrid );
   m_key = m_pSceneManager->Add( m_pGrid );
  
@@ -208,6 +222,69 @@ TreeItemCanvasGrid::~TreeItemCanvasGrid( void ) {
   m_slotTimer.disconnect();
   wxApp::GetInstance()->Unbind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this );
   m_pSceneManager->Delete( m_key );
+}
+
+void TreeItemCanvasGrid::HandleLoadPicture( wxCommandEvent& event ) {
+  
+  std::cout << "TreeItemCanvasGrid LoadPicture" << std::endl;  
+  wxFileDialog dialogOpenFile( 
+    m_pPhysicalDisplay->GetFrame(), wxT("Select Image" ), m_sPictureDirectory, "", 
+    //"JPG Files (*.jpg)|*.jpg", 
+    _("Image Files ") + wxImage::GetImageExtWildcard(),
+    wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_CHANGE_DIR );
+  if (dialogOpenFile.ShowModal() == wxID_OK) {
+    m_sPictureDirectory = dialogOpenFile.GetDirectory();
+    std::cout << "chose " << dialogOpenFile.GetPath() << std::endl;
+    std::cout << "dir " << m_sPictureDirectory << std::endl;
+    assert( m_image.LoadFile( dialogOpenFile.GetPath(), wxBITMAP_TYPE_JPEG ) );
+    wxBitmap bitmap( m_image );
+//    FrameProjection* pfp = m_pPhysicalDisplay->GetFrame();
+//    wxClientDC dc( pfp );
+//    dc.DrawBitmap( bitmap, wxPoint( 0, 0 ) );
+    if ( m_image.IsOk() ) {
+      //std::cout << "is ok" << std::endl;
+//      if ( 0 == m_pTex ) {
+        //int argsCanvas[] = { WX_GL_CORE_PROFILE, WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
+        //int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
+        //m_pTex = new tex2( m_pPhysicalDisplay->GetFrame(), argsCanvas );
+        //m_pTex->SetSize( m_image.GetWidth(), m_image.GetHeight() );
+        wxRect rect( 500, 100, 300, 600 );
+        //pOutline_t pOutline( m_pPhysicalDisplay->GetFrame()->GetOutline() );
+        //if ( 0 != pOutline.use_count() ) {
+        //  rect = pOutline->GetBoundingBox();
+        //}
+        //m_pTex->SetSize( rect.GetSize() );
+        //m_pTex->Move( rect.GetTopLeft() );
+      m_pTexture.reset( new SETexture );
+//        if ( 0 != pOutline.use_count() ) {
+          Outline::vPoints_t vPoints;
+          //pOutline->GetCoords( vPoints );
+          //assert( 4 == vPoints.size() );
+          vPoints.push_back( rect.GetTopLeft() );
+          vPoints.push_back( rect.GetTopRight() );
+          vPoints.push_back( rect.GetBottomRight() );
+          vPoints.push_back( rect.GetBottomLeft() );
+          // last transform on identity is first applied to vector
+          glm::mat4 mat4Transform = glm::mat4( 1.0f ); // identity matrix
+          mat4Transform *= glm::translate( glm::vec3( -1.0, +1.0 , 0.0 ) );
+          mat4Transform *= glm::scale( glm::vec3( 2.0, -2.0, 1.0f ) );  // invert image and expand to window coordinates
+          mat4Transform *= glm::scale( glm::vec3( 1.0 / rect.GetWidth(), 1.0 / rect.GetHeight(), 1.0f ) );  // invert image and expand to window coordinates
+          mat4Transform *= glm::translate( glm::vec3( -rect.GetLeft(), -rect.GetTop(), 0.0f ) );  // translate to window coordinates
+
+          std::vector<glm::vec4> vCoords;
+          for ( size_t ix = 0; ix < vPoints.size(); ++ix ) {
+            vCoords.push_back( mat4Transform * glm::vec4( vPoints[ix].x, vPoints[ix].y, 0.0, 1.0 ) );
+          }
+          //m_pTex->SetWindowCoords( vCoords );
+          m_pTexture->SetWindowCoords( vCoords );
+//        }
+        //m_pTex->SetImage( &m_image );
+          m_pTexture->SetImage( &m_image );
+//      }
+    }
+  }
+  
+  // add a  tree item to the end for state management
 }
 
 void TreeItemCanvasGrid::SetSelected( void ) {
@@ -362,6 +439,9 @@ void TreeItemCanvasGrid::ShowContextMenu( void ) {
   // todo:  need to toggle between grid and displayed picture
   
   wxMenu* pMenu = new wxMenu();
+  
+  pMenu->Append( MILoadPicture, "Load &Picture" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemCanvasGrid::HandleLoadPicture, this, MILoadPicture );
   
   pMenu->Append( MIReset, "Reset" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemCanvasGrid::HandleReset, this, MIReset );

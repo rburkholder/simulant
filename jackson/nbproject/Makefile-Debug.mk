@@ -48,6 +48,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/Outline.o \
 	${OBJECTDIR}/PhysicalDisplay.o \
 	${OBJECTDIR}/SEGrid.o \
+	${OBJECTDIR}/SETexture.o \
 	${OBJECTDIR}/SceneElement.o \
 	${OBJECTDIR}/SceneManager.o \
 	${OBJECTDIR}/ShaderManager.o \
@@ -150,6 +151,11 @@ ${OBJECTDIR}/SEGrid.o: SEGrid.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SEGrid.o SEGrid.cpp
+
+${OBJECTDIR}/SETexture.o: SETexture.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SETexture.o SETexture.cpp
 
 ${OBJECTDIR}/SceneElement.o: SceneElement.cpp 
 	${MKDIR} -p ${OBJECTDIR}
