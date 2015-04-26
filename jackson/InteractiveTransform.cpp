@@ -11,7 +11,8 @@
 #include "InteractiveTransform.h"
 
 InteractiveTransform::InteractiveTransform( int width, int height ) 
-: m_fWidth( width ), m_fHeight( height ), m_floatFactor( 1.0f ), m_bReceivingEvents( false ), m_pWin( 0 )
+: m_floatFactor( 1.0f ), m_bReceivingEvents( false ), m_pWin( 0 ),
+  m_fWidth( width ), m_fHeight( height )
 {
 }
 
@@ -41,7 +42,8 @@ void InteractiveTransform::DeActivate( void ) {
 }
   
 void InteractiveTransform::ResetTransformMatrix( void ) {
-  m_mat4Transform = AspectRatio( m_fHeight, m_fWidth );
+  m_mat4Transform = AspectRatioWindow( m_fHeight, m_fWidth );
+  //m_mat4Transform = glm::mat4( 1.0f );
 }
 
 void InteractiveTransform::HandleMouseLeftDown( wxMouseEvent& event ) {
@@ -55,11 +57,12 @@ void InteractiveTransform::HandleMouseMoved( wxMouseEvent& event ) {
   if ( event.LeftIsDown() ) {
     int difX = event.GetX() - m_intMouseX;
     int difY = event.GetY() - m_intMouseY;
-    // need to use aspect ratio for following so consistent ratios in each direction
-    //float ratioX = (float) difX / (float) m_pOglGrid->GetClientSize().GetWidth();
-    float ratioX = (float) difX / m_fWidth;
-    //float ratioY = (float) difY / (float) m_pOglGrid->GetClientSize().GetHeight();
-    float ratioY = (float) difY / m_fHeight;
+    
+    float fNormalizer = m_fHeight;
+    if ( m_fWidth < m_fHeight )
+      fNormalizer = m_fWidth;
+    float ratioX = (float) difX / fNormalizer;
+    float ratioY = (float) difY / fNormalizer;
     //std::cout << "drag " << difX << ", " << difY << ", " << ratioX << ", " << ratioY << std::endl;
     if ( event.ControlDown() ) { // rotation
       glm::vec3 vRotate;
@@ -71,8 +74,9 @@ void InteractiveTransform::HandleMouseMoved( wxMouseEvent& event ) {
     }
     else { // translation
       float multiplier = 2.0 * ( event.ShiftDown() ? 0.1f : 1.0f );
+      //float multiplier = ( event.ShiftDown() ? 0.1f : 1.0f );
       //std::cout << "multiplier " << multiplier << std::endl;
-      glm::vec3 vTranslate = glm::vec3( multiplier * ratioX, -multiplier * ratioY, 0.0f );
+      glm::vec3 vTranslate = glm::vec3( multiplier * ratioX, -multiplier * ratioY, 0.0f );  // - for screen to window conversion
       m_mat4Transform *= glm::translate( vTranslate );
     }
     UpdateTransformMatrix();

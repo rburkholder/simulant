@@ -9,4 +9,5 @@
 
 #include <glm/glm.hpp>
 
-glm::mat4 AspectRatio( float height, float width );
+glm::mat4 AspectRatioWindow( float height, float width );
+glm::mat4 AspectRatioImage( float height, float width );

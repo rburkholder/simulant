@@ -263,7 +263,7 @@ void TreeItemGrid::HandleReset( wxCommandEvent& event ) {
 
 // ================
 
-class TreeItemPicture: public TreeItemBase, public InteractiveTransform {
+class TreeItemImage: public TreeItemBase, public InteractiveTransform {
   // so can add/delete the grid object, and possibly handle the mouse stuff for setting up the transform
 public:
   
@@ -275,9 +275,9 @@ public:
   
   typedef boost::shared_ptr<SceneManager> pSceneManager_t;
   
-  TreeItemPicture( 
+  TreeItemImage( 
     TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay, pOutline_t pOutline, pSceneManager_t pSceneManager );
-  ~TreeItemPicture( void );
+  ~TreeItemImage( void );
   
   virtual void ShowContextMenu( void );
   
@@ -293,7 +293,7 @@ private:
   
   enum {
     ID_Null = wxID_HIGHEST,
-    MIDelete, MIReset, MILoadPicture
+    MIDelete, MIReset, MILoadImage
   };
   
   typedef SceneManager::key_t key_t;
@@ -318,22 +318,22 @@ private:
   
   virtual void UpdateTransformMatrix( void );
   
-  void LoadPicture( void );
-  void LoadPictureCommon( void );
+  void LoadImage( void );
+  void LoadImageCommon( void );
 
   void SetSelected( void );  // from tree menu
   void RemoveSelected( void );  // from tree menu
   
   void HandleDelete( wxCommandEvent& event );
   void HandleReset( wxCommandEvent& event );
-  void HandleLoadPicture( wxCommandEvent& event );
+  void HandleLoadImage( wxCommandEvent& event );
   
   void HandleRefreshTimer( FpsGenerator::FPS fps );  // is in work thread
   void HandleRefresh( EventGenerateFrame& event );
   
 };
 
-TreeItemPicture::TreeItemPicture( 
+TreeItemImage::TreeItemImage( 
   TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay, pOutline_t pOutline, pSceneManager_t pSceneManager)
 : TreeItemBase( pTree_, id_ ), 
   InteractiveTransform( pPhysicalDisplay->GetFrame()->GetClientSize().GetWidth(), pPhysicalDisplay->GetFrame()->GetClientSize().GetHeight() ), 
@@ -341,7 +341,7 @@ TreeItemPicture::TreeItemPicture(
   m_bActive( false ), m_keyTexture( 0 )
 {
   
-  std::cout << "Tree Item Add Picture" << std::endl;
+  std::cout << "Tree Item Add Image" << std::endl;
   
   wxImage::AddHandler( new wxJPEGHandler );
 
@@ -351,33 +351,34 @@ TreeItemPicture::TreeItemPicture(
 //  m_pGrid.reset( new SEGrid );
 //  m_keyGrid = m_pSceneManager->Add( m_pGrid );
  
-  wxApp::GetInstance()->Bind( EVENT_GENERATEFRAME, &TreeItemPicture::HandleRefresh, this ); 
+  wxApp::GetInstance()->Bind( EVENT_GENERATEFRAME, &TreeItemImage::HandleRefresh, this ); 
   //m_pScreenFrame->GetFrame()->Bind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this );  // doesn't propgate properly
   
   namespace args = boost::phoenix::arg_names;
-  m_slotTimer = fps.Connect( FpsGenerator::fps24, boost::phoenix::bind( &TreeItemPicture::HandleRefreshTimer, this, args::arg1 ) );
+  m_slotTimer = fps.Connect( FpsGenerator::fps24, boost::phoenix::bind( &TreeItemImage::HandleRefreshTimer, this, args::arg1 ) );
  
   ResetTransformMatrix();
-  UpdateTransformMatrix();
   
-  LoadPicture();
+  LoadImage();
+  
+  UpdateTransformMatrix();
   
   m_bActive = true;
   
 }
 
-TreeItemPicture::~TreeItemPicture( void ) {
+TreeItemImage::~TreeItemImage( void ) {
   m_bActive = false;
   m_slotTimer.disconnect();
-  wxApp::GetInstance()->Unbind( EVENT_GENERATEFRAME, &TreeItemPicture::HandleRefresh, this );
+  wxApp::GetInstance()->Unbind( EVENT_GENERATEFRAME, &TreeItemImage::HandleRefresh, this );
   if ( 0 != m_keyTexture ) 
     m_pSceneManager->Delete( m_keyTexture );
 }
 
-void TreeItemPicture::HandleLoadPicture( wxCommandEvent& event ) {
+void TreeItemImage::HandleLoadImage( wxCommandEvent& event ) {
   // may have an issue with aspect if carried from previous picture
   // this simply reloads the texture
-  LoadPictureCommon();
+  LoadImageCommon();
   if ( m_image.IsOk() ) {
     //std::cout << "is ok" << std::endl;
     //m_pTexture.reset( new SETexture );
@@ -387,8 +388,8 @@ void TreeItemPicture::HandleLoadPicture( wxCommandEvent& event ) {
   }
 }
 
-void TreeItemPicture::LoadPicture( void ) {  // load picture and create object
-  LoadPictureCommon();
+void TreeItemImage::LoadImage( void ) {  // load picture and create object
+  LoadImageCommon();
   if ( m_image.IsOk() ) {
     //std::cout << "is ok" << std::endl;
     m_pTexture.reset( new SETexture );
@@ -398,9 +399,9 @@ void TreeItemPicture::LoadPicture( void ) {  // load picture and create object
   }
 }
 
-void TreeItemPicture::LoadPictureCommon( void ) {
+void TreeItemImage::LoadImageCommon( void ) {
   
-  std::cout << "TreeItemCanvasGrid LoadPicture" << std::endl;  
+  std::cout << "TreeItemCanvasGrid LoadImage" << std::endl;  
   
   wxFileDialog dialogOpenFile( 
     m_pPhysicalDisplay->GetFrame(), wxT("Select Image" ), m_sPictureDirectory, "", 
@@ -416,21 +417,21 @@ void TreeItemPicture::LoadPictureCommon( void ) {
   
 }
 
-void TreeItemPicture::SetSelected( void ) {
+void TreeItemImage::SetSelected( void ) {
   InteractiveTransform::Activate( m_pSceneManager.get() );
 }
 
-void TreeItemPicture::RemoveSelected( void ) {
+void TreeItemImage::RemoveSelected( void ) {
   InteractiveTransform::DeActivate();
 }
 
-void TreeItemPicture::HandleRefreshTimer( FpsGenerator::FPS fps ) {
+void TreeItemImage::HandleRefreshTimer( FpsGenerator::FPS fps ) {
   if ( m_bActive ) { // cross thread action
     wxApp::GetInstance()->QueueEvent( new EventGenerateFrame( EVENT_GENERATEFRAME, m_pPhysicalDisplay->GetFrame()->GetId() ) );
   }
 }
 
-void TreeItemPicture::HandleRefresh( EventGenerateFrame& event ) {
+void TreeItemImage::HandleRefresh( EventGenerateFrame& event ) {
   if ( m_pPhysicalDisplay->GetFrame()->GetId() == event.GetId() ) {
     m_pSceneManager->Refresh(); // this isn't the right way, as it will get called to many times
     //  when registering, registers with a specific fps queue
@@ -442,7 +443,7 @@ void TreeItemPicture::HandleRefresh( EventGenerateFrame& event ) {
   event.Skip( true );  // let other ones process this as well
 }
 
-void TreeItemPicture::UpdateTransformMatrix( void ) {
+void TreeItemImage::UpdateTransformMatrix( void ) {
   //m_pOglGrid->UpdateTransform( m_mat4Transform );
   if ( 0 != m_pTexture.get() ) {
     m_pTexture->SetTransform( m_mat4Transform );
@@ -450,31 +451,31 @@ void TreeItemPicture::UpdateTransformMatrix( void ) {
   m_signalTransformUpdated( m_mat4Transform );
 }
 
-void TreeItemPicture::ShowContextMenu( void ) {
+void TreeItemImage::ShowContextMenu( void ) {
   
   // todo:  need to toggle between grid and displayed picture
   
   wxMenu* pMenu = new wxMenu();
   
-  pMenu->Append( MILoadPicture, "Load &Picture" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPicture::HandleLoadPicture, this, MILoadPicture );
+  pMenu->Append( MILoadImage, "Load &Image" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemImage::HandleLoadImage, this, MILoadImage );
   
   pMenu->Append( MIReset, "Reset" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPicture::HandleReset, this, MIReset );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemImage::HandleReset, this, MIReset );
   
   pMenu->Append( MIDelete, "Delete" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPicture::HandleDelete, this, MIDelete );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemImage::HandleDelete, this, MIDelete );
   
   m_pTree->PopupMenu( pMenu );
 }
 
-void TreeItemPicture::HandleDelete( wxCommandEvent& event ) {
-  std::cout << "Tree Item Picture Delete" << std::endl;
+void TreeItemImage::HandleDelete( wxCommandEvent& event ) {
+  std::cout << "Tree Item Image Delete" << std::endl;
   m_pTree->Delete( this->m_id );
 }
 
-void TreeItemPicture::HandleReset( wxCommandEvent& event ) {
-  std::cout << "Picture Reset" << std::endl;
+void TreeItemImage::HandleReset( wxCommandEvent& event ) {
+  std::cout << "Image Reset" << std::endl;
   ResetTransformMatrix();
   UpdateTransformMatrix();
 }
@@ -570,7 +571,7 @@ void TreeItemPlaceHolder::ShowContextMenu( void ) {
   pMenu->Append( MIAddGrid, "Add &Grid" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPlaceHolder::HandleAddGrid, this, MIAddGrid );
   
-  pMenu->Append( MIAddPicture, "Add &Picture" );
+  pMenu->Append( MIAddPicture, "Add &Image" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPlaceHolder::HandleAddPicture, this, MIAddPicture );
   
   pMenu->Append( MIAddVideo, "Add &Video" );
@@ -621,19 +622,19 @@ void TreeItemPlaceHolder::HandleAddGrid( wxCommandEvent& event ) {
 
 void TreeItemPlaceHolder::HandleAddPicture( wxCommandEvent& event ) {
   
-  wxTreeItemId id = m_pTree->AppendItem( m_id, "Picture" );
+  wxTreeItemId id = m_pTree->AppendItem( m_id, "Image" );
   m_pTree->EnsureVisible( id );
   
-  TreeItemPicture* pPicture = new TreeItemPicture( m_pTree, id, m_pPhysicalDisplay, m_pOutline, m_pSceneManager );
-  pTreeItem_t pTreeItem( pPicture );
+  TreeItemImage* pImage = new TreeItemImage( m_pTree, id, m_pPhysicalDisplay, m_pOutline, m_pSceneManager );
+  pTreeItem_t pTreeItem( pImage );
   m_pTree->Add( id, pTreeItem );
   
   pSceneElementInfo_t pInfo( new SceneElementInfo );
   m_mapSceneElementInfo.insert( mapSceneElementInfo_t::value_type( id, pInfo ) );
   
   namespace args = boost::phoenix::arg_names;
-  pInfo->m_connectGrid = pPicture->Connect( boost::phoenix::bind( &SceneElementInfo::HandleUpdateTransform, pInfo.get(), args::arg1 ) );
-  pPicture->GetTransformMatrix( pInfo->m_mat4Transform );
+  pInfo->m_connectGrid = pImage->Connect( boost::phoenix::bind( &SceneElementInfo::HandleUpdateTransform, pInfo.get(), args::arg1 ) );
+  pImage->GetTransformMatrix( pInfo->m_mat4Transform );
   
 }
 

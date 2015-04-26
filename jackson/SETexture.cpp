@@ -24,15 +24,19 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-SETexture::SETexture( ): SceneElement() {
+#include "AspectRatio.h"
+
+SETexture::SETexture( ): 
+  SceneElement(), 
+  m_idVertexArray( 0 ), m_idTexture( 0 ), m_idElements( 0 ), 
+  m_idVertexBufferForImageCoords( 0 ), m_idVertexBufferForTextureCoords( 0 ), 
+  m_idVapImageCoords( 0 ), m_idVapTextureCoords( 0 ), 
+  m_idUniformTransform( 0 )
+{
   
   using namespace boost::assign;
   
-  m_vtxWindowCoords +=
-//       glm::vec2( 0.0f,  0.0f ), // Bottom-left
-//       glm::vec2( 1.0f,  0.0f ), // Bottom-right
-//       glm::vec2( 1.0f,  1.0f ), // Top-right
-//       glm::vec2( 0.0f,  1.0f )  // Top-left
+  m_vtxImageCoords +=  // default full window
        glm::vec2( -1.0f,  1.0f ), // Top-left
        glm::vec2(  1.0f,  1.0f ), // Top-right
        glm::vec2(  1.0f, -1.0f ), // Bottom-right
@@ -51,15 +55,7 @@ SETexture::SETexture( ): SceneElement() {
       0, 2, 3
     ;
   
-  // initial transform: full scale
-  //m_mat4BasicTransform = glm::mat4( 1.0f ); // identity matrix
-//  m_mat4BasicTransform *= glm::translate( glm::vec3( -1.0f, 1.0f, 0.0f ) );  // translate to window coordinates
-//  m_mat4BasicTransform *= glm::scale( glm::vec3( 2.0f, -2.0f, 1.0f ) );  // invert image and expand to window coordinates
-//  m_mat4BasicTransform *= glm::translate( glm::vec3( 1.0f, 1.0f, 0.0f ) );  // translate to window coordinates
-  //m_mat4BasicTransform *= glm::scale( glm::vec3( 1.0f, -1.0f, 1.0f ) );  // invert image
-  m_mat4BasicTransform = glm::scale( glm::vec3( 1.0f, -1.0f, 1.0f ) );  // invert image
-  //glm::vec3 vAxis( 1.0f, 0.0f, 0.0f );
-  //m_mat4BasicTransform = glm::rotate( 180.0f, vAxis );  // invert image
+  m_mat4BasicTransform = glm::scale( glm::vec3( 1.0f, -1.0f, 1.0f ) );  // invert image, based upon default coords
   
   SetTransform( glm::mat4( 1.0f ) ); // identity matrix
 
@@ -70,25 +66,45 @@ SETexture::~SETexture( ) {
     // m_idVapWindowCoords ?
     // m_idVapTextureCoords ?
     glDeleteBuffers(1, &m_idElements);
-    glDeleteBuffers(1, &m_idVertexBufferForWindowCoords);
+    glDeleteBuffers(1, &m_idVertexBufferForImageCoords);
     glDeleteBuffers(1, &m_idVertexBufferForTextureCoords);
     glDeleteTextures(1, &m_idTexture);
     glDeleteVertexArrays(1, &m_idVertexArray);
   }
 }
 
-void SETexture::SetWindowCoords( std::vector<glm::vec4>&  vCoords ) {
-  assert( 4 == vCoords.size() );
-  m_vtxWindowCoords.clear();
-  for ( size_t ix = 0; ix < vCoords.size(); ++ix ) {
-    m_vtxWindowCoords.push_back( glm::vec2( vCoords[ix].x, vCoords[ix].y ) );
-    std::cout << "coords set: "  << vCoords[ix].x << ", " << vCoords[ix].y << std::endl;
+void SETexture::SetBasicTransform( void ) {
+  if ( 0 != m_pImage.use_count() ) {
+    
+    float height = m_pImage->GetHeight();
+    float width = m_pImage->GetWidth();
+    
+    using namespace boost::assign;
+    m_vtxImageCoords.clear();
+    m_vtxImageCoords +=  // regular pixel screen coordinates
+       glm::vec2(         0.0f,          0.0f ), // Top-left 
+       glm::vec2( width - 1.0f,          0.0f ), // Top-right
+       glm::vec2( width - 1.0f, height - 1.0f ), // Bottom-right
+       glm::vec2(         0.0f, height - 1.0f )  // Bottom-left
+    ;
+    
+    glm::mat4 mat4AspectRatio = AspectRatioImage( height, width );
+    
+    glm::mat4 mat4Transform = glm::mat4( 1.0f );
+    mat4Transform *= mat4AspectRatio;
+    mat4Transform *= glm::scale( glm::vec3( 2.0f, 2.0f, 0.0f ) ); // scale to window coordinates
+    mat4Transform *= glm::translate( glm::vec3( -0.5f, -0.5f, 0.0f ) ); // shift to center over 0,0
+    mat4Transform *= glm::scale( glm::vec3( 1.0f / width, 1.0f / height, 1.0 ) );  // normalize
+    //mat4Transform *= glm::translate( glm::vec3( 0.0f, (float)height, 0.0f ) ); // shift in to positive again
+    //mat4Transform *= glm::scale( glm::vec3( 1.0f, -1.0f, 1.0f ) );  // invert the image
+    
+    m_mat4BasicTransform = mat4Transform;
   }
 }
 
 void SETexture::SetTransform( const glm::mat4& mat4Transform ) { 
   m_mat4SuppliedTransform = mat4Transform; 
-  m_mat4FinalTransform = m_mat4BasicTransform * m_mat4SuppliedTransform;
+  m_mat4FinalTransform = m_mat4SuppliedTransform * m_mat4BasicTransform;
 }
 
 void SETexture::SetImage( pImage_t pImage ) {
@@ -98,6 +114,7 @@ void SETexture::SetImage( pImage_t pImage ) {
   if ( GL_TRUE == b ) {
     LoadTexture();
   }
+  SetBasicTransform();
 }
 
 void SETexture::LoadTexture( void ) {
@@ -133,6 +150,25 @@ void SETexture::AddTexture( void ) {
 
 }
 
+void SETexture::SetWindowCoords( std::vector<glm::vec4>&  vCoords ) {
+  assert( 4 == vCoords.size() );
+  m_vtxImageCoords.clear();
+  for ( size_t ix = 0; ix < vCoords.size(); ++ix ) {
+    m_vtxImageCoords.push_back( glm::vec2( vCoords[ix].x, vCoords[ix].y ) );
+    std::cout << "coords set: "  << vCoords[ix].x << ", " << vCoords[ix].y << std::endl;
+  }
+}
+
+void SETexture::LoadImageCoords( void ) {
+  GLboolean b = glIsBuffer( m_idVertexBufferForImageCoords );
+  if ( GL_FALSE == b ) {
+    glGenBuffers(1, &m_idVertexBufferForImageCoords);  
+  }
+  glBindBuffer(GL_ARRAY_BUFFER, m_idVertexBufferForImageCoords);
+  int s1 = sizeof( glm::vec2 ) * m_vtxImageCoords.size();
+  glBufferData(GL_ARRAY_BUFFER, s1, &m_vtxImageCoords[0], GL_STATIC_DRAW);
+}
+
 void SETexture::Init( void ) {
   
   SceneElement::Init();
@@ -148,25 +184,20 @@ void SETexture::Init( void ) {
   
   glUseProgram(m_idProgram);
   
+  // state management
   glGenVertexArrays(1, &m_idVertexArray);
   glBindVertexArray(m_idVertexArray);
 
   m_idUniformTransform = glGetUniformLocation( m_idProgram, "mTransform" );
 
   // Create a Vertex Buffer Object and copy the vertex data to it
-  glGenBuffers(1, &m_idVertexBufferForWindowCoords);
-  glBindBuffer(GL_ARRAY_BUFFER, m_idVertexBufferForWindowCoords);
-  int s1 = sizeof( glm::vec2 ) * m_vtxWindowCoords.size();
-  glBufferData(GL_ARRAY_BUFFER, s1, &m_vtxWindowCoords[0], GL_STATIC_DRAW);
+  LoadImageCoords();
 
   // Specify the layout of the vertex data
-  m_idVapWindowCoords = glGetAttribLocation(m_idProgram, "vWindowCoords");
-  glVertexAttribPointer(m_idVapWindowCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
-  //glEnableVertexAttribArray(m_idVapWindowCoords);
-  glDisableVertexAttribArray(m_idVapWindowCoords);
+  m_idVapImageCoords = glGetAttribLocation(m_idProgram, "vImageCoords");
+  glVertexAttribPointer(m_idVapImageCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
+  glDisableVertexAttribArray(m_idVapImageCoords);
 
-  AddTexture();
-  
   // Create a Vertex Buffer Object and copy the vertex data to it
   glGenBuffers(1, &m_idVertexBufferForTextureCoords);
   glBindBuffer(GL_ARRAY_BUFFER, m_idVertexBufferForTextureCoords);
@@ -177,6 +208,8 @@ void SETexture::Init( void ) {
   glVertexAttribPointer(m_idVapTextureCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
   glDisableVertexAttribArray(m_idVapTextureCoords);
 
+  AddTexture();
+  
   // Create an element array - uses arrays enabled via glEnableVertexAttribArray
   glGenBuffers(1, &m_idElements);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_idElements);
@@ -193,7 +226,7 @@ void SETexture::Paint( void ) {
   
   glBindVertexArray(m_idVertexArray);
   
-  glEnableVertexAttribArray(m_idVapWindowCoords);
+  glEnableVertexAttribArray(m_idVapImageCoords);
   glEnableVertexAttribArray(m_idVapTextureCoords);
   
   glBindTexture(GL_TEXTURE_2D, m_idTexture);
@@ -204,7 +237,7 @@ void SETexture::Paint( void ) {
   glDrawElements(GL_TRIANGLES, m_vElements.size(), GL_UNSIGNED_INT, 0);
   
   glDisableVertexAttribArray(m_idVapTextureCoords);
-  glDisableVertexAttribArray(m_idVapWindowCoords);
+  glDisableVertexAttribArray(m_idVapImageCoords);
 
   glUseProgram(0);
   

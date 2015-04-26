@@ -33,8 +33,8 @@ protected:
   
 private:
   
-  float m_fWidth;
   float m_fHeight;
+  float m_fWidth;
   float m_floatFactor;
   
   int m_intMouseX;

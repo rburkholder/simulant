@@ -26,8 +26,8 @@ public:
   virtual void Init( void );
   virtual void Paint( void );
   
-  // need to send in transformation matrix instead
-  void SetWindowCoords( std::vector<glm::vec4>&  vCoords );
+  void SetWindowCoords( std::vector<glm::vec4>&  vCoords );  // to be deprecated
+  
   void SetTransform( const glm::mat4& mat4Transform );
   
   void SetImage( pImage_t pImage );
@@ -38,11 +38,11 @@ private:
   
   GLuint m_idVertexArray;
   GLuint m_idTexture;
-  GLuint m_idVertexBufferForWindowCoords;
-  GLuint m_idVertexBufferForTextureCoords;
   GLuint m_idElements;
+  GLuint m_idVertexBufferForImageCoords;
+  GLuint m_idVertexBufferForTextureCoords;
   
-  GLuint m_idVapWindowCoords;
+  GLuint m_idVapImageCoords;
   GLuint m_idVapTextureCoords;
   
   GLuint m_idUniformTransform;
@@ -53,13 +53,17 @@ private:
   glm::mat4 m_mat4SuppliedTransform;
   glm::mat4 m_mat4FinalTransform;
   
-  std::vector<glm::vec2> m_vtxWindowCoords;
+  std::vector<glm::vec2> m_vtxImageCoords;
   std::vector<glm::vec2> m_vtxTextureCoords;
   
   std::vector<GLuint> m_vElements;
   
+  void LoadImageCoords( void );
+  
   void AddTexture( void );
   void LoadTexture( void );
+  
+  void SetBasicTransform( void );
   
 };
 
