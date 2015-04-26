@@ -96,34 +96,11 @@ void SETexture::SetImage( pImage_t pImage ) {
   m_pImage = pImage;
   GLboolean b = glIsTexture( m_idTexture );
   if ( GL_TRUE == b ) {
-//    glDeleteTextures(1, &m_idTexture);
-//    b = glIsTexture( m_idTexture );
-    wxImagePixelData data( *pImage );
-    int width = data.GetWidth();
-    int height = data.GetHeight();
-    wxImagePixelData::Iterator pDest( data );
-    // http://stackoverflow.com/questions/10918684/strange-color-shift-after-loading-a-gl-rgb-texture
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // GL doesn't like packed structures, used to get the RGB out
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, pData);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pDest.m_pRGB );
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 10, 10, 0, GL_RGB, GL_UNSIGNED_BYTE, col );
+    LoadTexture();
   }
-  //LoadTexture();
 }
-  
+
 void SETexture::LoadTexture( void ) {
-  
-  glGenTextures(1, &m_idTexture);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, m_idTexture);
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );//GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );//GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT ); // GL_MIRRORED_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT ); // GL_MIRRORED_REPEAT);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
   wxImagePixelData data( *m_pImage );
   int width = data.GetWidth();
   int height = data.GetHeight();
@@ -136,6 +113,23 @@ void SETexture::LoadTexture( void ) {
   //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, pData);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pDest.m_pRGB );
   //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 10, 10, 0, GL_RGB, GL_UNSIGNED_BYTE, col );
+  
+}
+  
+void SETexture::AddTexture( void ) {
+  
+  glGenTextures(1, &m_idTexture);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, m_idTexture);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );//GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );//GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT ); // GL_MIRRORED_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT ); // GL_MIRRORED_REPEAT);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+  LoadTexture();
 
 }
 
@@ -171,7 +165,7 @@ void SETexture::Init( void ) {
   //glEnableVertexAttribArray(m_idVapWindowCoords);
   glDisableVertexAttribArray(m_idVapWindowCoords);
 
-  LoadTexture();
+  AddTexture();
   
   // Create a Vertex Buffer Object and copy the vertex data to it
   glGenBuffers(1, &m_idVertexBufferForTextureCoords);
