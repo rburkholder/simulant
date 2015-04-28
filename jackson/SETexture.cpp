@@ -125,6 +125,7 @@ void SETexture::LoadTexture( void ) {
   //wxSize size = data.GetSize();
   wxImagePixelData::Iterator pDest( data );
   
+  // https://www.opengl.org/wiki/Common_Mistakes
   // http://stackoverflow.com/questions/10918684/strange-color-shift-after-loading-a-gl-rgb-texture
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // GL doesn't like packed structures, used to get the RGB out
   //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, pData);

@@ -397,6 +397,11 @@ void TreeItemImage::LoadImage( void ) {  // load picture and create object
     m_pTexture->SetTransform( m_mat4Transform );
     m_pTexture->SetImage( SETexture::pImage_t( new wxImage( m_image ) ) );
   }
+  // some old remnants for reference
+//    FrameProjection* pfp = m_pPhysicalDisplay->GetFrame();
+//    wxClientDC dc( pfp );
+//    dc.DrawBitmap( bitmap, wxPoint( 0, 0 ) );
+  
 }
 
 void TreeItemImage::LoadImageCommon( void ) {
@@ -666,7 +671,8 @@ private:
   enum {
     ID_Null = wxID_HIGHEST,
     MIAddPlaceHolder,
-    MIAddOutline, MISelectPicture, MISelectVideo, MIImageToOpenGL, MIMovieScreen, 
+    MIAddOutline, 
+    MISelectVideo
   };
   
   typedef Outline::pOutline_t pOutline_t;
@@ -690,20 +696,15 @@ private:
   
   void Workers( void );
   
-  void Image2OpenGL( void );
   void ProcessVideoFile( boost::shared_ptr<DecodeH264> pDecoder );
   
   void HandleAddOutline( wxCommandEvent& event );
-  //void HandleAddCanvas( wxCommandEvent& event );
   void HandleAddPlaceHolder( wxCommandEvent& event );
   void HandleOnFrame( AVCodecContext* context, AVFrame* frame, AVPacket* pkt, void* user, structTimeSteps perf );
   void HandleFrameTransform( AVFrame* pRgb, uint8_t* buf, void* user, structTimeSteps perf, int srcX, int srcY );
   void HandleEventImage( EventImage& );
   
-  void HandleLoadPicture( wxCommandEvent& event );
   void HandleLoadVideo( wxCommandEvent& event );
-  void HandleImage2OpenGL( wxCommandEvent& event ) { Image2OpenGL(); }
-  void HandleCreateMovieScreen(  wxCommandEvent& event ) {};
   
 };
 
@@ -714,7 +715,6 @@ TreeItemPhysicalDisplay::TreeItemPhysicalDisplay( TreeDisplayManager* pTree_, wx
   // which are then serialized for session persistence
   // use text or enum keys to register objects, for subsequent re-creation
 
-  //m_pTut1 = 0;  
   m_pTex = 0;
 
   wxImage::AddHandler( new wxJPEGHandler );
@@ -732,8 +732,7 @@ TreeItemPhysicalDisplay::TreeItemPhysicalDisplay( TreeDisplayManager* pTree_, wx
   // **** will need to set a specific instance id so that multiple frames can be run
   wxApp::GetInstance()->Bind( EVENT_IMAGE, &TreeItemPhysicalDisplay::HandleEventImage, this );
   
-  //int argsCanvas[] = { WX_GL_CORE_PROFILE, WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
-  int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
+  int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };  // WX_GL_CORE_PROFILE deprecated I think
   m_pSceneManager.reset( new SceneManager( m_pPhysicalDisplay->GetFrame(), argsCanvas ) );
   wxRect rect( 10, 10, 10, 10 );
   rect = m_pPhysicalDisplay->GetFrame()->GetClientRect();
@@ -786,90 +785,16 @@ void TreeItemPhysicalDisplay::ShowContextMenu( void ) {
   pMenu->Append( MIAddOutline, "&Add Outline" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPhysicalDisplay::HandleAddOutline, this, MIAddOutline );
 
-  pMenu->Append( MISelectPicture, "wx Picture" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPhysicalDisplay::HandleLoadPicture, this, MISelectPicture );
-
   pMenu->Append( MISelectVideo, "wx Video" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPhysicalDisplay::HandleLoadVideo, this, MISelectVideo );
 
-  pMenu->Append( MIImageToOpenGL, "Image->OpenGL" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPhysicalDisplay::HandleImage2OpenGL, this, MIImageToOpenGL );
-
-  pMenu->Append( MIMovieScreen, "Movie Screen" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPhysicalDisplay::HandleCreateMovieScreen, this, MIMovieScreen );
-
   m_pTree->PopupMenu( pMenu );
-}
-  
-void TreeItemPhysicalDisplay::HandleLoadPicture( wxCommandEvent& event ) {
-  std::cout << "LoadPicture" << std::endl;  
-  wxFileDialog dialogOpenFile( 
-    m_pPhysicalDisplay->GetFrame(), wxT("Select Image" ), m_sPictureDirectory, "", 
-    //"JPG Files (*.jpg)|*.jpg", 
-    _("Image Files ") + wxImage::GetImageExtWildcard(),
-    wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_CHANGE_DIR );
-  if (dialogOpenFile.ShowModal() == wxID_OK) {
-    m_sPictureDirectory = dialogOpenFile.GetDirectory();
-    std::cout << "chose " << dialogOpenFile.GetPath() << std::endl;
-    std::cout << "dir " << m_sPictureDirectory << std::endl;
-    assert( m_image.LoadFile( dialogOpenFile.GetPath(), wxBITMAP_TYPE_JPEG ) );
-    wxBitmap bitmap( m_image );
-    FrameProjection* pfp = m_pPhysicalDisplay->GetFrame();
-    wxClientDC dc( pfp );
-    dc.DrawBitmap( bitmap, wxPoint( 0, 0 ) );
-    Image2OpenGL();
-  }
-  else {
-  }
-}
-
-void TreeItemPhysicalDisplay::Image2OpenGL( void ) {
-  
-  if ( m_image.IsOk() ) {
-    //std::cout << "is ok" << std::endl;
-    if ( 0 != m_pTex ) {
-      delete m_pTex;
-      m_pTex = 0;
-    }
-    if ( 0 == m_pTex ) {
-      int argsCanvas[] = { WX_GL_CORE_PROFILE, WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
-      m_pTex = new tex2( m_pPhysicalDisplay->GetFrame(), argsCanvas );
-      //m_pTex->SetSize( m_image.GetWidth(), m_image.GetHeight() );
-      wxRect rect( 500, 100, 300, 600 );
-      pOutline_t pOutline( m_pPhysicalDisplay->GetFrame()->GetOutline() );
-      if ( 0 != pOutline.use_count() ) {
-        rect = pOutline->GetBoundingBox();
-      }
-      m_pTex->SetSize( rect.GetSize() );
-      m_pTex->Move( rect.GetTopLeft() );
-      if ( 0 != pOutline.use_count() ) {
-        Outline::vPoints_t vPoints;
-        pOutline->GetCoords( vPoints );
-        assert( 4 == vPoints.size() );
-        
-        // last transform on identity is first applied to vector
-        glm::mat4 mat4Transform = glm::mat4( 1.0f ); // identity matrix
-        mat4Transform *= glm::translate( glm::vec3( -1.0, +1.0 , 0.0 ) );
-        mat4Transform *= glm::scale( glm::vec3( 2.0, -2.0, 1.0f ) );  // invert image and expand to window coordinates
-        mat4Transform *= glm::scale( glm::vec3( 1.0 / rect.GetWidth(), 1.0 / rect.GetHeight(), 1.0f ) );  // invert image and expand to window coordinates
-        mat4Transform *= glm::translate( glm::vec3( -rect.GetLeft(), -rect.GetTop(), 0.0f ) );  // translate to window coordinates
-        
-        std::vector<glm::vec4> vCoords;
-        for ( size_t ix = 0; ix < vPoints.size(); ++ix ) {
-          vCoords.push_back( mat4Transform * glm::vec4( vPoints[ix].x, vPoints[ix].y, 0.0, 1.0 ) );
-        }
-        m_pTex->SetWindowCoords( vCoords );
-      }
-      m_pTex->SetImage( SETexture::pImage_t( new wxImage( m_image ) ) );
-    }
-  }
 }
 
 void TreeItemPhysicalDisplay::Workers( void ) {
   m_Srvc.run(); 
 }
 
-//int nFrame=0;
 void TreeItemPhysicalDisplay::HandleOnFrame( AVCodecContext* context, AVFrame* frame, AVPacket* pkt, void* user, structTimeSteps perf ) {
   
 #define FMT PIX_FMT_RGB32
@@ -902,7 +827,6 @@ void TreeItemPhysicalDisplay::HandleOnFrame( AVCodecContext* context, AVFrame* f
   
   perf.scaled = boost::chrono::high_resolution_clock::now();
 
-  //HandleFrameTransform( pRGB, buf, user, perf, srcX, srcY );
   m_Srvc.post( boost::phoenix::bind( &TreeItemPhysicalDisplay::HandleFrameTransform, this, pRGB, buf, user, perf, srcX, srcY ) );
   
   // ** note decode currently works faster than the transform, so transform work will queue up.
@@ -958,6 +882,7 @@ void TreeItemPhysicalDisplay::HandleEventImage( EventImage& event ) {
   
   ts.queue2 = boost::chrono::high_resolution_clock::now();
   
+  // this is where would instead send to OpenGL buffers and draw
   wxBitmap bitmap( *event.GetImage() );
   FrameProjection* pfp = (FrameProjection*) event.GetVoid();
   wxClientDC dc( pfp );

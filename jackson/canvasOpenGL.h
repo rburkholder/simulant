@@ -65,7 +65,7 @@ void canvasOpenGL<CRTP>::HandlePaint( wxPaintEvent& event ) {
   // Accept fragment if it closer to the camera than the former one
   glDepthFunc(GL_LESS);  
   
-  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
   
   // debug output
   glEnable(GL_DEBUG_OUTPUT);
@@ -100,7 +100,7 @@ void canvasOpenGL<CRTP>::HandlePaint( wxPaintEvent& event ) {
   // stuff ends above to here  
   //
   
-  glFlush( );
+  //glFlush( ); // https://www.opengl.org/wiki/Common_Mistakes
   SwapBuffers( );
   
 }

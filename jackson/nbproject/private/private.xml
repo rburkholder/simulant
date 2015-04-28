@@ -17,40 +17,43 @@
             <url>TreeDisplayManager.cpp</url>
             <bookmark id="3">
                 <name/>
-                <line>206</line>
+                <line>482</line>
                 <key/>
             </bookmark>
         </file>
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group name="simulant">
-            <file>file:/home/rpb/projects/simulant/jackson/OglGrid.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/AspectRatio.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/oglGrid.shfrag</file>
-            <file>file:/home/rpb/projects/simulant/jackson/TreeDisplayManager.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/tex2.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/FpsGenerator.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/TreeDisplayManager.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/tut1.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/TreeDisplayManager.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/appProjection.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/frameProjection.cpp</file>
-            <file>file:/home/rpb/projects/simulant/jackson/frameMain.cpp</file>
-            <file>file:/home/rpb/projects/simulant/jackson/Outline.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/tex2.shfrag</file>
             <file>file:/home/rpb/projects/simulant/jackson/canvasOpenGL.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/SETexture.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/FpsGenerator.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/AspectRatio.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/canvasOpenGL.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/SceneElement.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/appProjection.h</file>
-            <file>file:/home/rpb/projects/simulant/jackson/OglGrid.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/SceneManager.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/InteractiveTransform.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/InteractiveTransform.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/common.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/PhysicalDisplay.h</file>
-            <file>file:/home/rpb/projects/simulant/jackson/PhysicalDisplay.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/frameProjection.h</file>
-            <file>file:/home/rpb/projects/simulant/jackson/CanvasBase.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/SceneManager.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/tex2.shvert</file>
+            <file>file:/home/rpb/projects/simulant/jackson/SETexture.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/frameMain.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/oglGrid.shvert</file>
             <file>file:/home/rpb/projects/simulant/jackson/notes.txt</file>
             <file>file:/home/rpb/projects/simulant/jackson/DecodeH264.cpp</file>
-            <file>file:/home/rpb/projects/simulant/jackson/EventGenerateFrame.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/CanvasBase.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/panelSurfaceSources.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/tut1.h</file>
