@@ -283,7 +283,91 @@ void TreeItemGrid::ShowContextMenu( void ) {
 
 // ================
 
-class TreeItemImage: public TreeItemVisualCommon {
+class TreeItemImageCommon: public TreeItemVisualCommon {
+public:
+  
+  typedef TreeItemVisualCommon::pPhysicalDisplay_t pPhysicalDisplay_t;
+  typedef TreeItemVisualCommon::pSceneManager_t pSceneManager_t;
+  
+  TreeItemImageCommon( TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
+  ~TreeItemImageCommon( void );
+  
+protected:
+  
+  typedef SETexture::pImage_t pImage_t;
+  
+  static wxString m_sPictureDirectory;
+  static wxString m_sVideoDirectory;
+  
+  void SetImage( pImage_t pImage );
+  
+  virtual void UpdateTransformMatrix( void );
+  
+private:
+  
+  typedef SceneManager::key_t key_t;
+  typedef boost::shared_ptr<SETexture> pSETexture_t;
+  
+  pImage_t m_pImage;
+  
+  pSETexture_t m_pTexture;
+  key_t m_keyTexture;
+  
+};
+
+wxString TreeItemImageCommon::m_sPictureDirectory( wxT( "~/Pictures/" ) );
+wxString TreeItemImageCommon::m_sVideoDirectory( wxT( "~/Videos/") );
+
+TreeItemImageCommon::TreeItemImageCommon( 
+  TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager )
+: TreeItemVisualCommon( pTree, id, pPhysicalDisplay, pSceneManager ),
+  m_keyTexture( 0 )
+{
+  
+  std::cout << "Tree Item Add Image Common" << std::endl;
+  
+  wxImage::AddHandler( new wxJPEGHandler );
+
+  m_pTexture.reset( new SETexture );
+  m_keyTexture = m_pSceneManager->Add( m_pTexture );
+  m_pTexture->SetTransform( m_mat4Transform );
+    
+//  ResetTransformMatrix();
+  
+//  LoadImage();
+  
+//  UpdateTransformMatrix();
+  
+}
+
+TreeItemImageCommon::~TreeItemImageCommon( void ) {
+  if ( 0 != m_keyTexture ) 
+    m_pSceneManager->Delete( m_keyTexture );
+}
+
+void TreeItemImageCommon::SetImage( pImage_t pImage ) {  // load picture and create object
+  assert( 0 != m_pTexture.use_count() );
+  if ( pImage->IsOk() ) {
+    //std::cout << "is ok" << std::endl;
+    m_pTexture->SetImage( pImage );
+  }
+  // some old remnants for posterity's reference
+//    FrameProjection* pfp = m_pPhysicalDisplay->GetFrame();
+//    wxClientDC dc( pfp );
+//    dc.DrawBitmap( bitmap, wxPoint( 0, 0 ) );
+  
+}
+
+void TreeItemImageCommon::UpdateTransformMatrix( void ) {
+  if ( 0 != m_pTexture.get() ) {
+    m_pTexture->SetTransform( m_mat4Transform );
+  }
+  m_signalTransformUpdated( m_mat4Transform );
+}
+
+// ================
+
+class TreeItemImage: public TreeItemImageCommon {
 public:
   
   typedef TreeItemVisualCommon::pPhysicalDisplay_t pPhysicalDisplay_t;
@@ -302,39 +386,22 @@ private:
     MIDelete, MIReset, MILoadImage
   };
   
-  typedef SceneManager::key_t key_t;
-  typedef boost::shared_ptr<SETexture> pSETexture_t;
-  
-  pSETexture_t m_pTexture;
-  key_t m_keyTexture;
-  
-  wxString m_sPictureDirectory;
-  wxString m_sVideoDirectory;
-  
-  wxImage m_image;
+  typedef SETexture::pImage_t pImage_t;
   
   void LoadImage( void );
-  void LoadImageCommon( void );
+  void LoadImageCommon( pImage_t pImage );
 
   void HandleLoadImage( wxCommandEvent& event );
-  
-  virtual void UpdateTransformMatrix( void );
   
 };
 
 TreeItemImage::TreeItemImage( 
   TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager )
-: TreeItemVisualCommon( pTree, id, pPhysicalDisplay, pSceneManager ),
-  m_keyTexture( 0 )
+: TreeItemImageCommon( pTree, id, pPhysicalDisplay, pSceneManager )
 {
   
   std::cout << "Tree Item Add Image" << std::endl;
   
-  wxImage::AddHandler( new wxJPEGHandler );
-
-  m_sPictureDirectory = wxT( "~/Pictures/");
-  m_sVideoDirectory = wxT( "~/Videos/");
-
   ResetTransformMatrix();
   
   LoadImage();
@@ -344,40 +411,21 @@ TreeItemImage::TreeItemImage(
 }
 
 TreeItemImage::~TreeItemImage( void ) {
-  if ( 0 != m_keyTexture ) 
-    m_pSceneManager->Delete( m_keyTexture );
 }
 
-void TreeItemImage::HandleLoadImage( wxCommandEvent& event ) {
-  // may have an issue with aspect if carried from previous picture
-  // this simply reloads the texture
-  LoadImageCommon();
-  if ( m_image.IsOk() ) {
-    //std::cout << "is ok" << std::endl;
-    //m_pTexture.reset( new SETexture );
-    //m_keyTexture = m_pSceneManager->Add( m_pTexture );
-    //m_pTexture->SetTransform( m_mat4Transform );
-    m_pTexture->SetImage( SETexture::pImage_t( new wxImage( m_image ) ) );
-  }
+void TreeItemImage::HandleLoadImage( wxCommandEvent& event ) {  // reuse existing Scene Element
+  LoadImage();
 }
 
-void TreeItemImage::LoadImage( void ) {  // load picture and create object
-  LoadImageCommon();
-  if ( m_image.IsOk() ) {
-    //std::cout << "is ok" << std::endl;
-    m_pTexture.reset( new SETexture );
-    m_keyTexture = m_pSceneManager->Add( m_pTexture );
-    m_pTexture->SetTransform( m_mat4Transform );
-    m_pTexture->SetImage( SETexture::pImage_t( new wxImage( m_image ) ) );
-  }
-  // some old remnants for posterity's reference
-//    FrameProjection* pfp = m_pPhysicalDisplay->GetFrame();
-//    wxClientDC dc( pfp );
-//    dc.DrawBitmap( bitmap, wxPoint( 0, 0 ) );
+void TreeItemImage::LoadImage( void ) {  // on class instantiation, load image, create related objects
   
+  pImage_t pImage( new wxImage );
+  
+  LoadImageCommon( pImage );
+  TreeItemImageCommon::SetImage( pImage );
 }
 
-void TreeItemImage::LoadImageCommon( void ) {
+void TreeItemImage::LoadImageCommon( pImage_t pImage ) {
   
   std::cout << "TreeItemCanvasGrid LoadImage" << std::endl;  
   
@@ -390,16 +438,11 @@ void TreeItemImage::LoadImageCommon( void ) {
     m_sPictureDirectory = dialogOpenFile.GetDirectory();
     std::cout << "chose " << dialogOpenFile.GetPath() << std::endl;
     std::cout << "dir " << m_sPictureDirectory << std::endl;
-    assert( m_image.LoadFile( dialogOpenFile.GetPath(), wxBITMAP_TYPE_JPEG ) );
+    assert( 0 != pImage.use_count() );
+    //wxImage& image( pImage.)
+    assert( pImage->LoadFile( dialogOpenFile.GetPath(), wxBITMAP_TYPE_JPEG ) );
   }
   
-}
-
-void TreeItemImage::UpdateTransformMatrix( void ) {
-  if ( 0 != m_pTexture.get() ) {
-    m_pTexture->SetTransform( m_mat4Transform );
-  }
-  m_signalTransformUpdated( m_mat4Transform );
 }
 
 void TreeItemImage::ShowContextMenu( void ) {

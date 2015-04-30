@@ -112,25 +112,28 @@ void SETexture::SetImage( pImage_t pImage ) {
   m_pImage = pImage;
   GLboolean b = glIsTexture( m_idTexture );
   if ( GL_TRUE == b ) {
-    LoadTexture();
+    AssignImageToTexture();
   }
   SetBasicTransform();
 }
 
-void SETexture::LoadTexture( void ) {
-  wxImagePixelData data( *m_pImage );
-  int width = data.GetWidth();
-  int height = data.GetHeight();
-  //int stride = data.GetRowStride();
-  //wxSize size = data.GetSize();
-  wxImagePixelData::Iterator pDest( data );
+void SETexture::AssignImageToTexture( void ) {
   
-  // https://www.opengl.org/wiki/Common_Mistakes
-  // http://stackoverflow.com/questions/10918684/strange-color-shift-after-loading-a-gl-rgb-texture
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // GL doesn't like packed structures, used to get the RGB out
-  //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, pData);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pDest.m_pRGB );
-  //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 10, 10, 0, GL_RGB, GL_UNSIGNED_BYTE, col );
+  if ( 0 != m_pImage.use_count() ) {
+    wxImagePixelData data( *m_pImage );
+    int width = data.GetWidth();
+    int height = data.GetHeight();
+    //int stride = data.GetRowStride();
+    //wxSize size = data.GetSize();
+    wxImagePixelData::Iterator pDest( data );
+
+    // https://www.opengl.org/wiki/Common_Mistakes
+    // http://stackoverflow.com/questions/10918684/strange-color-shift-after-loading-a-gl-rgb-texture
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // GL doesn't like packed structures, used to get the RGB out
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, pData);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pDest.m_pRGB );
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 10, 10, 0, GL_RGB, GL_UNSIGNED_BYTE, col );
+  }
   
 }
   
@@ -147,7 +150,7 @@ void SETexture::AddTexture( void ) {
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-  LoadTexture();
+  AssignImageToTexture();
 
 }
 
@@ -178,7 +181,7 @@ void SETexture::Init( void ) {
   path = boost::filesystem::current_path();
   std::cout << "path: " << path << std::endl;
   
-  std::string prefix( "../projects/simulant/jackson/" );
+  std::string prefix( "/home/rpb/projects/simulant/jackson/" );
   m_managerShader.LoadShader( GL_VERTEX_SHADER, prefix + "tex2.shvert" );
   m_managerShader.LoadShader( GL_FRAGMENT_SHADER, prefix + "tex2.shfrag" );
 	m_managerShader.InitializeProgram( m_idProgram );
@@ -223,23 +226,26 @@ void SETexture::Paint( void ) {
   
   SceneElement::Paint();
   
-  glUseProgram(m_idProgram);
+  if ( 0 != m_pImage.use_count() ) {
   
-  glBindVertexArray(m_idVertexArray);
-  
-  glEnableVertexAttribArray(m_idVapImageCoords);
-  glEnableVertexAttribArray(m_idVapTextureCoords);
-  
-  glBindTexture(GL_TEXTURE_2D, m_idTexture);
-  glActiveTexture(GL_TEXTURE0);
+    glUseProgram(m_idProgram);
 
-  glUniformMatrix4fv(m_idUniformTransform, 1, GL_FALSE, &m_mat4FinalTransform[0][0]);
+    glBindVertexArray(m_idVertexArray);
 
-  glDrawElements(GL_TRIANGLES, m_vElements.size(), GL_UNSIGNED_INT, 0);
-  
-  glDisableVertexAttribArray(m_idVapTextureCoords);
-  glDisableVertexAttribArray(m_idVapImageCoords);
+    glEnableVertexAttribArray(m_idVapImageCoords);
+    glEnableVertexAttribArray(m_idVapTextureCoords);
 
-  glUseProgram(0);
-  
+    glBindTexture(GL_TEXTURE_2D, m_idTexture);
+    glActiveTexture(GL_TEXTURE0);
+
+    glUniformMatrix4fv(m_idUniformTransform, 1, GL_FALSE, &m_mat4FinalTransform[0][0]);
+
+    glDrawElements(GL_TRIANGLES, m_vElements.size(), GL_UNSIGNED_INT, 0);
+
+    glDisableVertexAttribArray(m_idVapTextureCoords);
+    glDisableVertexAttribArray(m_idVapImageCoords);
+
+    glUseProgram(0);
+
+  }
 }

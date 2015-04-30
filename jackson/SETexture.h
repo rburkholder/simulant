@@ -61,7 +61,7 @@ private:
   void LoadImageCoords( void );
   
   void AddTexture( void );
-  void LoadTexture( void );
+  void AssignImageToTexture( void );
   
   void SetBasicTransform( void );
   

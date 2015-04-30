@@ -9,7 +9,6 @@ extern "C" {
 #include <libavutil/log.h>
 }
 
-
 #include "DecodeH264.h"
 
 //void log(void* ptr, int level, const char* fmt, va_list vl) {
