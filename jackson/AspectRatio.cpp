@@ -30,7 +30,7 @@ glm::mat4 AspectRatioWindow( float height, float width ) {
   
   glm::mat4 mat4Transform = glm::mat4( 1.0f ) * glm::scale( glm::vec3( floatWidthScale, floatHeightScale, 1.0f ) );
   
-  std::cout << "ar(win): " << floatHeightScale << ", " << floatWidthScale << std::endl;
+  //std::cout << "ar(win): " << floatHeightScale << ", " << floatWidthScale << std::endl;
   
   return mat4Transform;
 }
@@ -53,7 +53,7 @@ glm::mat4 AspectRatioImage( float height, float width ) {
   
   glm::mat4 mat4Transform = glm::mat4( 1.0f ) * glm::scale( glm::vec3( floatWidthScale, floatHeightScale, 1.0f ) );
   
-  std::cout << "ar(img): " << floatHeightScale << ", " << floatWidthScale << std::endl;
+  //std::cout << "ar(img): " << floatHeightScale << ", " << floatWidthScale << std::endl;
   
   return mat4Transform;
 }

@@ -332,12 +332,6 @@ TreeItemImageCommon::TreeItemImageCommon(
   m_keyTexture = m_pSceneManager->Add( m_pTexture );
   m_pTexture->SetTransform( InteractiveTransform::m_mat4Transform );
     
-//  ResetTransformMatrix();
-  
-//  LoadImage();
-  
-//  UpdateTransformMatrix();
-  
 }
 
 TreeItemImageCommon::~TreeItemImageCommon( void ) {
@@ -349,7 +343,6 @@ void TreeItemImageCommon::SetImage( pImage_t pImage ) {  // load picture and cre
   assert( 0 != m_pTexture.use_count() );
   assert( 0 != pImage.use_count() );
   if ( pImage->IsOk() ) {
-    //std::cout << "is ok" << std::endl;
     m_pTexture->SetImage( pImage );
   }
   // some old remnants for posterity's reference
@@ -361,7 +354,6 @@ void TreeItemImageCommon::SetImage( pImage_t pImage ) {  // load picture and cre
 
 void TreeItemImageCommon::UpdateTransformMatrix( void ) {
   if ( 0 != m_pTexture.get() ) {
-    //m_pTexture->SetTransform( m_mat4Transform );
     m_pTexture->SetTransform( m_mat4Transform );
   }
   m_signalTransformUpdated( m_mat4Transform );
@@ -393,7 +385,7 @@ private:
   void LoadImage( void );
   void LoadImageCommon( pImage_t pImage );
 
-  void HandleLoadImage( wxCommandEvent& event );
+  void HandleLoadImage( wxCommandEvent& event );  // reuse existing Scene Element
   
 };
 
@@ -415,7 +407,7 @@ TreeItemImage::TreeItemImage(
 TreeItemImage::~TreeItemImage( void ) {
 }
 
-void TreeItemImage::HandleLoadImage( wxCommandEvent& event ) {  // reuse existing Scene Element
+void TreeItemImage::HandleLoadImage( wxCommandEvent& event ) {
   LoadImage();
 }
 
@@ -465,7 +457,7 @@ void TreeItemImage::ShowContextMenu( void ) {
 
 // ================
 
-class TreeItemVideo: public TreeItemVisualCommon {
+class TreeItemVideo: public TreeItemImageCommon {
 public:
   
   typedef TreeItemVisualCommon::pPhysicalDisplay_t pPhysicalDisplay_t;
@@ -510,13 +502,11 @@ private:
   void HandleLoadVideo( wxCommandEvent& event );  // need to recode (this is where it actually starts)
   void LoadVideo( void );
   
-  //virtual void UpdateTransformMatrix( void );
-  
 };
 
 TreeItemVideo::TreeItemVideo( 
   TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager )
-: TreeItemVisualCommon( pTree, id, pPhysicalDisplay, pSceneManager )
+: TreeItemImageCommon( pTree, id, pPhysicalDisplay, pSceneManager )
 {
   
   std::cout << "Tree Item Add Video" << std::endl;
@@ -540,7 +530,7 @@ TreeItemVideo::TreeItemVideo(
   
   LoadVideo();
   
-  UpdateTransformMatrix();
+  UpdateTransformMatrix();  // probably won't have coordinates at this time, so may not be necessary
   
 }
 
@@ -565,13 +555,6 @@ void TreeItemVideo::ShowContextMenu( void ) {
   
   m_pTree->PopupMenu( pMenu );
 }
-
-//void TreeItemVideo::UpdateTransformMatrix( void ) {
-//  if ( 0 != m_pTexture.get() ) {
-//    m_pTexture->SetTransform( m_mat4Transform );
-//  }
-//  m_signalTransformUpdated( m_mat4Transform );
-//}
 
 void TreeItemVideo::Workers( void ) {
   m_Srvc.run(); 
@@ -623,21 +606,21 @@ void TreeItemVideo::HandleFrameTransform( AVFrame* pRgb, uint8_t* buf, void* use
   
   perf.queue1 = boost::chrono::high_resolution_clock::now();
   
-  uint8_t* pSrc( *pRgb->data );
+  uint8_t* pSrcFrame( *pRgb->data );
   
   boost::shared_ptr<wxImage> pImage( new wxImage( srcX, srcY, false ) );
   wxImage* image( pImage.get() );
   wxImagePixelData data( *image );
-  wxImagePixelData::Iterator pDest( data );
+  wxImagePixelData::Iterator pDestImage( data );
   
   for ( int iy = 0; iy < srcY; ++iy ) {
     for ( int ix = 0; ix < srcX; ++ix ) {
       //++pSrc;  // skip A
-      pDest.Blue() = *pSrc; ++pSrc;
-      pDest.Green() = *pSrc; ++pSrc;
-      pDest.Red() = *pSrc; ++pSrc;
-      ++pDest;
-      ++pSrc; // skip alpha?
+      pDestImage.Blue() =  *pSrcFrame; ++pSrcFrame;
+      pDestImage.Green() = *pSrcFrame; ++pSrcFrame;
+      pDestImage.Red() =   *pSrcFrame; ++pSrcFrame;
+      ++pDestImage;
+      ++pSrcFrame; // skip alpha?
     }
   }
 
@@ -665,10 +648,12 @@ void TreeItemVideo::HandleEventImage( EventImage& event ) {
   ts.queue2 = boost::chrono::high_resolution_clock::now();
   
   // this is where would instead send to OpenGL buffers and draw
-  wxBitmap bitmap( *event.GetImage() );
-  FrameProjection* pfp = (FrameProjection*) event.GetVoid();
-  wxClientDC dc( pfp );
-  dc.DrawBitmap( bitmap, wxPoint( 10, 10 ) );
+  TreeItemImageCommon::SetImage( event.GetImage() );
+  
+//  wxBitmap bitmap( *event.GetImage() );
+//  FrameProjection* pfp = (FrameProjection*) event.GetVoid();
+//  wxClientDC dc( pfp );
+//  dc.DrawBitmap( bitmap, wxPoint( 10, 10 ) );
   
   ts.drawn = boost::chrono::high_resolution_clock::now();
   
@@ -685,11 +670,14 @@ void TreeItemVideo::HandleEventImage( EventImage& event ) {
     
 }
 
-void TreeItemVideo::ProcessVideoFile( boost::shared_ptr<DecodeH264> pDecoder ) {
+void TreeItemVideo::ProcessVideoFile( boost::shared_ptr<DecodeH264> pDecoder ) { // is in background  thread
   pDecoder->ProcessFile();
 }
 
 void TreeItemVideo::HandleLoadVideo( wxCommandEvent& event ) {
+  // may want to block this while one is currently playing
+  // or kill current in-process one and replace with new one
+  LoadVideo();  
 }
 
 void TreeItemVideo::LoadVideo( void ) {
