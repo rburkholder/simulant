@@ -330,7 +330,7 @@ TreeItemImageCommon::TreeItemImageCommon(
 
   m_pTexture.reset( new SETexture );
   m_keyTexture = m_pSceneManager->Add( m_pTexture );
-  m_pTexture->SetTransform( m_mat4Transform );
+  m_pTexture->SetTransform( InteractiveTransform::m_mat4Transform );
     
 //  ResetTransformMatrix();
   
@@ -347,6 +347,7 @@ TreeItemImageCommon::~TreeItemImageCommon( void ) {
 
 void TreeItemImageCommon::SetImage( pImage_t pImage ) {  // load picture and create object
   assert( 0 != m_pTexture.use_count() );
+  assert( 0 != pImage.use_count() );
   if ( pImage->IsOk() ) {
     //std::cout << "is ok" << std::endl;
     m_pTexture->SetImage( pImage );
@@ -360,6 +361,7 @@ void TreeItemImageCommon::SetImage( pImage_t pImage ) {  // load picture and cre
 
 void TreeItemImageCommon::UpdateTransformMatrix( void ) {
   if ( 0 != m_pTexture.get() ) {
+    //m_pTexture->SetTransform( m_mat4Transform );
     m_pTexture->SetTransform( m_mat4Transform );
   }
   m_signalTransformUpdated( m_mat4Transform );
@@ -508,7 +510,7 @@ private:
   void HandleLoadVideo( wxCommandEvent& event );  // need to recode (this is where it actually starts)
   void LoadVideo( void );
   
-  virtual void UpdateTransformMatrix( void );
+  //virtual void UpdateTransformMatrix( void );
   
 };
 
@@ -564,12 +566,12 @@ void TreeItemVideo::ShowContextMenu( void ) {
   m_pTree->PopupMenu( pMenu );
 }
 
-void TreeItemVideo::UpdateTransformMatrix( void ) {
-  if ( 0 != m_pTexture.get() ) {
-    m_pTexture->SetTransform( m_mat4Transform );
-  }
-  m_signalTransformUpdated( m_mat4Transform );
-}
+//void TreeItemVideo::UpdateTransformMatrix( void ) {
+//  if ( 0 != m_pTexture.get() ) {
+//    m_pTexture->SetTransform( m_mat4Transform );
+//  }
+//  m_signalTransformUpdated( m_mat4Transform );
+//}
 
 void TreeItemVideo::Workers( void ) {
   m_Srvc.run(); 
@@ -761,15 +763,15 @@ private:
   struct SceneElementInfo {
     //key_t m_key;
     //pSceneElement_t m_pSceneElement;
-    connection m_connectGrid;
+    connection m_connectTransformSupplier;
     glm::mat4 m_mat4Transform;  // The transformation matrix built by Grid
     SceneElementInfo( void ): m_mat4Transform( 1.0f ) {};
     //structSceneElement( key_t key, pSceneElement_t pSceneElement, connection connectGrid, glm::mat4 mat4Transform )
     //  : m_key( key ), m_pSceneElement( pSceneElement ), m_connectGrid( connectGrid ), m_mat4Transform( mat4Transform ) {}
-    SceneElementInfo( connection connectGrid, glm::mat4 mat4Transform )
-      : m_connectGrid( connectGrid ), m_mat4Transform( mat4Transform ) {}
+    SceneElementInfo( connection connectTransformSupplier, glm::mat4 mat4Transform )
+      : m_connectTransformSupplier( connectTransformSupplier ), m_mat4Transform( mat4Transform ) {}
     ~SceneElementInfo( void ) {
-      m_connectGrid.disconnect();
+      m_connectTransformSupplier.disconnect();
     }
     void HandleUpdateTransform( const glm::mat4& matrix ) {
       m_mat4Transform = matrix;
@@ -846,7 +848,7 @@ void TreeItemPlaceHolder::RemoveSelected( void ) {
 void TreeItemPlaceHolder::DeletingChild( wxTreeItemId id ) {
   mapSceneElementInfo_t::iterator iter = m_mapSceneElementInfo.find( id );
   assert( m_mapSceneElementInfo.end() != iter );
-  iter->second->m_connectGrid.disconnect();
+  iter->second->m_connectTransformSupplier.disconnect();
   m_mapSceneElementInfo.erase( iter );
 }
 
@@ -863,7 +865,7 @@ void TreeItemPlaceHolder::HandleAddGrid( wxCommandEvent& event ) {
   m_mapSceneElementInfo.insert( mapSceneElementInfo_t::value_type( id, pInfo ) );
   
   namespace args = boost::phoenix::arg_names;
-  pInfo->m_connectGrid = pGrid->Connect( boost::phoenix::bind( &SceneElementInfo::HandleUpdateTransform, pInfo.get(), args::arg1 ) );
+  pInfo->m_connectTransformSupplier = pGrid->Connect( boost::phoenix::bind( &SceneElementInfo::HandleUpdateTransform, pInfo.get(), args::arg1 ) );
   pGrid->GetTransformMatrix( pInfo->m_mat4Transform );
   
 }
@@ -881,7 +883,7 @@ void TreeItemPlaceHolder::HandleAddPicture( wxCommandEvent& event ) {
   m_mapSceneElementInfo.insert( mapSceneElementInfo_t::value_type( id, pInfo ) );
   
   namespace args = boost::phoenix::arg_names;
-  pInfo->m_connectGrid = pImage->Connect( boost::phoenix::bind( &SceneElementInfo::HandleUpdateTransform, pInfo.get(), args::arg1 ) );
+  pInfo->m_connectTransformSupplier = pImage->Connect( boost::phoenix::bind( &SceneElementInfo::HandleUpdateTransform, pInfo.get(), args::arg1 ) );
   pImage->GetTransformMatrix( pInfo->m_mat4Transform );
   
 }
@@ -899,7 +901,7 @@ void TreeItemPlaceHolder::HandleAddVideo( wxCommandEvent& event ) {
   m_mapSceneElementInfo.insert( mapSceneElementInfo_t::value_type( id, pInfo ) );
   
   namespace args = boost::phoenix::arg_names;
-  pInfo->m_connectGrid = pVideo->Connect( boost::phoenix::bind( &SceneElementInfo::HandleUpdateTransform, pInfo.get(), args::arg1 ) );
+  pInfo->m_connectTransformSupplier = pVideo->Connect( boost::phoenix::bind( &SceneElementInfo::HandleUpdateTransform, pInfo.get(), args::arg1 ) );
   pVideo->GetTransformMatrix( pInfo->m_mat4Transform );
   
 }

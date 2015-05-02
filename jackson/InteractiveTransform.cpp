@@ -12,8 +12,9 @@
 
 InteractiveTransform::InteractiveTransform( int width, int height ) 
 : m_floatFactor( 1.0f ), m_bReceivingEvents( false ), m_pWin( 0 ),
-  m_fWidth( width ), m_fHeight( height )
+  m_fWidth( width ), m_fHeight( height ), m_mat4Transform( glm::mat4( 1.0f ) )
 {
+  ResetTransformMatrix();
 }
 
 InteractiveTransform::~InteractiveTransform( ) {
@@ -42,8 +43,8 @@ void InteractiveTransform::DeActivate( void ) {
 }
   
 void InteractiveTransform::ResetTransformMatrix( void ) {
-  m_mat4Transform = AspectRatioWindow( m_fHeight, m_fWidth );
-  //m_mat4Transform = glm::mat4( 1.0f );
+  m_mat4Transform = glm::mat4( 1.0f );
+  m_mat4Transform *= AspectRatioWindow( m_fHeight, m_fWidth );
 }
 
 void InteractiveTransform::HandleMouseLeftDown( wxMouseEvent& event ) {

@@ -58,7 +58,7 @@ private:
   
   std::vector<GLuint> m_vElements;
   
-  void LoadImageCoords( void );
+  void SetImageCoords( void );
   
   void AddTexture( void );
   void AssignImageToTexture( void );

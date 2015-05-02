@@ -55,7 +55,8 @@ SETexture::SETexture( ):
       0, 2, 3
     ;
   
-  m_mat4BasicTransform = glm::scale( glm::vec3( 1.0f, -1.0f, 1.0f ) );  // invert image, based upon default coords
+  m_mat4BasicTransform = glm::mat4( 1.0f );
+  m_mat4BasicTransform *= glm::scale( glm::vec3( 1.0f, -1.0f, 1.0f ) );  // invert image, based upon default coords
   
   SetTransform( glm::mat4( 1.0f ) ); // identity matrix
 
@@ -90,15 +91,15 @@ void SETexture::SetBasicTransform( void ) {
     
     glm::mat4 mat4AspectRatio = AspectRatioImage( height, width );
     
-    glm::mat4 mat4Transform = glm::mat4( 1.0f );
-    mat4Transform *= mat4AspectRatio;
-    mat4Transform *= glm::scale( glm::vec3( 2.0f, 2.0f, 0.0f ) ); // scale to window coordinates
-    mat4Transform *= glm::translate( glm::vec3( -0.5f, -0.5f, 0.0f ) ); // shift to center over 0,0
-    mat4Transform *= glm::scale( glm::vec3( 1.0f / width, 1.0f / height, 1.0 ) );  // normalize
-    //mat4Transform *= glm::translate( glm::vec3( 0.0f, (float)height, 0.0f ) ); // shift in to positive again
-    //mat4Transform *= glm::scale( glm::vec3( 1.0f, -1.0f, 1.0f ) );  // invert the image
+    m_mat4BasicTransform = glm::mat4( 1.0f );
+    m_mat4BasicTransform *= mat4AspectRatio;
+    m_mat4BasicTransform *= glm::scale( glm::vec3( 2.0f, 2.0f, 0.0f ) ); // scale to window coordinates
+    m_mat4BasicTransform *= glm::translate( glm::vec3( -0.5f, -0.5f, 0.0f ) ); // shift to center over 0,0
+    m_mat4BasicTransform *= glm::scale( glm::vec3( 1.0f / width, 1.0f / height, 1.0 ) );  // normalize
+    //m_mat4BasicTransform *= glm::translate( glm::vec3( 0.0f, (float)height, 0.0f ) ); // shift in to positive again
+    //m_mat4BasicTransform *= glm::scale( glm::vec3( 1.0f, -1.0f, 1.0f ) );  // invert the image
     
-    m_mat4BasicTransform = mat4Transform;
+    //m_mat4BasicTransform = mat4Transform;
   }
 }
 
@@ -110,11 +111,16 @@ void SETexture::SetTransform( const glm::mat4& mat4Transform ) {
 void SETexture::SetImage( pImage_t pImage ) {
   assert( 0 != pImage.use_count() );
   m_pImage = pImage;
-  GLboolean b = glIsTexture( m_idTexture );
+  GLboolean b;
+  b = glIsTexture( m_idTexture );
   if ( GL_TRUE == b ) {
     AssignImageToTexture();
   }
   SetBasicTransform();
+  b = glIsBuffer( m_idVertexBufferForImageCoords );
+  if ( GL_TRUE == b ) {
+    SetImageCoords();
+  }
 }
 
 void SETexture::AssignImageToTexture( void ) {
@@ -133,6 +139,7 @@ void SETexture::AssignImageToTexture( void ) {
     //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, pData);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pDest.m_pRGB );
     //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 10, 10, 0, GL_RGB, GL_UNSIGNED_BYTE, col );
+    std::cout << "AssignImageToTexture" << std::endl;
   }
   
 }
@@ -163,7 +170,7 @@ void SETexture::SetWindowCoords( std::vector<glm::vec4>&  vCoords ) {
   }
 }
 
-void SETexture::LoadImageCoords( void ) {
+void SETexture::SetImageCoords( void ) {
   GLboolean b = glIsBuffer( m_idVertexBufferForImageCoords );
   if ( GL_FALSE == b ) {
     glGenBuffers(1, &m_idVertexBufferForImageCoords);  
@@ -195,7 +202,7 @@ void SETexture::Init( void ) {
   m_idUniformTransform = glGetUniformLocation( m_idProgram, "mTransform" );
 
   // Create a Vertex Buffer Object and copy the vertex data to it
-  LoadImageCoords();
+  SetImageCoords();
 
   // Specify the layout of the vertex data
   m_idVapImageCoords = glGetAttribLocation(m_idProgram, "vImageCoords");
