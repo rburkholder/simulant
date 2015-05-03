@@ -13,7 +13,7 @@
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
 
-#include <boost/phoenix/bind.hpp>
+//#include <boost/phoenix/bind.hpp>
 #include <boost/phoenix/bind/bind_member_function.hpp>
 #include <boost/phoenix/core/argument.hpp>
 
@@ -43,11 +43,8 @@ extern "C" {
 #include "tex2.h"
 
 #include "EventImage.h"
-//#include "EventGenerateFrame.h"
 
 #include "Outline.h"
-
-//#include "FpsGenerator.h"
 
 #include "SceneElement.h"
 #include "SEGrid.h"
@@ -55,8 +52,6 @@ extern "C" {
 
 #include "InteractiveTransform.h"
 #include "TreeDisplayManager.h"
-
-//FpsGenerator fps;  // generate signals for frame rate control
 
 IMPLEMENT_DYNAMIC_CLASS( TreeDisplayManager, wxTreeCtrl )
 
@@ -345,6 +340,7 @@ void TreeItemImageCommon::SetImage( pImage_t pImage ) {  // load picture and cre
   assert( 0 != pImage.use_count() );
   if ( pImage->IsOk() ) {
     m_pTexture->SetImage( pImage );
+    UpdateTransformMatrix();
   }
   // some old remnants for posterity's reference
 //    FrameProjection* pfp = m_pPhysicalDisplay->GetFrame();

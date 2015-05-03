@@ -112,6 +112,7 @@ void SETexture::SetImage( pImage_t pImage ) {
   
   assert( 0 != pImage.use_count() );
   m_pImage = pImage;
+  SetBasicTransform();
   m_bNewImageAvailable = true;
   
 }
@@ -125,7 +126,6 @@ void SETexture::SetImage( void ) {
     if ( GL_TRUE == b ) {
       AssignImageToTexture();
     }
-    SetBasicTransform();
     b = glIsBuffer( m_idVertexBufferForImageCoords );
     if ( GL_TRUE == b ) {
       SetImageCoords();
