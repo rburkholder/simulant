@@ -74,6 +74,10 @@ SETexture::~SETexture( ) {
   }
 }
 
+boost::signals2::connection SETexture::Connect(const slotFrame_t& slot ) {
+  return m_signal.connect( slot );
+}
+
 void SETexture::SetBasicTransform( void ) {
   if ( 0 != m_pImage.use_count() ) {
     
@@ -125,12 +129,12 @@ void SETexture::SetImage( void ) {
     b = glIsTexture( m_idTexture );
     if ( GL_TRUE == b ) {
       AssignImageToTexture();
-      std::cout << "assigned to idTexture " << m_idTexture << std::endl;
+      //std::cout << "assigned to idTexture " << m_idTexture << std::endl;
     }
     b = glIsBuffer( m_idVertexBufferForImageCoords );
     if ( GL_TRUE == b ) {
       SetImageCoords();
-      std::cout << "assigned to idVertex " << m_idVertexBufferForImageCoords << std::endl;
+      //std::cout << "assigned to idVertex " << m_idVertexBufferForImageCoords << std::endl;
     }
     m_bNewImageAvailable = false;
   }

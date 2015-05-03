@@ -22,6 +22,8 @@ public:
     //std::cout << "EventGenerateFrame Cloned" << std::endl;
     return new EventGenerateFrame( *this ); 
   };
+  
+  FPS GetFps( void ) const { return m_fps; }
 
 protected:  
 private:

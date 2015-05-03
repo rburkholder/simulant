@@ -6,6 +6,7 @@
  */
 
 #include <map>
+#include <vector>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/lexical_cast.hpp>
@@ -109,7 +110,7 @@ public:
   typedef boost::signals2::signal<void ( const glm::mat4& )> signalTransformUpdated_t;
   typedef signalTransformUpdated_t::slot_type slotTransformUpdated_t;
   
-  boost::signals2::connection Connect( const slotTransformUpdated_t& slot ) {
+  boost::signals2::connection ConnectTransformUpdated( const slotTransformUpdated_t& slot ) {
     return m_signalTransformUpdated.connect( slot );
   }
   
@@ -287,6 +288,8 @@ public:
   
   TreeItemImageCommon( TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
   ~TreeItemImageCommon( void );
+  
+  boost::signals2::connection ConnectFrameTrigger( const SETexture::slotFrame_t& slot ) { return m_pTexture->Connect( slot ); }
   
 protected:
   
@@ -475,6 +478,8 @@ private:
   
   typedef SceneManager::key_t key_t;
   typedef boost::shared_ptr<SETexture> pSETexture_t;
+  typedef boost::shared_ptr<wxImage> pImage_t;
+  typedef std::vector<pImage_t> vpImage_t;
   
   pSETexture_t m_pTexture;
   key_t m_keyTexture;
@@ -483,10 +488,14 @@ private:
   wxString m_sVideoDirectory;
   
   wxImage m_image;
+  vpImage_t m_vpImage;
+  vpImage_t::size_type m_ixvImage;  // allows cycling through m_vpImage
   
   boost::thread_group m_threadsWorkers;
   boost::asio::io_service m_Srvc;
   boost::asio::io_service::work* m_pWork;
+  
+  boost::signals2::connection m_connectionFrameTrigger;
   
   void Workers( void );  // background processing of video
   
@@ -499,14 +508,19 @@ private:
   void HandleLoadVideo( wxCommandEvent& event );  // need to recode (this is where it actually starts)
   void LoadVideo( void );
   
+  void ShowImage( void );  // show next image from vector
+  
 };
 
 TreeItemVideo::TreeItemVideo( 
   TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager )
-: TreeItemImageCommon( pTree, id, pPhysicalDisplay, pSceneManager )
+: TreeItemImageCommon( pTree, id, pPhysicalDisplay, pSceneManager ),
+  m_ixvImage( 0 )
 {
   
-  std::cout << "Tree Item Add Video" << std::endl;
+  std::cout << "Tree Item Add Video" << std::endl; 
+  
+  m_connectionFrameTrigger = TreeItemImageCommon::ConnectFrameTrigger( boost::phoenix::bind( &TreeItemVideo::ShowImage, this ) );
   
   wxImage::AddHandler( new wxJPEGHandler );
 
@@ -532,9 +546,24 @@ TreeItemVideo::TreeItemVideo(
 }
 
 TreeItemVideo::~TreeItemVideo( void ) {
+  m_connectionFrameTrigger.disconnect();
   delete m_pWork;
   m_pWork = 0;
   m_threadsWorkers.join_all();
+}
+
+void TreeItemVideo::ShowImage( void ) {
+  vpImage_t::size_type size( m_vpImage.size() );
+  if ( 0 != size ) {
+    TreeItemImageCommon::SetImage( m_vpImage[ m_ixvImage ] );
+    ++m_ixvImage;
+    assert( size >= m_ixvImage );
+    if ( size == m_ixvImage ) {
+      m_ixvImage = 0;
+    }
+    else {
+    }
+  }
 }
 
 void TreeItemVideo::ShowContextMenu( void ) {
@@ -644,8 +673,8 @@ void TreeItemVideo::HandleEventImage( EventImage& event ) {
   
   ts.queue2 = boost::chrono::high_resolution_clock::now();
   
-  // this is where would instead send to OpenGL buffers and draw
-  TreeItemImageCommon::SetImage( event.GetImage() );
+  // by putting a lock on the vector, we may no longer need this event
+  m_vpImage.push_back( event.GetImage() );
   
 //  wxBitmap bitmap( *event.GetImage() );
 //  FrameProjection* pfp = (FrameProjection*) event.GetVoid();
@@ -850,7 +879,7 @@ void TreeItemPlaceHolder::HandleAddGrid( wxCommandEvent& event ) {
   m_mapSceneElementInfo.insert( mapSceneElementInfo_t::value_type( id, pInfo ) );
   
   namespace args = boost::phoenix::arg_names;
-  pInfo->m_connectTransformSupplier = pGrid->Connect( boost::phoenix::bind( &SceneElementInfo::HandleUpdateTransform, pInfo.get(), args::arg1 ) );
+  pInfo->m_connectTransformSupplier = pGrid->ConnectTransformUpdated( boost::phoenix::bind( &SceneElementInfo::HandleUpdateTransform, pInfo.get(), args::arg1 ) );
   pGrid->GetTransformMatrix( pInfo->m_mat4Transform );
   
 }
@@ -868,7 +897,7 @@ void TreeItemPlaceHolder::HandleAddPicture( wxCommandEvent& event ) {
   m_mapSceneElementInfo.insert( mapSceneElementInfo_t::value_type( id, pInfo ) );
   
   namespace args = boost::phoenix::arg_names;
-  pInfo->m_connectTransformSupplier = pImage->Connect( boost::phoenix::bind( &SceneElementInfo::HandleUpdateTransform, pInfo.get(), args::arg1 ) );
+  pInfo->m_connectTransformSupplier = pImage->ConnectTransformUpdated( boost::phoenix::bind( &SceneElementInfo::HandleUpdateTransform, pInfo.get(), args::arg1 ) );
   pImage->GetTransformMatrix( pInfo->m_mat4Transform );
   
 }
@@ -886,7 +915,7 @@ void TreeItemPlaceHolder::HandleAddVideo( wxCommandEvent& event ) {
   m_mapSceneElementInfo.insert( mapSceneElementInfo_t::value_type( id, pInfo ) );
   
   namespace args = boost::phoenix::arg_names;
-  pInfo->m_connectTransformSupplier = pVideo->Connect( boost::phoenix::bind( &SceneElementInfo::HandleUpdateTransform, pInfo.get(), args::arg1 ) );
+  pInfo->m_connectTransformSupplier = pVideo->ConnectTransformUpdated( boost::phoenix::bind( &SceneElementInfo::HandleUpdateTransform, pInfo.get(), args::arg1 ) );
   pVideo->GetTransformMatrix( pInfo->m_mat4Transform );
   
 }

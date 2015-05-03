@@ -10,6 +10,7 @@
 //SceneElement Texture
 
 #include <boost/shared_ptr.hpp>
+#include <boost/signals2.hpp>
 
 #include "SceneElement.h"
 
@@ -18,6 +19,8 @@
 class SETexture: public SceneElement {
 public:
   
+  typedef boost::signals2::signal<void()> signalFrame_t;
+  typedef signalFrame_t::slot_type slotFrame_t;
   typedef boost::shared_ptr<wxImage> pImage_t;
   
   SETexture( );
@@ -31,6 +34,9 @@ public:
   void SetTransform( const glm::mat4& mat4Transform );
   
   void SetImage( pImage_t pImage );
+  
+  virtual void OnFrameTrigger( void ) { m_signal(); };
+  boost::signals2::connection Connect( const slotFrame_t& );
   
 protected:
   
@@ -49,6 +55,8 @@ private:
   
   pImage_t m_pImage;
   bool m_bNewImageAvailable;
+  
+  signalFrame_t m_signal;
   
   glm::mat4 m_mat4BasicTransform;
   glm::mat4 m_mat4SuppliedTransform;

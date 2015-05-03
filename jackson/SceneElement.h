@@ -24,7 +24,9 @@ public:
   virtual void Init( void ) { assert( false == m_bHadInit ); m_bHadInit = true; };
   virtual void Paint( void ) {};
   
-  bool HadInit( void ) { return m_bHadInit; }
+  bool HadInit( void ) const { return m_bHadInit; }
+  
+  virtual void OnFrameTrigger( void ) {};
   
 protected:
   

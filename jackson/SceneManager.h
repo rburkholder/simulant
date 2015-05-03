@@ -24,8 +24,8 @@ class SceneManager: public canvasOpenGL<SceneManager> {
 public:
   
   typedef size_t key_t;
-  typedef boost::shared_ptr<SceneElement> pSceneElement_t;
   typedef FpsGenerator::FPS FPS;
+  typedef boost::shared_ptr<SceneElement> pSceneElement_t;
   
   SceneManager( wxFrame* parent, int* args );
   virtual ~SceneManager( );
@@ -43,16 +43,20 @@ private:
       : fps( fps_ ), pSceneElement( pSceneElement_ ) {}
   };
   
-  typedef std::map<key_t,SceneDescription_t> mapSceneElement_t;  
-  typedef std::vector<pSceneElement_t> vSceneElement_t;
-  
   typedef std::map<key_t,pSceneElement_t> mapSceneElementsToRefresh_t;
-  typedef std::map<FPS,mapSceneElementsToRefresh_t> mapSceneElementsToRefreshAtFps_t; 
   
-  //boost::signals2::connection m_slotTimer;
-  typedef std::vector<boost::signals2::connection> vSlotTimer_t;
+  struct FpsRelatedRefresh_t {
+    boost::signals2::connection connection;
+    mapSceneElementsToRefresh_t mapSceneElementsToRefresh;
+    ~FpsRelatedRefresh_t( void ) {
+      connection.disconnect();
+    }
+  };
   
-  vSlotTimer_t m_vSlotTimer;
+  typedef std::map<key_t,SceneDescription_t> mapSceneElement_t;  
+  typedef std::vector<key_t> vSceneElementKey_t;
+  
+  typedef std::map<FPS,FpsRelatedRefresh_t> mapSceneElementsToRefreshAtFps_t; 
   
   volatile bool m_bActive;
   
@@ -61,7 +65,7 @@ private:
   size_t m_cntMapSceneElement;
   
   mapSceneElement_t m_mapSceneElement;
-  vSceneElement_t m_vSceneElementToInit;
+  vSceneElementKey_t m_vSceneElementToInit;
   
   mapSceneElementsToRefreshAtFps_t m_mapSceneElementsToRefreshAtFps;
   

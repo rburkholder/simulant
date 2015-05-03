@@ -29,7 +29,7 @@
 // NDS Normalized Device Space: x,y: -1.0,-1.0 -> 1.0, 1.0 ; depth: 0.0 -> 1.0  pg 39
 // **** aspect ratio comes from screen coordinates and how they map to window coordinates (-1,-1,1,1)
 
-FpsGenerator fps;  // generate signals for frame rate control
+FpsGenerator fpsGenerator;  // generate signals for frame rate control
 
 void  callbackSceneManager(GLenum source, GLenum type, GLuint id,
    GLenum severity, GLsizei length, const GLchar* message, const void* userParam ) {
@@ -43,66 +43,72 @@ SceneManager::SceneManager( wxFrame* parent, int* args ):
   wxApp::GetInstance()->Bind( EVENT_GENERATEFRAME, &SceneManager::HandleRefresh, this ); 
   //m_pScreenFrame->GetFrame()->Bind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this );  // doesn't propagate properly
   
-  namespace args = boost::phoenix::arg_names;
-  //m_slotTimer = fps.Connect( FpsGenerator::fps24, boost::phoenix::bind( &SceneManager::HandleRefreshTimer, this, args::arg1 ) );
-  m_vSlotTimer.push_back( fps.Connect( FpsGenerator::fps24, boost::phoenix::bind( &SceneManager::HandleRefreshTimer, this, args::arg1 ) ) );
- 
   m_bActive = true;
   
 }
 
 SceneManager::~SceneManager( ) {
-  BOOST_FOREACH( boost::signals2::connection& connection, m_vSlotTimer ) {
-    connection.disconnect();
-  }
-  //m_slotTimer.disconnect();
   wxApp::GetInstance()->Unbind( EVENT_GENERATEFRAME, &SceneManager::HandleRefresh, this );
   m_bActive = false;
 }
 
 SceneManager::key_t SceneManager::Add( FPS fps, pSceneElement_t pSceneElement ) {
+  
   key_t key( ++m_cntMapSceneElement ); 
   m_mapSceneElement.insert( mapSceneElement_t::value_type( key, SceneDescription_t( fps, pSceneElement ) ) );
-  m_vSceneElementToInit.push_back( pSceneElement );
+  m_vSceneElementToInit.push_back( key );
+  
   mapSceneElementsToRefreshAtFps_t::iterator iter = m_mapSceneElementsToRefreshAtFps.find( fps );
+  std::pair<mapSceneElementsToRefresh_t::iterator, bool> result2;
+  mapSceneElementsToRefresh_t::value_type entry( key, pSceneElement );
+  
+  mapSceneElementsToRefresh_t::size_type nElements( 0 );
+  
   if ( m_mapSceneElementsToRefreshAtFps.end() == iter ) {
     std::pair<mapSceneElementsToRefreshAtFps_t::iterator, bool> result1;
-    mapSceneElementsToRefreshAtFps_t::value_type vt( fps, mapSceneElementsToRefresh_t() );
+    mapSceneElementsToRefreshAtFps_t::value_type vt( fps, FpsRelatedRefresh_t() );
     result1 = m_mapSceneElementsToRefreshAtFps.insert( vt );
     assert( true == result1.second );
-    std::pair<mapSceneElementsToRefresh_t::iterator, bool> result2;
-    mapSceneElementsToRefresh_t::value_type entry( key, pSceneElement );
-    result2 = result1.first->second.insert( entry );
-    assert( true == result2.second );
+    iter = result1.first;
+    
+    result2 = result1.first->second.mapSceneElementsToRefresh.insert( entry );
+    nElements = result1.first->second.mapSceneElementsToRefresh.size();
   }
   else {
-    std::pair<mapSceneElementsToRefresh_t::iterator, bool> result2;
-    mapSceneElementsToRefresh_t::value_type entry( key, pSceneElement );
-    result2 = iter->second.insert( entry );
-    assert( true == result2.second );
+    result2 = iter->second.mapSceneElementsToRefresh.insert( entry );
+    nElements = iter->second.mapSceneElementsToRefresh.size();
+  }
+  assert( true == result2.second );
+  if ( 1 == nElements ) {
+    namespace args = boost::phoenix::arg_names;
+    iter->second.connection = fpsGenerator.Connect( fps, boost::phoenix::bind( &SceneManager::HandleRefreshTimer, this, args::arg1 ) );
   }
   return key;
 }
 
 void SceneManager::Delete( key_t key ) {
-  mapSceneElement_t::const_iterator iter = m_mapSceneElement.find( key );
-  if ( m_mapSceneElement.end() == iter ) {
+  mapSceneElement_t::const_iterator iter1 = m_mapSceneElement.find( key );
+  if ( m_mapSceneElement.end() == iter1 ) {
     throw std::runtime_error( "key1 not found" );
   }
   else {
-    FPS fps( iter->second.fps );
-    m_mapSceneElement.erase( iter );
+    FPS fps( iter1->second.fps );
+    m_mapSceneElement.erase( iter1 );
+    
     mapSceneElementsToRefreshAtFps_t::iterator iter2 = m_mapSceneElementsToRefreshAtFps.find( fps );
     if ( m_mapSceneElementsToRefreshAtFps.end() == iter2 ) {
       throw std::runtime_error( "key2 not found" );
     }
     else {
-      mapSceneElementsToRefresh_t::iterator iter3 = iter2->second.find( key );
-      if ( iter2->second.end() == iter3 ) {
+      mapSceneElementsToRefresh_t::iterator iter3 = iter2->second.mapSceneElementsToRefresh.find( key );
+      if ( iter2->second.mapSceneElementsToRefresh.end() == iter3 ) {
         throw std::runtime_error( "key3 not found" );
       }
       else {
-        iter2->second.erase( iter3 );
+        iter2->second.mapSceneElementsToRefresh.erase( iter3 );
+        if ( 0 == iter2->second.mapSceneElementsToRefresh.size() ) {
+          iter2->second.connection.disconnect();
+        }
       }
     }
   }
@@ -129,10 +135,11 @@ void SceneManager::OnPaint( void ) {
   
   if ( !m_vSceneElementToInit.empty() ) {
     std::cout << "init start" << std::endl;
-    BOOST_FOREACH( pSceneElement_t p, m_vSceneElementToInit ) {
-      //glDebugMessageCallback( &callbackSceneManager, (const void*) element.first );
-      glDebugMessageCallback( &callbackSceneManager, 0 );
-      p->Init();
+    BOOST_FOREACH( key_t key, m_vSceneElementToInit ) {
+      mapSceneElement_t::iterator iter = m_mapSceneElement.find( key );
+      assert( m_mapSceneElement.end() != iter );
+      glDebugMessageCallback( &callbackSceneManager, (const void*) iter->first );
+      iter->second.pSceneElement->Init();
       glDebugMessageCallback( 0, 0 );
     }
     m_vSceneElementToInit.clear();
@@ -158,18 +165,20 @@ void SceneManager::OnResize( int w, int h ) {
 
 void SceneManager::HandleRefreshTimer( FpsGenerator::FPS fps ) {
   if ( m_bActive ) { // cross thread action
-    //wxApp::GetInstance()->QueueEvent( new EventGenerateFrame( EVENT_GENERATEFRAME, m_pPhysicalDisplay->GetFrame()->GetId() ) );
     wxApp::GetInstance()->QueueEvent( new EventGenerateFrame( EVENT_GENERATEFRAME, this->GetId(), fps ) );
   }
 }
 
 void SceneManager::HandleRefresh( EventGenerateFrame& event ) {
-  //if ( m_pPhysicalDisplay->GetFrame()->GetId() == event.GetId() ) {
   if ( this->GetId() == event.GetId() ) {
+    // need to perform a call back to the SceneElement 
+    FPS fps = event.GetFps();
+    mapSceneElementsToRefreshAtFps_t::iterator iter = m_mapSceneElementsToRefreshAtFps.find( fps );
+    assert( m_mapSceneElementsToRefreshAtFps.end() != iter );
+    BOOST_FOREACH( mapSceneElementsToRefresh_t::value_type element, iter->second.mapSceneElementsToRefresh ) {
+      element.second->OnFrameTrigger();
+    }
     this->Refresh();  // need to step through the checks
-    //m_pSceneManager->Refresh(); // this isn't the right way, as it will get called to many times
-    //  when registering, registers with a specific fps queue
-    // this should set a flag, so SceneManager draws everything, or does an auto refresh.
   }
   else {
     //std::cout << "not our event" << std::endl;  // this does get hit, so the if above is appropriate
