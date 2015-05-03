@@ -9,9 +9,13 @@
 
 #include <wx/event.h>
 
+#include "FpsGenerator.h"
+
 class EventGenerateFrame: public wxEvent {
 public:
-  EventGenerateFrame( wxEventType eventType, int winid );
+  typedef FpsGenerator::FPS FPS;
+  
+  EventGenerateFrame( wxEventType eventType, int winid, FPS fps );
   virtual ~EventGenerateFrame( void );
   
   virtual EventGenerateFrame* Clone( void ) const { 
@@ -21,7 +25,7 @@ public:
 
 protected:  
 private:
-
+  FPS m_fps;
 };
 
 wxDECLARE_EVENT( EVENT_GENERATEFRAME, EventGenerateFrame );

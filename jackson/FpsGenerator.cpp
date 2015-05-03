@@ -57,22 +57,22 @@ FpsGenerator::FpsGenerator( )
 : m_bStopThread( false ), m_bThreadRunning( false ), m_thread( boost::phoenix::bind( &FpsGenerator::Thread, this ) )
 {
   const size_t cnt24fps[DownCount::nSourceCounts] = { 8, 8, 9 };
-  m_mapDownCount.insert( std::pair<FPS,pDownCount_t>( fps24, pDownCount_t( new DownCount( fps24, cnt24fps ) ) ) );
+  m_mapDownCount.insert( mapDownCount_t::value_type( fps24, pDownCount_t( new DownCount( fps24, cnt24fps ) ) ) );
 
   const size_t cnt25fps[DownCount::nSourceCounts] = { 8, 8, 8 };
-  m_mapDownCount.insert( std::pair<FPS,pDownCount_t>( fps25, pDownCount_t( new DownCount( fps25, cnt25fps ) ) ) );
+  m_mapDownCount.insert( mapDownCount_t::value_type( fps25, pDownCount_t( new DownCount( fps25, cnt25fps ) ) ) );
 
   const size_t cnt30fps[DownCount::nSourceCounts] = { 7, 7, 6 };
-  m_mapDownCount.insert( std::pair<FPS,pDownCount_t>( fps30, pDownCount_t( new DownCount( fps30, cnt30fps ) ) ) );
+  m_mapDownCount.insert( mapDownCount_t::value_type( fps30, pDownCount_t( new DownCount( fps30, cnt30fps ) ) ) );
 
   const size_t cnt48fps[DownCount::nSourceCounts] = { 4, 4, 5 };
-  m_mapDownCount.insert( std::pair<FPS,pDownCount_t>( fps48, pDownCount_t( new DownCount( fps48, cnt48fps ) ) ) );
+  m_mapDownCount.insert( mapDownCount_t::value_type( fps48, pDownCount_t( new DownCount( fps48, cnt48fps ) ) ) );
 
   const size_t cnt60fps[DownCount::nSourceCounts] = { 3, 3, 4 };
-  m_mapDownCount.insert( std::pair<FPS,pDownCount_t>( fps60, pDownCount_t( new DownCount( fps60, cnt60fps ) ) ) );
+  m_mapDownCount.insert( mapDownCount_t::value_type( fps60, pDownCount_t( new DownCount( fps60, cnt60fps ) ) ) );
   
   const size_t cnt100fps[DownCount::nSourceCounts] = { 2, 2, 2 };
-  m_mapDownCount.insert( std::pair<FPS,pDownCount_t>( fps100, pDownCount_t( new DownCount( fps100, cnt100fps ) ) ) );
+  m_mapDownCount.insert( mapDownCount_t::value_type( fps100, pDownCount_t( new DownCount( fps100, cnt100fps ) ) ) );
   
   }
 

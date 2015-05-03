@@ -13,7 +13,7 @@
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
 
-//#include <boost/phoenix/bind.hpp>
+#include <boost/phoenix/bind.hpp>
 #include <boost/phoenix/bind/bind_member_function.hpp>
 #include <boost/phoenix/core/argument.hpp>
 
@@ -43,11 +43,11 @@ extern "C" {
 #include "tex2.h"
 
 #include "EventImage.h"
-#include "EventGenerateFrame.h"
+//#include "EventGenerateFrame.h"
 
 #include "Outline.h"
 
-#include "FpsGenerator.h"
+//#include "FpsGenerator.h"
 
 #include "SceneElement.h"
 #include "SEGrid.h"
@@ -56,7 +56,7 @@ extern "C" {
 #include "InteractiveTransform.h"
 #include "TreeDisplayManager.h"
 
-FpsGenerator fps;  // generate signals for frame rate control
+//FpsGenerator fps;  // generate signals for frame rate control
 
 IMPLEMENT_DYNAMIC_CLASS( TreeDisplayManager, wxTreeCtrl )
 
@@ -128,11 +128,11 @@ public:
   
 protected:
   
-  volatile bool m_bActive;
+  //volatile bool m_bActive;
   
   signalTransformUpdated_t m_signalTransformUpdated;
   
-  boost::signals2::connection m_slotTimer;
+  //boost::signals2::connection m_slotTimer;
   
   pPhysicalDisplay_t m_pPhysicalDisplay;
   pSceneManager_t m_pSceneManager;
@@ -142,8 +142,8 @@ protected:
   void SetSelected( void );  // from tree menu
   void RemoveSelected( void );  // from tree menu
   
-  void HandleRefreshTimer( FpsGenerator::FPS fps );  // is in work thread
-  void HandleRefresh( EventGenerateFrame& event );
+  //void HandleRefreshTimer( FpsGenerator::FPS fps );  // is in work thread
+  //void HandleRefresh( EventGenerateFrame& event );
   
 private:
 };
@@ -151,23 +151,24 @@ private:
 TreeItemVisualCommon::TreeItemVisualCommon( TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager ) 
 : TreeItemBase( pTree, id ), 
   InteractiveTransform( pPhysicalDisplay->GetFrame()->GetClientSize().GetWidth(), pPhysicalDisplay->GetFrame()->GetClientSize().GetHeight() ), 
-  m_bActive( false ), m_pPhysicalDisplay( pPhysicalDisplay ), m_pSceneManager( pSceneManager )
+  //m_bActive( false ), 
+  m_pPhysicalDisplay( pPhysicalDisplay ), m_pSceneManager( pSceneManager )
 {
   
-  wxApp::GetInstance()->Bind( EVENT_GENERATEFRAME, &TreeItemVisualCommon::HandleRefresh, this ); 
+//  wxApp::GetInstance()->Bind( EVENT_GENERATEFRAME, &TreeItemVisualCommon::HandleRefresh, this ); 
   //m_pScreenFrame->GetFrame()->Bind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this );  // doesn't propagate properly
   
-  namespace args = boost::phoenix::arg_names;
-  m_slotTimer = fps.Connect( FpsGenerator::fps24, boost::phoenix::bind( &TreeItemVisualCommon::HandleRefreshTimer, this, args::arg1 ) );
+//  namespace args = boost::phoenix::arg_names;
+//  m_slotTimer = fps.Connect( FpsGenerator::fps24, boost::phoenix::bind( &TreeItemVisualCommon::HandleRefreshTimer, this, args::arg1 ) );
  
-  m_bActive = true;
+//  m_bActive = true;
   
 }
 
 TreeItemVisualCommon::~TreeItemVisualCommon( void ) {
-  m_slotTimer.disconnect();
-  wxApp::GetInstance()->Unbind( EVENT_GENERATEFRAME, &TreeItemVisualCommon::HandleRefresh, this );
-  m_bActive = false;
+//  m_slotTimer.disconnect();
+//  wxApp::GetInstance()->Unbind( EVENT_GENERATEFRAME, &TreeItemVisualCommon::HandleRefresh, this );
+//  m_bActive = false;
 }
 
 void TreeItemVisualCommon::HandleDelete( wxCommandEvent& event ) {
@@ -188,7 +189,7 @@ void TreeItemVisualCommon::SetSelected( void ) {
 void TreeItemVisualCommon::RemoveSelected( void ) {
   InteractiveTransform::DeActivate();
 }
-
+/*
 void TreeItemVisualCommon::HandleRefreshTimer( FpsGenerator::FPS fps ) {
   if ( m_bActive ) { // cross thread action
     wxApp::GetInstance()->QueueEvent( new EventGenerateFrame( EVENT_GENERATEFRAME, m_pPhysicalDisplay->GetFrame()->GetId() ) );
@@ -206,7 +207,7 @@ void TreeItemVisualCommon::HandleRefresh( EventGenerateFrame& event ) {
   }
   event.Skip( true );  // let other ones process this as well
 }
-
+*/
 // ================
 
 class TreeItemGrid: public TreeItemVisualCommon {
@@ -251,7 +252,7 @@ TreeItemGrid::TreeItemGrid(
   wxImage::AddHandler( new wxJPEGHandler );
 
   m_pGrid.reset( new SEGrid );
-  m_keyGrid = m_pSceneManager->Add( m_pGrid );
+  m_keyGrid = m_pSceneManager->Add( FpsGenerator::fps24, m_pGrid );
  
   ResetTransformMatrix();
   UpdateTransformMatrix();
@@ -329,7 +330,7 @@ TreeItemImageCommon::TreeItemImageCommon(
   wxImage::AddHandler( new wxJPEGHandler );
 
   m_pTexture.reset( new SETexture );
-  m_keyTexture = m_pSceneManager->Add( m_pTexture );
+  m_keyTexture = m_pSceneManager->Add( FpsGenerator::fps24, m_pTexture );
   m_pTexture->SetTransform( InteractiveTransform::m_mat4Transform );
     
 }

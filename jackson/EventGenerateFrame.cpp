@@ -7,8 +7,8 @@
 
 #include "EventGenerateFrame.h"
 
-EventGenerateFrame::EventGenerateFrame( wxEventType eventType, int winid ) 
-  : wxEvent( winid, eventType )
+EventGenerateFrame::EventGenerateFrame( wxEventType eventType, int winid, FPS fps ) 
+  : wxEvent( winid, eventType ), m_fps( fps )
 {
 }
 

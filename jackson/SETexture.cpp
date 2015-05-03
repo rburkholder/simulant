@@ -31,7 +31,7 @@ SETexture::SETexture( ):
   m_idVertexArray( 0 ), m_idTexture( 0 ), m_idElements( 0 ), 
   m_idVertexBufferForImageCoords( 0 ), m_idVertexBufferForTextureCoords( 0 ), 
   m_idVapImageCoords( 0 ), m_idVapTextureCoords( 0 ), 
-  m_idUniformTransform( 0 )
+  m_idUniformTransform( 0 ), m_bNewImageAvailable( false )
 {
   
   using namespace boost::assign;
@@ -109,18 +109,30 @@ void SETexture::SetTransform( const glm::mat4& mat4Transform ) {
 }
 
 void SETexture::SetImage( pImage_t pImage ) {
+  
   assert( 0 != pImage.use_count() );
   m_pImage = pImage;
-  GLboolean b;
-  b = glIsTexture( m_idTexture );
-  if ( GL_TRUE == b ) {
-    AssignImageToTexture();
+  m_bNewImageAvailable = true;
+  
+}
+
+void SETexture::SetImage( void ) {
+  
+  if ( m_bNewImageAvailable ) {
+    assert( 0 != m_pImage.use_count() );
+    GLboolean b;
+    b = glIsTexture( m_idTexture );
+    if ( GL_TRUE == b ) {
+      AssignImageToTexture();
+    }
+    SetBasicTransform();
+    b = glIsBuffer( m_idVertexBufferForImageCoords );
+    if ( GL_TRUE == b ) {
+      SetImageCoords();
+    }
+    m_bNewImageAvailable = false;
   }
-  SetBasicTransform();
-  b = glIsBuffer( m_idVertexBufferForImageCoords );
-  if ( GL_TRUE == b ) {
-    SetImageCoords();
-  }
+  
 }
 
 void SETexture::AssignImageToTexture( void ) {
@@ -240,6 +252,8 @@ void SETexture::Paint( void ) {
 
     glEnableVertexAttribArray(m_idVapImageCoords);
     glEnableVertexAttribArray(m_idVapTextureCoords);
+    
+    SetImage();
 
     glBindTexture(GL_TEXTURE_2D, m_idTexture);
     glActiveTexture(GL_TEXTURE0);

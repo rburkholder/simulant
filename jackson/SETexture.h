@@ -48,6 +48,7 @@ private:
   GLuint m_idUniformTransform;
   
   pImage_t m_pImage;
+  bool m_bNewImageAvailable;
   
   glm::mat4 m_mat4BasicTransform;
   glm::mat4 m_mat4SuppliedTransform;
@@ -57,6 +58,8 @@ private:
   std::vector<glm::vec2> m_vtxTextureCoords;
   
   std::vector<GLuint> m_vElements;
+  
+  void SetImage( void );
   
   void SetImageCoords( void );
   
