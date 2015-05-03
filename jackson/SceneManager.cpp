@@ -110,16 +110,11 @@ void SceneManager::Delete( key_t key ) {
 
 void SceneManager::OnPaintInit( void ) {
   
-  std::cout << "init start" << std::endl;
+  //std::cout << "init start" << std::endl;
   
   // stuff goes here
-  BOOST_FOREACH( mapSceneElement_t::value_type element, m_mapSceneElement ) {
-    glDebugMessageCallback( &callbackSceneManager, (const void*) element.first );
-    element.second.pSceneElement->Init();
-    glDebugMessageCallback( 0, 0 );
-  }
   
-  std::cout << "init end" << std::endl;
+  //std::cout << "init end" << std::endl;
 }
 
 void SceneManager::OnPaint( void ) {
@@ -133,14 +128,19 @@ void SceneManager::OnPaint( void ) {
   glClear(GL_COLOR_BUFFER_BIT);
   
   if ( !m_vSceneElementToInit.empty() ) {
+    std::cout << "init start" << std::endl;
     BOOST_FOREACH( pSceneElement_t p, m_vSceneElementToInit ) {
+      //glDebugMessageCallback( &callbackSceneManager, (const void*) element.first );
+      glDebugMessageCallback( &callbackSceneManager, 0 );
       p->Init();
+      glDebugMessageCallback( 0, 0 );
     }
     m_vSceneElementToInit.clear();
+    std::cout << "init end" << std::endl;
   }  
   
   // need to paint using mapSceneElementsToRefreshAtFps_t instead
-  BOOST_FOREACH( mapSceneElement_t::value_type element, m_mapSceneElement ) {
+  BOOST_FOREACH( mapSceneElement_t::value_type element, m_mapSceneElement ) { 
     glDebugMessageCallback( &callbackSceneManager, (const void*) element.first );
     //std::cout << "painting " << element.first << std::endl;
     element.second.pSceneElement->Paint();

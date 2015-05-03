@@ -125,10 +125,12 @@ void SETexture::SetImage( void ) {
     b = glIsTexture( m_idTexture );
     if ( GL_TRUE == b ) {
       AssignImageToTexture();
+      std::cout << "assigned to idTexture " << m_idTexture << std::endl;
     }
     b = glIsBuffer( m_idVertexBufferForImageCoords );
     if ( GL_TRUE == b ) {
       SetImageCoords();
+      std::cout << "assigned to idVertex " << m_idVertexBufferForImageCoords << std::endl;
     }
     m_bNewImageAvailable = false;
   }
@@ -253,10 +255,10 @@ void SETexture::Paint( void ) {
     glEnableVertexAttribArray(m_idVapImageCoords);
     glEnableVertexAttribArray(m_idVapTextureCoords);
     
-    SetImage();
-
     glBindTexture(GL_TEXTURE_2D, m_idTexture);
     glActiveTexture(GL_TEXTURE0);
+
+    SetImage();
 
     glUniformMatrix4fv(m_idUniformTransform, 1, GL_FALSE, &m_mat4FinalTransform[0][0]);
 
