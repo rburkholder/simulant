@@ -502,7 +502,7 @@ private:
   void ProcessVideoFile( boost::shared_ptr<DecodeH264> pDecoder );
   
   void HandleOnFrame( AVCodecContext* context, AVFrame* frame, AVPacket* pkt, void* user, structTimeSteps perf );
-  void HandleFrameTransform( AVFrame* pRgb, uint8_t* buf, void* user, structTimeSteps perf, int srcX, int srcY );
+  void HandleFrameTransformToImage( AVFrame* pRgb, uint8_t* buf, void* user, structTimeSteps perf, int srcX, int srcY );
   void HandleEventImage( EventImage& );
   
   void HandleLoadVideo( wxCommandEvent& event );  // need to recode (this is where it actually starts)
@@ -601,9 +601,9 @@ void TreeItemVideo::HandleOnFrame( AVCodecContext* context, AVFrame* frame, AVPa
     std::cout << "fps: " << fps << std::endl;
   }
   
-  struct SwsContext *swsContext = sws_getContext(srcX, srcY, context->pix_fmt, srcX, srcY, FMT, SWS_BILINEAR, NULL, NULL, NULL);
-  //struct SwsContext *swsContext = sws_getContext(srcX, srcY, context->pix_fmt, srcX, srcY, PIX_FMT_RGB24, SWS_BILINEAR, NULL, NULL, NULL);
-  //struct SwsContext *swsContext = sws_getContext(srcX, srcY, context->pix_fmt, srcX, srcY, PIX_FMT_RGB32_1, SWS_BICUBIC, NULL, NULL, NULL);
+  struct SwsContext* swsContext = sws_getContext(srcX, srcY, context->pix_fmt, srcX, srcY, FMT, SWS_BILINEAR, NULL, NULL, NULL);
+  //struct SwsContext* swsContext = sws_getContext(srcX, srcY, context->pix_fmt, srcX, srcY, PIX_FMT_RGB24, SWS_BILINEAR, NULL, NULL, NULL);
+  //struct SwsContext* swsContext = sws_getContext(srcX, srcY, context->pix_fmt, srcX, srcY, PIX_FMT_RGB32_1, SWS_BICUBIC, NULL, NULL, NULL);
   
   AVFrame* pRGB;
   pRGB = av_frame_alloc();
@@ -618,7 +618,7 @@ void TreeItemVideo::HandleOnFrame( AVCodecContext* context, AVFrame* frame, AVPa
   
   perf.scaled = boost::chrono::high_resolution_clock::now();
 
-  m_Srvc.post( boost::phoenix::bind( &TreeItemVideo::HandleFrameTransform, this, pRGB, buf, user, perf, srcX, srcY ) );
+  m_Srvc.post( boost::phoenix::bind( &TreeItemVideo::HandleFrameTransformToImage, this, pRGB, buf, user, perf, srcX, srcY ) );
   
   // ** note decode currently works faster than the transform, so transform work will queue up.
   //    need to deal with proper timing of frames.
@@ -628,7 +628,7 @@ void TreeItemVideo::HandleOnFrame( AVCodecContext* context, AVFrame* frame, AVPa
   //      or do frame ordering in final presentation to screen, buffer loop
 }
 
-void TreeItemVideo::HandleFrameTransform( AVFrame* pRgb, uint8_t* buf, void* user, structTimeSteps perf, int srcX, int srcY ) {
+void TreeItemVideo::HandleFrameTransformToImage( AVFrame* pRgb, uint8_t* buf, void* user, structTimeSteps perf, int srcX, int srcY ) {
   
   perf.queue1 = boost::chrono::high_resolution_clock::now();
   

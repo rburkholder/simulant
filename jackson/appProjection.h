@@ -33,4 +33,7 @@ private:
   //void HandleKeyDown( wxKeyEvent& event ) { event.Skip(); } // EVT_KEY_DOWN
   //void HandleKeyUp( wxKeyEvent& event ) { event.Skip(); }  // EVT_KEY_UP
   void HandleKey( wxKeyEvent& event );
+  
+  void CheckMedia( void );
+  void CheckMedia2( const std::string& sFile );
 };

@@ -113,10 +113,10 @@
         <linkerTool>
           <linkerLibItems>
             <linkerLibLibItem>avdevice</linkerLibLibItem>
-            <linkerLibLibItem>avcodec</linkerLibLibItem>
-            <linkerLibLibItem>avresample</linkerLibLibItem>
             <linkerLibLibItem>avfilter</linkerLibLibItem>
             <linkerLibLibItem>avformat</linkerLibLibItem>
+            <linkerLibLibItem>avcodec</linkerLibLibItem>
+            <linkerLibLibItem>avresample</linkerLibLibItem>
             <linkerLibLibItem>avutil</linkerLibLibItem>
             <linkerLibLibItem>swscale</linkerLibLibItem>
             <linkerLibLibItem>z</linkerLibLibItem>
@@ -130,6 +130,7 @@
             <linkerLibLibItem>GLU</linkerLibLibItem>
             <linkerLibLibItem>SOIL</linkerLibLibItem>
             <linkerLibLibItem>boost_filesystem</linkerLibLibItem>
+            <linkerLibLibItem>bz2</linkerLibLibItem>
           </linkerLibItems>
           <commandLine>`/usr/local/bin/wx-config --libs`</commandLine>
         </linkerTool>

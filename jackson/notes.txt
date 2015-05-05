@@ -1,3 +1,17 @@
+2015/05/03
+
+https://libav.org/releases/libav-11.3.release
+One specific API issue in libavformat deserves mentioning here. When using
+libavcodec for decoding or encoding and libavformat for demuxing or muxing,
+the standard practice was to use the stream codec context (AVStream.codec) for
+actual decoding or encoding. There are multiple problems with this pattern
+(the main one is that the decoder/demuxer or encoder/muxer are not necessarily
+synchronized and may overwrite each other's state), so it is now strongly
+discouraged and will likely be deprecated in the future. Users should instead
+allocate a separate decoding or encoding context and populate it from the
+demuxing codec context (or the reverse for encoding) with the
+avcodec_copy_context() function.
+
 2015/03/22
 
 Apparently, wxWidgets requires that the first OpenGL or GLEW call be placed inside the OnPaint event handler function. 
