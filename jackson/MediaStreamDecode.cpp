@@ -22,6 +22,10 @@ extern "C" {
 
 #include <wx/image.h>
 #include <wx/rawbmp.h>
+//#include <wx/app.h>
+#include <wx/event.h>
+
+//#include "EventImage.h"
 
 #include "MediaStreamDecode.h"
 
@@ -31,56 +35,41 @@ MediaStreamDecode::MediaStreamDecode( )
 : m_pFormatContext( 0 ), m_bInUse( false ), m_ixBestVideoStream( 0 ), m_ixBestAudioStream( 0 )
 {
   
-  //m_connectionFrameTrigger = TreeItemImageCommon::ConnectFrameTrigger( boost::phoenix::bind( &TreeItemVideo::ShowImage, this ) );
-  
     // workers for the movie action
   m_pWork = new boost::asio::io_service::work(m_Srvc);  // keep the asio service running 
   //m_thrdWorkers = boost::thread( boost::phoenix::bind( &AppProjection::Workers, this ) );
-  for ( std::size_t ix = 0; ix < 2; ix++ ) {
+  for ( std::size_t ix = 0; ix < 2; ix++ ) {  // HandleFrame, TransformToImage
     m_threadsWorkers.create_thread( boost::phoenix::bind( &boost::asio::io_service::run, &m_Srvc ) );
   }
 
 }
 
 MediaStreamDecode::~MediaStreamDecode( ) {
-  m_connectionFrameTrigger.disconnect();
+  Close();
   delete m_pWork;
   m_pWork = 0;
-  m_threadsWorkers.join_all();
+  m_threadsWorkers.join_all();  // wait for processing to end
 }
 
 void MediaStreamDecode::Workers( void ) {
   m_Srvc.run(); 
 }
 
-void MediaStreamDecode::EmitStats( const std::string& sFile ) {
-  if ( m_bInUse ) {
-    std::runtime_error( "instance of MediaStreamDecode in use" );
-  }
-  std::cout << "==== Media File Stats ==== " << sFile << " ====" << std::endl;
-  bool bStatus = Open( sFile );
-  if ( bStatus ) {
-    EmitStats();
-    Close();
-  }
-}
-
-void MediaStreamDecode::Play( const std::string& sFile ) {
+void MediaStreamDecode::Play( void ) {
   
-  if ( m_bInUse ) {
-    std::runtime_error( "instance of MediaStreamDecode in use" );
+  if ( !m_bInUse ) {
+    std::runtime_error( "instance of MediaStreamDecode not in use" );
   }
   
-  std::cout << "==== Media File Player ==== " << sFile << " ====" << std::endl;
-  
-  namespace args = boost::phoenix::arg_names;
+//  namespace args = boost::phoenix::arg_names;
 //  pDecoder->m_OnFrame.connect( 
 //    boost::phoenix::bind( &TreeItemVideo::HandleOnFrame, this, args::arg1, args::arg2, args::arg3, args::arg4, args::arg5 ) );
 
-//  pDecoder->load( dialogOpenFile.GetPath() );
-  // ProcessFile to be handled in thread
-
+  // need to check not already running
   m_Srvc.post( boost::phoenix::bind( &MediaStreamDecode::ProcessStream, this, m_ixBestAudioStream, m_ixBestVideoStream ) );
+  
+  // need to auto close, or manually close stream
+  // also need to set flag to interrupt frame generation
     
 }
 
@@ -189,6 +178,8 @@ void MediaStreamDecode::EmitStats( void ) {
   
   assert( m_bInUse );
   
+  std::cout << "==== Media File Stats ==== " << std::endl;
+  
   AVDictionaryEntry* pDictEntry = 0;
   
   // emit dictionary
@@ -220,10 +211,6 @@ void MediaStreamDecode::EmitStats( void ) {
   std::cout << "best video stream: " << m_ixBestVideoStream << ", best audio stream: " << m_ixBestAudioStream << std::endl;
 }
 
-//void MediaStreamDecode::ProcessVideoFile( boost::shared_ptr<DecodeH264> pDecoder ) { // is in background  thread
-//  pDecoder->ProcessFile();
-//}
-
 void MediaStreamDecode::ProcessStream( size_t ixAudio, size_t ixVideo ) {  // should be in background thread
   
   // need asserts to verify indexes are for valid codecs of the type specified
@@ -242,9 +229,11 @@ void MediaStreamDecode::ProcessStream( size_t ixAudio, size_t ixVideo ) {  // sh
   assert( 0 != pFrame );
   //int cnt( 100 );
   int status( 0 );
+  m_ts.start = boost::chrono::high_resolution_clock::now();
   while ( 0 == ( status = av_read_frame( m_pFormatContext, &packet ) ) ) {  // https://libav.org/doxygen/master/group__lavf__decoding.html
     //std::cout << "packet " << packet.stream_index << ": " << packet.pts << ", " << packet.dts << ", " << packet.duration << std::endl;
-    std::cout << "packet " << packet.stream_index << ": " << packet.size << ", " << std::endl;
+    //std::cout << "packet " << packet.stream_index << ": " << packet.size << ", " << std::endl;
+    m_ts.parse = boost::chrono::high_resolution_clock::now();
     int gotFrame( 0 );
     // https://libav.org/doxygen/master/group__lavc__decoding.html
     if ( ixAudio == packet.stream_index ) {
@@ -254,6 +243,7 @@ void MediaStreamDecode::ProcessStream( size_t ixAudio, size_t ixVideo ) {  // sh
       }
       else {
         // emit the audio
+        m_ts.decoded = boost::chrono::high_resolution_clock::now();
       }
     }
     if ( ixVideo == packet.stream_index ) {
@@ -263,6 +253,11 @@ void MediaStreamDecode::ProcessStream( size_t ixAudio, size_t ixVideo ) {  // sh
       }
       else {
         if ( 0 != gotFrame ) {  // emit picture
+          m_ts.decoded = boost::chrono::high_resolution_clock::now();
+          // could put into asio queue
+          //HandleOnFrame( m_vStreamInfo[ixVideo].pCodecContext, pFrame, 0, m_ts );
+          //m_Srvc.post( boost::phoenix::bind( &MediaStreamDecode::HandleOnFrame, this, m_vStreamInfo[ixVideo].pCodecContext, pFrame, m_ts ) );
+          HandleOnFrame( m_vStreamInfo[ixVideo].pCodecContext, pFrame, m_ts );
           //std::cout << "width: " << pFrame->width << " height: " << pFrame->height << " format: " << pFrame->format;
           //if ( 1 == pFrame->key_frame ) std::cout << " key frame " << pFrame->display_picture_number;
           //std::cout << std::endl;
@@ -271,6 +266,7 @@ void MediaStreamDecode::ProcessStream( size_t ixAudio, size_t ixVideo ) {  // sh
     }
     //--cnt;
     //if ( 0 == cnt ) break;
+    m_ts.start = boost::chrono::high_resolution_clock::now();  // reset for next loop
   }
 
   // may want to use seek at some point (when looping) av_seek_frame : https://libav.org/doxygen/master/group__lavf__decoding.html)
@@ -291,16 +287,16 @@ void MediaStreamDecode::Close( void ) {
 
 }
 
-void MediaStreamDecode::HandleOnFrame( AVCodecContext* pContext, AVFrame* pFrame, void* user, structTimeSteps perf ) {
+void MediaStreamDecode::HandleOnFrame( AVCodecContext* pContext, AVFrame* pFrame, structTimeSteps perf ) {
   
 #define FMT PIX_FMT_RGB32
 //#define FMT PIX_FMT_RGB24
   
-  int srcX = pFrame->width;
-  int srcY = pFrame->height;
+  //int srcX = pFrame->width;  // these are actually 0
+  //int srcY = pFrame->height;
   
-  //int srcX = context->width;
-  //int srcY = context->height;
+  int srcX = pContext->width;
+  int srcY = pContext->height;
   
   size_t nBytes = avpicture_get_size( FMT, srcX, srcY );
   
@@ -327,7 +323,7 @@ void MediaStreamDecode::HandleOnFrame( AVCodecContext* pContext, AVFrame* pFrame
   
   perf.scaled = boost::chrono::high_resolution_clock::now();
 
-  m_Srvc.post( boost::phoenix::bind( &MediaStreamDecode::HandleFrameTransformToImage, this, pRGB, buf, user, perf, srcX, srcY ) );
+  m_Srvc.post( boost::phoenix::bind( &MediaStreamDecode::HandleFrameTransformToImage, this, pRGB, buf, perf, srcX, srcY ) );
   
   // ** note decode currently works faster than the transform, so transform work will queue up.
   //    need to deal with proper timing of frames.
@@ -337,15 +333,16 @@ void MediaStreamDecode::HandleOnFrame( AVCodecContext* pContext, AVFrame* pFrame
   //      or do frame ordering in final presentation to screen, buffer loop
 }
 
-void MediaStreamDecode::HandleFrameTransformToImage( AVFrame* pRgb, uint8_t* buf, void* user, structTimeSteps perf, int srcX, int srcY ) {
+void MediaStreamDecode::HandleFrameTransformToImage( AVFrame* pRgb, uint8_t* buf, structTimeSteps perf, int srcX, int srcY ) {
   
   perf.queue1 = boost::chrono::high_resolution_clock::now();
   
   uint8_t* pSrcFrame( *pRgb->data );
   
-  boost::shared_ptr<wxImage> pImage( new wxImage( srcX, srcY, false ) );
-  wxImage* image( pImage.get() );
-  wxImagePixelData data( *image );
+  pImage_t pImage( new wxImage( srcX, srcY, false ) );
+  //wxImage* image( pImage.get() );
+  //wxImagePixelData data( *image );
+  wxImagePixelData data( *pImage );
   wxImagePixelData::Iterator pDestImage( data );
   
   for ( int iy = 0; iy < srcY; ++iy ) {
@@ -360,8 +357,12 @@ void MediaStreamDecode::HandleFrameTransformToImage( AVFrame* pRgb, uint8_t* buf
   }
 
   perf.copied = boost::chrono::high_resolution_clock::now();
+  
+  m_signalImageReady( pImage, m_ts );
 
-//  wxApp::GetInstance()->QueueEvent( new EventImage( EVENT_IMAGE, m_pPhysicalDisplay->GetFrame()->GetId(), pImage, user, perf ) );
+  //m_pWin->QueueEvent(  );
+  //wxApp::GetInstance()->QueueEvent( new EventImage( EVENT_IMAGE, 0, pImage, user, perf ) );
+  //wxApp->GetInstance()->QueueEvent( new EventImage( EVENT_IMAGE, m_pWin->GetId(), pImage, user, perf ) );
   
   // may need to set a unique itemid if multiple events running simultaneously
   // need to change this to the specific canvas into which the frame is going to be displayed

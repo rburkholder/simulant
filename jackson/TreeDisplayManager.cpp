@@ -32,6 +32,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
+#include <wx/event.h>
 
 #include "common.h"
 //#include "DecodeH264.h"
@@ -107,14 +108,14 @@ public:
   typedef boost::signals2::signal<void ( const glm::mat4& )> signalTransformUpdated_t;
   typedef signalTransformUpdated_t::slot_type slotTransformUpdated_t;
   
+  TreeItemVisualCommon( TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
+  virtual ~TreeItemVisualCommon( void );
+  
   boost::signals2::connection ConnectTransformUpdated( const slotTransformUpdated_t& slot ) {
     return m_signalTransformUpdated.connect( slot );
   }
   
   void GetTransformMatrix( glm::mat4& matrix ) const { matrix = m_mat4Transform; };
-  
-  TreeItemVisualCommon( TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
-  virtual ~TreeItemVisualCommon( void );
   
   void HandleDelete( wxCommandEvent& event );  // compiler doesn't like in protected
   void HandleReset( wxCommandEvent& event );  // compiler doesn't like in protected
@@ -124,8 +125,6 @@ protected:
   //volatile bool m_bActive;
   
   signalTransformUpdated_t m_signalTransformUpdated;
-  
-  //boost::signals2::connection m_slotTimer;
   
   pPhysicalDisplay_t m_pPhysicalDisplay;
   pSceneManager_t m_pSceneManager;
@@ -490,15 +489,14 @@ private:
   
   MediaStreamDecode m_player;
   
-//  void ProcessVideoFile( boost::shared_ptr<DecodeH264> pDecoder );
-  
-//  void HandleOnFrame( AVCodecContext* context, AVFrame* frame, AVPacket* pkt, void* user, structTimeSteps perf );
-//  void HandleFrameTransformToImage( AVFrame* pRgb, uint8_t* buf, void* user, structTimeSteps perf, int srcX, int srcY );
-  void HandleEventImage( EventImage& );
+  boost::signals2::connection m_connectionFrameTrigger;
+  boost::signals2::connection m_connectionImageReady;
   
   void HandleLoadVideo( wxCommandEvent& event );  // need to recode (this is where it actually starts)
   void LoadVideo( void );
   
+  void HandleImage( MediaStreamDecode::pImage_t, const structTimeSteps& );
+  void HandleEventImage( EventImage& );
   void ShowImage( void );  // show next image from vector
   
 };
@@ -519,6 +517,10 @@ TreeItemVideo::TreeItemVideo(
   // **** will need to set a specific instance id so that multiple frames can be run
   wxApp::GetInstance()->Bind( EVENT_IMAGE, &TreeItemVideo::HandleEventImage, this );
   
+  namespace args = boost::phoenix::arg_names;
+  m_connectionFrameTrigger = TreeItemImageCommon::ConnectFrameTrigger( boost::phoenix::bind( &TreeItemVideo::ShowImage, this ) );
+  m_connectionImageReady = m_player.ConnectImageReady( boost::phoenix::bind( &TreeItemVideo::HandleImage, this, args::arg1, args::arg2 ) );
+  
   ResetTransformMatrix();
   
   LoadVideo();
@@ -528,20 +530,8 @@ TreeItemVideo::TreeItemVideo(
 }
 
 TreeItemVideo::~TreeItemVideo( void ) {
-}
-
-void TreeItemVideo::ShowImage( void ) {
-  vpImage_t::size_type size( m_vpImage.size() );
-  if ( 0 != size ) {
-    TreeItemImageCommon::SetImage( m_vpImage[ m_ixvImage ] );
-    ++m_ixvImage;
-    assert( size >= m_ixvImage );
-    if ( size == m_ixvImage ) {
-      m_ixvImage = 0;
-    }
-    else {
-    }
-  }
+  m_connectionImageReady.disconnect();
+  m_connectionFrameTrigger.disconnect();
 }
 
 void TreeItemVideo::ShowContextMenu( void ) {
@@ -558,39 +548,6 @@ void TreeItemVideo::ShowContextMenu( void ) {
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVisualCommon::HandleDelete, this, MIDelete );
   
   m_pTree->PopupMenu( pMenu );
-}
-
-void TreeItemVideo::HandleEventImage( EventImage& event ) {
-
-  typedef boost::chrono::milliseconds ms;
-  typedef boost::chrono::microseconds mu;
-  static boost::chrono::duration<int64_t, boost::milli> onesec( 1000 );
-  
-  structTimeSteps ts( event.GetTimeSteps() );
-  
-  ts.queue2 = boost::chrono::high_resolution_clock::now();
-  
-  // by putting a lock on the vector, we may no longer need this event
-  m_vpImage.push_back( event.GetImage() );
-  
-//  wxBitmap bitmap( *event.GetImage() );
-//  FrameProjection* pfp = (FrameProjection*) event.GetVoid();
-//  wxClientDC dc( pfp );
-//  dc.DrawBitmap( bitmap, wxPoint( 10, 10 ) );
-  
-  ts.drawn = boost::chrono::high_resolution_clock::now();
-  
-  std::cout << "stat:" 
-    << "  parse "  << boost::chrono::duration_cast<mu>( ts.parse - ts.start )
-    << ", decode " << boost::chrono::duration_cast<ms>( ts.decoded - ts.parse )
-    << ", filled " << boost::chrono::duration_cast<mu>( ts.filled - ts.decoded )
-    << ", scaled " << boost::chrono::duration_cast<ms>( ts.scaled - ts.filled )
-    << ", queue1 " << boost::chrono::duration_cast<mu>( ts.queue1 - ts.scaled )
-    << ", xformd " << boost::chrono::duration_cast<ms>( ts.copied - ts.queue1 )
-    << ", queue2 " << boost::chrono::duration_cast<mu>( ts.queue2 - ts.copied )
-    << ", drawn "  << boost::chrono::duration_cast<ms>( ts.drawn - ts.queue2 )
-    << std::endl;
-    
 }
 
 void TreeItemVideo::HandleLoadVideo( wxCommandEvent& event ) {
@@ -617,9 +574,10 @@ void TreeItemVideo::LoadVideo( void ) {
     //std::cout << "dir " << m_sVideoDirectory << std::endl;
     //assert( m_image.LoadFile( dialogOpenFile.GetPath(), wxBITMAP_TYPE_JPEG ) );
 
-    //boost::shared_ptr<DecodeH264> pDecoder( new DecodeH264 ( m_pPhysicalDisplay->GetFrame() ) );
-    
-    m_player.Play( sPath );
+    m_player.Close();
+    if ( m_player.Open( sPath ) ) {;  // means it needs to be closed manually or automatically
+      m_player.Play();
+    }
     
     
     // need to do processing in background, 
@@ -633,6 +591,65 @@ void TreeItemVideo::LoadVideo( void ) {
   }
   else {
     
+  }
+}
+
+void TreeItemVideo::HandleImage( MediaStreamDecode::pImage_t pImage, const structTimeSteps& ts ) {
+  wxApp::GetInstance()->QueueEvent( new EventImage( EVENT_IMAGE, -1, pImage, GetTreeItemId(), ts ) );
+}
+
+void TreeItemVideo::HandleEventImage( EventImage& event ) {
+  
+  typedef boost::chrono::milliseconds ms;
+  typedef boost::chrono::microseconds mu;
+  static boost::chrono::duration<int64_t, boost::milli> onesec( 1000 );
+  
+  bool bSkip( true );
+  
+  if ( this->GetTreeItemId() == event.GetUser() ) {
+    structTimeSteps ts( event.GetTimeSteps() );
+
+    ts.queue2 = boost::chrono::high_resolution_clock::now();
+
+    // by putting a lock on the vector, we may no longer need this event
+    m_vpImage.push_back( event.GetImage() );
+
+  //  wxBitmap bitmap( *event.GetImage() );
+  //  FrameProjection* pfp = (FrameProjection*) event.GetVoid();
+  //  wxClientDC dc( pfp );
+  //  dc.DrawBitmap( bitmap, wxPoint( 10, 10 ) );
+
+    ts.drawn = boost::chrono::high_resolution_clock::now();
+
+    std::cout << "stat:" 
+      << "  parse "  << boost::chrono::duration_cast<mu>( ts.parse - ts.start )
+      << ", decode " << boost::chrono::duration_cast<ms>( ts.decoded - ts.parse )
+      << ", filled " << boost::chrono::duration_cast<mu>( ts.filled - ts.decoded )
+      << ", scaled " << boost::chrono::duration_cast<ms>( ts.scaled - ts.filled )
+      << ", queue1 " << boost::chrono::duration_cast<mu>( ts.queue1 - ts.scaled )
+      << ", xformd " << boost::chrono::duration_cast<ms>( ts.copied - ts.queue1 )
+      << ", queue2 " << boost::chrono::duration_cast<mu>( ts.queue2 - ts.copied )
+      << ", drawn "  << boost::chrono::duration_cast<ms>( ts.drawn - ts.queue2 )
+      << std::endl;
+    
+    bSkip = false;
+  }
+
+  event.Skip( bSkip );
+    
+}
+
+void TreeItemVideo::ShowImage( void ) {
+  vpImage_t::size_type size( m_vpImage.size() );
+  if ( 0 != size ) {
+    TreeItemImageCommon::SetImage( m_vpImage[ m_ixvImage ] );
+    ++m_ixvImage;
+    assert( size >= m_ixvImage );
+    if ( size == m_ixvImage ) {
+      m_ixvImage = 0;
+    }
+    else {
+    }
   }
 }
 

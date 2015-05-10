@@ -11,6 +11,8 @@
 #include <boost/asio.hpp>
 #include <boost/signals2.hpp>
 
+#include <wx/wx.h>
+
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -20,21 +22,29 @@ extern "C" {
 
 class MediaStreamDecode {
 public:
-  MediaStreamDecode( );
-  virtual ~MediaStreamDecode( );
-  void EmitStats( const std::string& sFile );
-  void Play( const std::string& sFile );
+  
+  typedef boost::shared_ptr<wxImage> pImage_t;
+  typedef boost::signals2::signal<void (pImage_t, const structTimeSteps&)> signalImageReady_t;
+  typedef signalImageReady_t::slot_type slotImageReady_t;
+  
+  MediaStreamDecode( void );
+  virtual ~MediaStreamDecode( void );
+  
+  boost::signals2::connection ConnectImageReady( const slotImageReady_t& slot ) {
+    return m_signalImageReady.connect( slot );
+  }
+  
+  bool Open( const std::string& sFile );
+  void EmitStats( void );
+  void Play( void );
+  void Rewind( void );
+  //void Seek( ... );
+  void Stop( void );
+  void PauseResume( void );
+  
+  void Close( void );
+  
 private:
-  
-  bool m_bInUse;
-  
-  boost::thread_group m_threadsWorkers;
-  boost::asio::io_service m_Srvc;
-  boost::asio::io_service::work* m_pWork;
-  
-  boost::signals2::connection m_connectionFrameTrigger;
-  
-  AVFormatContext* m_pFormatContext;
   
   struct StreamInfo {
     AVCodec* pCodec;
@@ -53,19 +63,27 @@ private:
   typedef std::vector<StreamInfo> vStreamInfo_t;
   vStreamInfo_t m_vStreamInfo;
 
+  AVFormatContext* m_pFormatContext;
+  
+  bool m_bInUse;
+  
+  boost::thread_group m_threadsWorkers;
+  boost::asio::io_service m_Srvc;
+  boost::asio::io_service::work* m_pWork;
+  
+  signalImageReady_t m_signalImageReady;
+  
   int m_ixBestAudioStream;
   int m_ixBestVideoStream;
   
-//  void ProcessVideoFile( boost::shared_ptr<DecodeH264> pDecoder );  // background thread?
+  structTimeSteps m_ts;
+  
   void ProcessStream( size_t ixAudio, size_t ixVideo );  // background thread
-  void HandleOnFrame( AVCodecContext* pContext, AVFrame* pFrame, void* user, structTimeSteps perf );
-  void HandleFrameTransformToImage( AVFrame* pRgb, uint8_t* buf, void* user, structTimeSteps perf, int srcX, int srcY );
+  void HandleOnFrame( AVCodecContext* pContext, AVFrame* pFrame, structTimeSteps perf );
+  void HandleFrameTransformToImage( AVFrame* pRgb, uint8_t* buf, structTimeSteps perf, int srcX, int srcY );
   
   void Workers( void );  // background processing of video
   
-  bool Open( const std::string& sFile );
-  void EmitStats( void );
-  void Close( void );
 
 };
 

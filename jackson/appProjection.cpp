@@ -110,7 +110,11 @@ void AppProjection::MediaFileStats( void ) {
     std::string s( dialogOpenFile.GetPath() );
     
     MediaStreamDecode media;
-    media.EmitStats( s );;
+    if ( media.Open( s ) ) {
+      media.EmitStats();
+      media.Close();
+    }
+    
     
   }
   else {

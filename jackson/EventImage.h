@@ -22,7 +22,7 @@ public:
   virtual ~EventImage( void );
   
   pImage_t GetImage( void ) { return m_pImage; };
-  void* GetVoid( void ) { return m_pVoid; };
+  void* GetUser( void ) { return m_pVoid; };
   structTimeSteps& GetTimeSteps( void ) { return m_ts; };
   
   virtual EventImage* Clone( void ) const { 
