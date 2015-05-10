@@ -7,8 +7,7 @@
  * Created on April 18, 2015, 6:08 PM
  */
 
-#ifndef FPSGENERATOR_H
-#define	FPSGENERATOR_H
+#pragma once
 
 #include <map>
 
@@ -17,7 +16,7 @@
 
 #include <boost/signals2.hpp>
 
-class DownCount;
+class FrameRate;
 
 class FpsGenerator {
 public:
@@ -32,21 +31,20 @@ public:
   
   boost::signals2::connection Connect( FPS, const slotFrame_t& );
   
+  FPS FindFrameRate( size_t num, size_t den );
+  
 protected:  
 private:
   
-  typedef boost::shared_ptr<DownCount> pDownCount_t;
+  typedef boost::shared_ptr<FrameRate> pFrameRate_t;
   
   bool m_bStopThread;
   bool m_bThreadRunning;
   
   boost::thread m_thread;
   
-  typedef std::map<FPS, pDownCount_t> mapDownCount_t;
-  mapDownCount_t m_mapDownCount;
+  typedef std::map<FPS, pFrameRate_t> mapFrameRate_t;
+  mapFrameRate_t m_mapFrameRate;
   
   void Thread( void ); // stuff running in the thread
 };
-
-#endif	/* FPSGENERATOR_H */
-

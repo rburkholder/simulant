@@ -52,6 +52,11 @@ SceneManager::~SceneManager( ) {
   m_bActive = false;
 }
 
+SceneManager::key_t SceneManager::Add( size_t num, size_t den, pSceneElement_t pSceneElement ) {
+  Add( fpsGenerator.FindFrameRate( num, den ), pSceneElement );
+}
+
+
 SceneManager::key_t SceneManager::Add( FPS fps, pSceneElement_t pSceneElement ) {
   
   key_t key( ++m_cntMapSceneElement ); 

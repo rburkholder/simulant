@@ -6,6 +6,7 @@
  */
 
 #include <vector>
+#include <stdexcept>
 
 #include <boost/phoenix/bind/bind_member_function.hpp>
 
@@ -24,13 +25,14 @@
 // 2015/05/10 optimization:
 //   maybe use least downcount to determine when next to set the alarm
   
-class DownCount {  // counters are based upon 1ms intervals
+class FrameRate {  // counters are based upon 1ms intervals
 public:
   
   typedef std::vector<size_t> vCounts_t;
   
-  DownCount( FpsGenerator::FPS fps, const vCounts_t vCounts, const size_t frames, const size_t ms ) 
-  : m_fps( fps ), m_ixCounts( 0 ), m_nCount( 0 ), m_vCounts( vCounts )
+  FrameRate( FpsGenerator::FPS fps, const vCounts_t vCounts, size_t frames, size_t ms, size_t fr_num, size_t fr_den ) 
+  : m_fps( fps ), m_ixCounts( 0 ), m_nCount( 0 ), m_vCounts( vCounts ),
+    m_nFrameRateNumerator( fr_num ), m_nFrameRateDenominator( fr_den )
   { // frame pull down rates
     assert( frames == m_vCounts.size() );
     size_t msSum( 0 );
@@ -40,7 +42,7 @@ public:
     assert( ms == msSum );
     m_nCount = m_vCounts[ m_ixCounts ];
   }
-  ~DownCount( void ) {};
+  ~FrameRate( void ) {};
   void Check( void ) {
     assert( 0 != m_nCount );
     --m_nCount;
@@ -56,14 +58,24 @@ public:
     }
   }
   
+  FpsGenerator::FPS GetFrameRate( void ) const { return m_fps; }
+  bool TestForFrameRate( size_t num, size_t den ) const {
+    return ( ( num == m_nFrameRateNumerator ) && ( den == m_nFrameRateDenominator ) );
+  }
+  
   FpsGenerator::signalFrame_t m_signal;
   
 protected:
 private:
+
+  const FpsGenerator::FPS m_fps;
+  const size_t m_nFrameRateNumerator;
+  const size_t m_nFrameRateDenominator;
+  
   vCounts_t m_vCounts;
   size_t m_ixCounts;
   size_t m_nCount;
-  FpsGenerator::FPS m_fps;
+  
 };
   
 FpsGenerator::FpsGenerator( ) 
@@ -71,57 +83,65 @@ FpsGenerator::FpsGenerator( )
 {
   using namespace boost::assign;
   {
-    DownCount::vCounts_t v24xfps;
+    FrameRate::vCounts_t v24xfps;
     for ( unsigned int ix = 1; ix <= 7; ++ix ) {
       v24xfps += 42, 42, 41;
-    } // ( 7 * 3 ) entries above + 3 entries below  is 24 frames
+    } // ( 7 * 3 ) entries above + 3 entries below is 24 frames
     v24xfps += 42, 42, 42;
-    m_mapDownCount.insert( mapDownCount_t::value_type( fps24x, pDownCount_t( new DownCount( fps24x, v24xfps, 24, 1001 ) ) ) );
+    m_mapFrameRate.insert( 
+      mapFrameRate_t::value_type( fps24x, pFrameRate_t( new FrameRate( fps24x, v24xfps, 24, 1001, 24000, 1001 ) ) ) );
   }
 
   {
-    DownCount::vCounts_t v24fps;
+    FrameRate::vCounts_t v24fps;
     v24fps += 42, 42, 41;  // 3 frames in 125 ms
-    m_mapDownCount.insert( mapDownCount_t::value_type( fps24, pDownCount_t( new DownCount( fps24, v24fps, 3, 125 ) ) ) );
+    m_mapFrameRate.insert( 
+      mapFrameRate_t::value_type( fps24, pFrameRate_t( new FrameRate( fps24, v24fps, 3, 125, 24, 1 ) ) ) );
   }
 
   {
-    DownCount::vCounts_t v25fps; 
+    FrameRate::vCounts_t v25fps; 
     v25fps += 40;  // 1 frame every 40 ms
-    m_mapDownCount.insert( mapDownCount_t::value_type( fps25, pDownCount_t( new DownCount( fps25, v25fps, 1, 40 ) ) ) );
+    m_mapFrameRate.insert( 
+      mapFrameRate_t::value_type( fps25, pFrameRate_t( new FrameRate( fps25, v25fps, 1, 40, 25, 1 ) ) ) );
   }
 
   {
-    DownCount::vCounts_t v30xfps;
+    FrameRate::vCounts_t v30xfps;
     for ( unsigned int ix = 1; ix <= 9; ++ix ) {
       v30xfps += 33, 33, 34;
-    } // ( 9 * 3 ) entries above + 3 entries below  is 30 frames
+    } // ( 9 * 3 ) entries above + 3 entries below is 30 frames
     v30xfps += 33, 34, 34;
-    m_mapDownCount.insert( mapDownCount_t::value_type( fps30x, pDownCount_t( new DownCount( fps30x, v30xfps, 30, 1001 ) ) ) );
+    m_mapFrameRate.insert( 
+      mapFrameRate_t::value_type( fps30x, pFrameRate_t( new FrameRate( fps30x, v30xfps, 30, 1001, 30000, 1001 ) ) ) );
   }
 
   {
-    DownCount::vCounts_t v30fps; 
+    FrameRate::vCounts_t v30fps; 
     v30fps += 33, 33, 34;  // 3 frames in 100ms
-    m_mapDownCount.insert( mapDownCount_t::value_type( fps30, pDownCount_t( new DownCount( fps30, v30fps, 3, 100 ) ) ) );
+    m_mapFrameRate.insert( 
+      mapFrameRate_t::value_type( fps30, pFrameRate_t( new FrameRate( fps30, v30fps, 3, 100, 30, 1 ) ) ) );
   }
 
   {
-    DownCount::vCounts_t v48fps; 
+    FrameRate::vCounts_t v48fps; 
     v48fps += 21, 21, 21, 21, 21, 20; // 6 frames in 125ms
-    m_mapDownCount.insert( mapDownCount_t::value_type( fps48, pDownCount_t( new DownCount( fps48, v48fps, 6, 125 ) ) ) );
+    m_mapFrameRate.insert( 
+      mapFrameRate_t::value_type( fps48, pFrameRate_t( new FrameRate( fps48, v48fps, 6, 125, 48, 1 ) ) ) );
   }
 
   {
-    DownCount::vCounts_t v60fps; 
+    FrameRate::vCounts_t v60fps; 
     v60fps += 17, 17, 16; // 3 frames in 50ms
-    m_mapDownCount.insert( mapDownCount_t::value_type( fps60, pDownCount_t( new DownCount( fps60, v60fps, 3, 50 ) ) ) );
+    m_mapFrameRate.insert( 
+      mapFrameRate_t::value_type( fps60, pFrameRate_t( new FrameRate( fps60, v60fps, 3, 50, 60, 1 ) ) ) );
   }
   
   {
-    DownCount::vCounts_t v100fps; 
+    FrameRate::vCounts_t v100fps; 
     v100fps += 10; // 1 frame in 10ms
-    m_mapDownCount.insert( mapDownCount_t::value_type( fps100, pDownCount_t( new DownCount( fps100, v100fps, 1, 10 ) ) ) );
+    m_mapFrameRate.insert( 
+      mapFrameRate_t::value_type( fps100, pFrameRate_t( new FrameRate( fps100, v100fps, 1, 10, 100, 1 ) ) ) );
   }
   
   }
@@ -131,9 +151,23 @@ FpsGenerator::~FpsGenerator( ) {
   m_thread.join();  // wait for thread to end
 }
 
+FpsGenerator::FPS FpsGenerator::FindFrameRate( size_t num, size_t den ) {
+  FPS fps( fps24 );
+  bool bFound( false );
+  BOOST_FOREACH( const mapFrameRate_t::value_type& fr, m_mapFrameRate ) {
+    bFound |= fr.second->TestForFrameRate( num, den );
+    if ( bFound ) {
+      fps = fr.first;
+      break;
+    }
+  }
+  assert( bFound != false );
+  return fps;
+}
+
 boost::signals2::connection FpsGenerator::Connect( FPS fps, const slotFrame_t& slot ) {
-  mapDownCount_t::iterator iter = m_mapDownCount.find( fps );
-  assert( m_mapDownCount.end() != iter );
+  mapFrameRate_t::iterator iter = m_mapFrameRate.find( fps );
+  assert( m_mapFrameRate.end() != iter );
   return iter->second->m_signal.connect( slot );
 }
 
@@ -148,7 +182,7 @@ void FpsGenerator::Thread( void ) {
   m_bThreadRunning = true;
   while ( ! m_bStopThread ) {
     // generate events
-    for ( mapDownCount_t::iterator iter = m_mapDownCount.begin(); m_mapDownCount.end() != iter; ++iter ) {
+    for ( mapFrameRate_t::iterator iter = m_mapFrameRate.begin(); m_mapFrameRate.end() != iter; ++iter ) {
       iter->second->Check();
     }
     // perform delay to next

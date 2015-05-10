@@ -31,6 +31,7 @@ public:
   virtual ~SceneManager( );
   
   key_t Add( FPS, pSceneElement_t );  // returns key element
+  key_t Add( size_t num, size_t den, pSceneElement_t );  // returns key element
   void Delete( size_t key );
   
 protected:

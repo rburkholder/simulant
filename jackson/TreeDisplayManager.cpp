@@ -536,9 +536,19 @@ TreeItemVideo::TreeItemVideo(
   
   UpdateTransformMatrix();  // probably won't have coordinates at this time, so may not be necessary
   
+//  TreeItemImageCommon::m_keyTexture 
+//    = m_pSceneManager->Add( FpsGenerator::fps24, TreeItemImageCommon::m_pTexture );
+  
 }
 
 TreeItemVideo::~TreeItemVideo( void ) {
+  
+  // may need to factor out so can redo the key as needed
+  if ( 0 != TreeItemImageCommon::m_keyTexture ) {
+    m_pSceneManager->Delete( m_keyTexture );
+    m_keyTexture = 0;
+  }
+  
   m_connectionImageReady.disconnect();
   m_connectionFrameTrigger.disconnect();
 }
@@ -583,8 +593,13 @@ void TreeItemVideo::LoadVideo( void ) {
     //std::cout << "dir " << m_sVideoDirectory << std::endl;
     //assert( m_image.LoadFile( dialogOpenFile.GetPath(), wxBITMAP_TYPE_JPEG ) );
 
+    
     m_player.Close();
-    if ( m_player.Open( sPath ) ) {;  // means it needs to be closed manually or automatically
+    if ( m_player.Open( sPath ) ) {  // means it needs to be closed manually or automatically
+      AVRational fr = m_player.GetVideoFrameRate();
+      // need to use a Add/Clear method in other class instead
+      TreeItemImageCommon::m_keyTexture 
+        = m_pSceneManager->Add( fr.num, fr.den, TreeItemImageCommon::m_pTexture );
       m_player.Play();
     }
     
