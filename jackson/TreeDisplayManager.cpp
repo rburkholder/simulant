@@ -7,6 +7,7 @@
 
 #include <map>
 #include <vector>
+#include <list>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/lexical_cast.hpp>
@@ -498,6 +499,7 @@ private:
   typedef boost::shared_ptr<SETexture> pSETexture_t;
   typedef boost::shared_ptr<wxImage> pImage_t;
   typedef std::vector<pImage_t> vpImage_t;
+  typedef std::list<pImage_t> lpImage_t;
   
   pSETexture_t m_pTexture;
   key_t m_keyTexture;
@@ -509,7 +511,10 @@ private:
   vpImage_t m_vpImage;
   vpImage_t::size_type m_ixvImage;  // allows cycling through m_vpImage
   
+  lpImage_t m_lpImage;
+  
   MediaStreamDecode m_player;
+  bool m_bResumed;
   
   boost::signals2::connection m_connectionFrameTrigger;
   boost::signals2::connection m_connectionImageReady;
@@ -526,7 +531,7 @@ private:
 TreeItemVideo::TreeItemVideo( 
   TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager )
 : TreeItemImageCommon( pTree, id, pPhysicalDisplay, pSceneManager ),
-  m_ixvImage( 0 )
+  m_ixvImage( 0 ), m_bResumed( true )
 {
   
   std::cout << "Tree Item Add Video" << std::endl; 
@@ -629,8 +634,20 @@ void TreeItemVideo::HandleEventImage( EventImage& event ) {
 
     // by putting a lock on the vector, we may no longer need this event
     // don't do this, doesn't scale for large videos, maybe sometime in the future
-    m_vpImage.push_back( event.GetImage() );
-
+    
+    m_lpImage.push_back( event.GetImage() );
+    
+    lpImage_t::size_type size( m_lpImage.size() );
+    std::cout << "v size: " << size;
+    if ( 16 < size ) {
+      if ( m_bResumed ) {
+        std::cout << " paused";
+        m_player.Pause();
+        m_bResumed = false;
+      }
+    }
+    std::cout << std::endl;
+    
   //  wxBitmap bitmap( *event.GetImage() );
   //  FrameProjection* pfp = (FrameProjection*) event.GetVoid();
   //  wxClientDC dc( pfp );
@@ -657,6 +674,24 @@ void TreeItemVideo::HandleEventImage( EventImage& event ) {
 }
 
 void TreeItemVideo::ShowImage( void ) {
+  
+  lpImage_t::size_type size1( m_lpImage.size() );
+  if ( 0 != size1 ) {
+    pImage_t pImage = m_lpImage.front();
+    m_vpImage.push_back( pImage );
+    m_lpImage.pop_front();
+  }
+  
+  size1 = m_lpImage.size();
+  if ( 8 > size1 ) {
+    if ( !m_bResumed ) {
+      std::cout << "v resumed " << size1 << std::endl;;
+      m_player.Resume();
+      m_bResumed = true;
+    }
+  }
+  
+  
   vpImage_t::size_type size( m_vpImage.size() );
   if ( 0 != size ) {
     TreeItemImageCommon::SetImage( m_vpImage[ m_ixvImage ] );

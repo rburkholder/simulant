@@ -20,60 +20,48 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
-#include <wx/image.h>
+//#include <wx/image.h>
 #include <wx/rawbmp.h>
-//#include <wx/app.h>
-#include <wx/event.h>
-
-//#include "EventImage.h"
 
 #include "MediaStreamDecode.h"
 
 // 2015/05/09  need to use fifo to queue processing
 
 MediaStreamDecode::MediaStreamDecode( )
-: m_pFormatContext( 0 ), m_bInUse( false ), m_ixBestVideoStream( 0 ), m_ixBestAudioStream( 0 )
+: m_pFormatContext( 0 ), m_ixBestVideoStream( 0 ), m_ixBestAudioStream( 0 ),
+  m_bProcessStreamWait( false ), m_stateStream( EClosed ),
+  m_stateThreadRequest( ThreadRequestFilled ), m_stateThread( ThreadStateStopped )
 {
   
     // workers for the movie action
   m_pWork = new boost::asio::io_service::work(m_Srvc);  // keep the asio service running 
-  //m_thrdWorkers = boost::thread( boost::phoenix::bind( &AppProjection::Workers, this ) );
-  for ( std::size_t ix = 0; ix < 2; ix++ ) {  // HandleFrame, TransformToImage
+  for ( std::size_t ix = 0; ix < 2; ix++ ) {  // one for each of ProcessStream, HandleFrameTransformToImage
     m_threadsWorkers.create_thread( boost::phoenix::bind( &boost::asio::io_service::run, &m_Srvc ) );
   }
-
+  
 }
 
 MediaStreamDecode::~MediaStreamDecode( ) {
+  Stop();
   Close();
   delete m_pWork;
   m_pWork = 0;
   m_threadsWorkers.join_all();  // wait for processing to end
 }
 
-void MediaStreamDecode::Workers( void ) {
-  m_Srvc.run(); 
-}
-
-void MediaStreamDecode::Play( void ) {
-  
-  if ( !m_bInUse ) {
-    std::runtime_error( "instance of MediaStreamDecode not in use" );
-  }
-  
-//  namespace args = boost::phoenix::arg_names;
-//  pDecoder->m_OnFrame.connect( 
-//    boost::phoenix::bind( &TreeItemVideo::HandleOnFrame, this, args::arg1, args::arg2, args::arg3, args::arg4, args::arg5 ) );
-
-  // need to check not already running
-  m_Srvc.post( boost::phoenix::bind( &MediaStreamDecode::ProcessStream, this, m_ixBestAudioStream, m_ixBestVideoStream ) );
-  
-  // need to auto close, or manually close stream
-  // also need to set flag to interrupt frame generation
-    
-}
-
 bool MediaStreamDecode::Open( const std::string& sFile ) {
+  
+  switch ( m_stateStream ) {
+    case EStopped:
+      Close();
+      break;
+    case EError:
+      m_stateStream = EClosed;
+      break;
+  }
+  assert( EClosed == m_stateStream );
+  
+  m_stateStream = EOpenRequest;
   
   bool bOk( true );
   
@@ -89,6 +77,7 @@ bool MediaStreamDecode::Open( const std::string& sFile ) {
   status = avformat_open_input( &m_pFormatContext, sFile.c_str(), NULL, NULL);
   if ( 0 != status ) {
     std::cout << "info: error on open: " << status << std::endl;
+    m_stateStream = EError;
     bOk = false;
     m_pFormatContext = 0;
   }
@@ -100,6 +89,7 @@ bool MediaStreamDecode::Open( const std::string& sFile ) {
       std::cout << "info strm: none" << std::endl;
       avformat_close_input( &m_pFormatContext );
       m_pFormatContext = 0;
+      m_stateStream = EError;
       bOk = false;
     }
     else {
@@ -109,6 +99,7 @@ bool MediaStreamDecode::Open( const std::string& sFile ) {
         std::cout << "info strm:  no streams found to decode " << std::endl;
         avformat_close_input( &m_pFormatContext );
         m_pFormatContext = 0;
+        m_stateStream = EError;
         bOk = false;
       }
       else {
@@ -145,14 +136,16 @@ bool MediaStreamDecode::Open( const std::string& sFile ) {
               //bOk = false;
             }
           }
-        }
+        }  // iterate streams
         
+        m_stateStream = EOpen; // do a default
         // find the best stream for decoding
         AVCodec* pBestCodecForVideo( 0 );  // should be able to discard this, may need to match addresses
         m_ixBestVideoStream = av_find_best_stream( m_pFormatContext, AVMediaType::AVMEDIA_TYPE_VIDEO, -1, -1, &pBestCodecForVideo, 0 );
         if ( 0 > m_ixBestVideoStream ) {
           if ( AVERROR_STREAM_NOT_FOUND == m_ixBestVideoStream ) std::cout << "no best video stream found" << std::endl;
           if ( AVERROR_DECODER_NOT_FOUND == m_ixBestVideoStream ) std::cout << "no decoder found for best video stream found" << std::endl;
+          m_stateStream = EError;
         }
 
         AVCodec* pBestCodecForAudio( 0 );  // should be able to discard this, may need to match addresses 
@@ -160,11 +153,16 @@ bool MediaStreamDecode::Open( const std::string& sFile ) {
         if ( 0 > m_ixBestAudioStream ) {
           if ( AVERROR_STREAM_NOT_FOUND == m_ixBestAudioStream ) std::cout << "no best audio stream found" << std::endl;
           if ( AVERROR_DECODER_NOT_FOUND == m_ixBestAudioStream ) std::cout << "no decoder found for best audio stream found" << std::endl;
+          //m_stateStream = EError;  // ignore audio for now
+        }
+        
+        if ( EError == m_stateStream ) {
+          avformat_close_input( &m_pFormatContext );
+          m_pFormatContext = 0;  
+          bOk = false;
         }
 
-        m_bInUse = true;
-
-      } // done iterating streams
+      } // done finding main audio and video streams
       
     }
     
@@ -176,11 +174,25 @@ bool MediaStreamDecode::Open( const std::string& sFile ) {
 
 void MediaStreamDecode::EmitStats( void ) {
   
-  assert( m_bInUse );
-  
   std::cout << "==== Media File Stats ==== " << std::endl;
   
+  switch ( m_stateStream ) {
+    case EOpen:
+    case EPlaying:
+    case EPaused:
+    case EStopped:
+      break;
+    default:
+      assert( false );
+  }
+  
   AVDictionaryEntry* pDictEntry = 0;
+  
+  std::cout << "basics: " << AV_TIME_BASE 
+    << ", start: " << m_pFormatContext->start_time
+    << ", dur: " << m_pFormatContext->duration << ", " << (double) m_pFormatContext->duration / AV_TIME_BASE / 60.0 << " minutes"
+    //<< ", " << m_pFormatContext->
+    << std::endl;
   
   // emit dictionary
   while ( ( pDictEntry = av_dict_get( m_pFormatContext->metadata, "", pDictEntry, AV_DICT_IGNORE_SUFFIX) ) ) {
@@ -193,9 +205,9 @@ void MediaStreamDecode::EmitStats( void ) {
     int64_t nbFrames( m_pFormatContext->streams[ix]->nb_frames );
     std::cout << "info strm " << ix << " frames " << nbFrames << std::endl;
     std::cout << "info strm " << ix << " buffer size " << m_pFormatContext->max_picture_buffer << std::endl;
-    std::cout << "info strm " << ix << " w/h " 
-      << m_pFormatContext->streams[ix]->codec->width  << ", " << m_pFormatContext->streams[ix]->codec->coded_width << ", "
-      << m_pFormatContext->streams[ix]->codec->height << ", " << m_pFormatContext->streams[ix]->codec->coded_height << std::endl;
+    std::cout << "info strm " << ix << " h/w " 
+      << m_pFormatContext->streams[ix]->codec->height << ", " << m_pFormatContext->streams[ix]->codec->coded_height << ", "
+      << m_pFormatContext->streams[ix]->codec->width  << ", " << m_pFormatContext->streams[ix]->codec->coded_width << std::endl;
     AVRational ar( m_pFormatContext->streams[ix]->codec->sample_aspect_ratio );
     std::cout << "info strm " << ix << " ar " << ar.num << "/" << ar.den << std::endl;
     std::cout << "info strm " << ix << " channels " << m_pFormatContext->streams[ix]->codec->channels << std::endl; // audio channels
@@ -211,83 +223,161 @@ void MediaStreamDecode::EmitStats( void ) {
   std::cout << "best video stream: " << m_ixBestVideoStream << ", best audio stream: " << m_ixBestAudioStream << std::endl;
 }
 
-void MediaStreamDecode::ProcessStream( size_t ixAudio, size_t ixVideo ) {  // should be in background thread
+void MediaStreamDecode::Close( void ) {
+
+  switch ( m_stateStream ) {
+    case EClosed:
+      break;
+    case EStopped:
+      m_vStreamInfo.clear();
+      avformat_close_input( &m_pFormatContext );
+      m_pFormatContext = 0;
+      m_stateStream = EClosed;
+      break;
+    default:
+      assert( false );
+  }
+  
+
+}
+
+void MediaStreamDecode::Play( void ) {
+
+  assert( ( m_stateStream == EOpen ) || ( m_stateStream == EStopped ) || ( m_stateStream == EPlayRequest ) );
+  
+  m_stateStream = EPlaying;
+  m_Srvc.post( boost::phoenix::bind( &MediaStreamDecode::ProcessStream, this, m_ixBestAudioStream, m_ixBestVideoStream ) );
+  
+}
+
+  // may want to use seek at some point (when looping) av_seek_frame : https://libav.org/doxygen/master/group__lavf__decoding.html)
+  
+
+void MediaStreamDecode::Pause( void ) {
+  // todo put in lock and wait for ThreadRequestFilled
+  boost::lock_guard<boost::mutex> lock(m_mutexDecode);
+  m_stateThreadRequest = ThreadRequestPause;
+  m_bProcessStreamWait = true;
+}
+
+void MediaStreamDecode::Resume( void ) {
+  // todo put in lock and wait for ThreadRequestFilled
+  boost::lock_guard<boost::mutex> lock(m_mutexDecode);
+  m_stateThreadRequest = ThreadRequestPlay;
+  m_bProcessStreamWait = false;
+  m_cvDecode.notify_one();
+}
+
+void MediaStreamDecode::Stop( void ) {
+  // todo put in lock and wait for ThreadRequestFilled
+  boost::lock_guard<boost::mutex> lock(m_mutexDecode);
+  m_stateThreadRequest = ThreadRequestStop;
+  m_bProcessStreamWait = false;
+  m_cvDecode.notify_one();  // just in case is paused
+}
+
+void MediaStreamDecode::Rewind( void ) {
+  assert( ( ThreadStatePaused == m_stateThread ) || ( ThreadStateStopped == m_stateThread ) );
+}
+
+void MediaStreamDecode::ProcessStream( size_t ixAudio, size_t ixVideo ) {  // background thread
   
   // need asserts to verify indexes are for valid codecs of the type specified
   
-  //AV_TIME_BASE
-  //AVFormatContext *pFormatCtx;
-  //double duration = double(pFormatCtx->duration) / AV_TIME_BASE;
-
+  assert( ThreadStateStopped == m_stateThread );
+  
+  m_stateThread = ThreadStatePlaying;
+  
   AVPacket packet;
   av_init_packet( &packet );
   packet.data = 0;
   packet.size = 0;
   AVFrame* pFrame; // https://libav.org/doxygen/master/group__lavu__frame.html
   pFrame = av_frame_alloc();
-  //pFrame = avcodec_alloc_frame(); // http://pastebin.com/ByYzePa3  deprecated
   assert( 0 != pFrame );
   int status( 0 );
-  m_ts.start = boost::chrono::high_resolution_clock::now();
-  while ( 0 == ( status = av_read_frame( m_pFormatContext, &packet ) ) ) {  // https://libav.org/doxygen/master/group__lavf__decoding.html
-    //std::cout << "packet " << packet.stream_index << ": " << packet.size << ", " << std::endl;
-    m_ts.parse = boost::chrono::high_resolution_clock::now();
-    int gotFrame( 0 );
-    // https://libav.org/doxygen/master/group__lavc__decoding.html
-    if ( ixAudio == packet.stream_index ) {
-      status = avcodec_decode_audio4( m_vStreamInfo[ixAudio].pCodecContext, pFrame, &gotFrame, &packet );
-      if ( 0 > status ) {
-        std::cout << "audio decode error: " << status << std::endl;
-      }
-      else {
-        // emit the audio
-        m_ts.decoded = boost::chrono::high_resolution_clock::now();
+  
+  // need to protect with atomics?
+  while ( ThreadRequestStop != m_stateThreadRequest ) {
+    {
+      boost::unique_lock<boost::mutex> lock(m_mutexDecode);
+      switch ( m_stateThreadRequest ) {
+        case ThreadRequestPlay:
+          m_stateThreadRequest = ThreadRequestFilled;
+          m_stateThread = ThreadStatePlaying;
+          // continue with frame processing
+          break;
+        case ThreadRequestPause:
+          m_stateThreadRequest = ThreadRequestFilled;
+          m_stateThread = ThreadStatePaused;
+          while ( m_bProcessStreamWait ) {
+            m_cvDecode.wait( lock );
+          }
+          m_stateThread = ThreadStatePlaying;
+          break;
+        case ThreadRequestFilled:
+          // continue
+          break;
       }
     }
-    if ( ixVideo == packet.stream_index ) {
-      status = avcodec_decode_video2( m_vStreamInfo[ixVideo].pCodecContext , pFrame, &gotFrame, &packet );
-      if ( 0 > status ) {
-        std::cout << "video decode error: " << status << std::endl;
-      }
-      else {
-        if ( 0 != gotFrame ) {  // emit picture
+    
+    m_ts.start = boost::chrono::high_resolution_clock::now();
+  
+    if ( 0 > ( status = av_read_frame( m_pFormatContext, &packet ) ) ) {  // https://libav.org/doxygen/master/group__lavf__decoding.html
+      m_stateThreadRequest = ThreadRequestStop;
+    }
+    else {
+      //std::cout << "packet " << packet.stream_index << ": " << packet.size << ", " << std::endl;
+      m_ts.parse = boost::chrono::high_resolution_clock::now();
+      int gotFrame( 0 );
+      // https://libav.org/doxygen/master/group__lavc__decoding.html
+      if ( ixAudio == packet.stream_index ) {
+        status = avcodec_decode_audio4( m_vStreamInfo[ixAudio].pCodecContext, pFrame, &gotFrame, &packet );
+        if ( 0 > status ) {
+          std::cout << "audio decode error: " << status << std::endl;
+        }
+        else {
+          // emit the audio
           m_ts.decoded = boost::chrono::high_resolution_clock::now();
-          //std::cout << "packet " << packet.stream_index << ": " << packet.pts << ", " << packet.dts << ", " << packet.duration << std::endl;
-          // could put into asio queue
-          //HandleOnFrame( m_vStreamInfo[ixVideo].pCodecContext, pFrame, 0, m_ts );
-          // can't run in service queue as we need to return the pFrame, and is not queueable
-          //m_Srvc.post( boost::phoenix::bind( &MediaStreamDecode::HandleOnFrame, this, m_vStreamInfo[ixVideo].pCodecContext, pFrame, m_ts ) );
-          HandleOnFrame( m_vStreamInfo[ixVideo].pCodecContext, pFrame, m_ts );
-          //std::cout << "width: " << pFrame->width << " height: " << pFrame->height << " format: " << pFrame->format;
-          //if ( 1 == pFrame->key_frame ) std::cout << " key frame " << pFrame->display_picture_number;
-          //std::cout << std::endl;
-          m_ts.start = boost::chrono::high_resolution_clock::now();  // reset for next portion of read
-          m_ts.clear();
+        }
+      }
+      if ( ixVideo == packet.stream_index ) {
+        status = avcodec_decode_video2( m_vStreamInfo[ixVideo].pCodecContext , pFrame, &gotFrame, &packet );
+        if ( 0 > status ) {
+          std::cout << "video decode error: " << status << std::endl;
+        }
+        else {
+          if ( 0 != gotFrame ) {  // emit picture
+            m_ts.decoded = boost::chrono::high_resolution_clock::now();
+            //std::cout << "packet " << packet.stream_index << ": " << packet.pts << ", " << packet.dts << ", " << packet.duration << std::endl;
+            // could put into asio queue
+            //HandleOnFrame( m_vStreamInfo[ixVideo].pCodecContext, pFrame, 0, m_ts );
+            // can't run in service queue as we need to return the pFrame, and is not queueable
+            //m_Srvc.post( boost::phoenix::bind( &MediaStreamDecode::HandleOnFrame, this, m_vStreamInfo[ixVideo].pCodecContext, pFrame, m_ts ) );
+            HandleOnFrame( m_vStreamInfo[ixVideo].pCodecContext, pFrame, m_ts );
+            //std::cout << "width: " << pFrame->width << " height: " << pFrame->height << " format: " << pFrame->format;
+            //if ( 1 == pFrame->key_frame ) std::cout << " key frame " << pFrame->display_picture_number;
+            //std::cout << std::endl;
+            m_ts.start = boost::chrono::high_resolution_clock::now();  // reset for next portion of read
+            m_ts.clear();
+          }
         }
       }
     }
-  }
+  }  // while m_stateThreadRequest
   
-  m_signaDecodeDone();
-
-  // may want to use seek at some point (when looping) av_seek_frame : https://libav.org/doxygen/master/group__lavf__decoding.html)
+  m_stateThread = ThreadStateStopping;
+  
+  m_signaDecodeDone();  // but there may be HandleFrameTransformToImage in the queue
 
   av_frame_free( &pFrame );
   av_free_packet( &packet );
   
-}
-
-void MediaStreamDecode::Close( void ) {
-
-  // todo: need to ensure stream is stopped
+  m_stateThreadRequest = ThreadRequestFilled;
+  m_stateThread = ThreadStateStopped;
+  m_stateStream = EStopped;
   
-  if ( m_bInUse ) {
-    m_vStreamInfo.clear();
-    avformat_close_input( &m_pFormatContext );
-    m_pFormatContext = 0;
-    m_bInUse = false;
-  }
-
+  std::cout << "ProcessStream exited" << std::endl;
 }
 
 void MediaStreamDecode::HandleOnFrame( AVCodecContext* pContext, AVFrame* pFrame, structTimeSteps perf ) {
@@ -320,7 +410,9 @@ void MediaStreamDecode::HandleOnFrame( AVCodecContext* pContext, AVFrame* pFrame
   
   perf.scaled = boost::chrono::high_resolution_clock::now();
 
-  m_Srvc.post( boost::phoenix::bind( &MediaStreamDecode::HandleFrameTransformToImage, this, pRGB, buf, perf, srcX, srcY ) );
+  //m_Srvc.post( boost::phoenix::bind( &MediaStreamDecode::HandleFrameTransformToImage, this, pRGB, buf, perf, srcX, srcY ) );
+  
+  HandleFrameTransformToImage( pRGB, buf, perf, srcX, srcY );
   
   // ** note decode currently works faster than the transform, so transform work will queue up.
   //    need to deal with proper timing of frames.

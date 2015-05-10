@@ -7,9 +7,13 @@
 
 #pragma once
 
+#include <list>
+
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
 #include <boost/signals2.hpp>
+#include <boost/thread/condition_variable.hpp>
+#include <boost/thread/mutex.hpp>
 
 #include <wx/wx.h>
 
@@ -50,7 +54,8 @@ public:
   void Rewind( void );
   //void Seek( ... );
   void Stop( void );
-  void PauseResume( void );
+  void Pause( void );
+  void Resume( void );
   
   void Close( void );  // need to ensure background thread is finished
   
@@ -70,16 +75,38 @@ private:
     }
   };
   
+  enum StateStream { 
+    EClosed, 
+    EError, 
+    EOpenRequest, 
+    EOpen, 
+    EPlayRequest, 
+    EPlaying, 
+    EPauseRequest, 
+    EPaused, 
+    EResumeRequest, 
+    EStopRequest, 
+    EStopped  // implies start from beginning
+  };
+  
   typedef std::vector<StreamInfo> vStreamInfo_t;
   vStreamInfo_t m_vStreamInfo;
 
   AVFormatContext* m_pFormatContext;
   
-  bool m_bInUse;
-  
   boost::thread_group m_threadsWorkers;
   boost::asio::io_service m_Srvc;
   boost::asio::io_service::work* m_pWork;
+  
+  enum ThreadRequest { ThreadRequestFilled, ThreadRequestPlay, ThreadRequestPause, ThreadRequestStop };
+  enum ThreadState { ThreadStatePlaying, ThreadStatePaused, ThreadStateStopping, ThreadStateStopped };
+  
+  boost::condition_variable m_cvDecode;
+  boost::mutex m_mutexDecode;
+  bool m_bProcessStreamWait;
+  StateStream m_stateStream;
+  ThreadRequest m_stateThreadRequest;
+  ThreadState m_stateThread;
   
   signalImageReady_t m_signalImageReady;
   signalDecodeDone_t m_signaDecodeDone;
@@ -93,8 +120,5 @@ private:
   void HandleOnFrame( AVCodecContext* pContext, AVFrame* pFrame, structTimeSteps perf );
   void HandleFrameTransformToImage( AVFrame* pRgb, uint8_t* buf, structTimeSteps perf, int srcX, int srcY );
   
-  void Workers( void );  // background processing of video
-  
-
 };
 
