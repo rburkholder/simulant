@@ -11,10 +11,10 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include <boost/thread.hpp>
-#include <boost/asio.hpp>
+//#include <boost/thread.hpp>
+//#include <boost/asio.hpp>
 
-//#include <boost/phoenix/bind.hpp>
+////#include <boost/phoenix/bind.hpp>
 #include <boost/phoenix/bind/bind_member_function.hpp>
 #include <boost/phoenix/core/argument.hpp>
 
@@ -29,16 +29,13 @@
 
 #include <wx/filedlg.h>
 
-extern "C" {
-#include <libswscale/swscale.h>
-}
-
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
 #include "common.h"
-#include "DecodeH264.h"
+//#include "DecodeH264.h"
+#include "MediaStreamDecode.h"
 
 //#include "tut1.h"
 #include "tex2.h"
@@ -491,18 +488,12 @@ private:
   vpImage_t m_vpImage;
   vpImage_t::size_type m_ixvImage;  // allows cycling through m_vpImage
   
-  boost::thread_group m_threadsWorkers;
-  boost::asio::io_service m_Srvc;
-  boost::asio::io_service::work* m_pWork;
+  MediaStreamDecode m_player;
   
-  boost::signals2::connection m_connectionFrameTrigger;
+//  void ProcessVideoFile( boost::shared_ptr<DecodeH264> pDecoder );
   
-  void Workers( void );  // background processing of video
-  
-  void ProcessVideoFile( boost::shared_ptr<DecodeH264> pDecoder );
-  
-  void HandleOnFrame( AVCodecContext* context, AVFrame* frame, AVPacket* pkt, void* user, structTimeSteps perf );
-  void HandleFrameTransformToImage( AVFrame* pRgb, uint8_t* buf, void* user, structTimeSteps perf, int srcX, int srcY );
+//  void HandleOnFrame( AVCodecContext* context, AVFrame* frame, AVPacket* pkt, void* user, structTimeSteps perf );
+//  void HandleFrameTransformToImage( AVFrame* pRgb, uint8_t* buf, void* user, structTimeSteps perf, int srcX, int srcY );
   void HandleEventImage( EventImage& );
   
   void HandleLoadVideo( wxCommandEvent& event );  // need to recode (this is where it actually starts)
@@ -520,19 +511,10 @@ TreeItemVideo::TreeItemVideo(
   
   std::cout << "Tree Item Add Video" << std::endl; 
   
-  m_connectionFrameTrigger = TreeItemImageCommon::ConnectFrameTrigger( boost::phoenix::bind( &TreeItemVideo::ShowImage, this ) );
-  
   wxImage::AddHandler( new wxJPEGHandler );
 
   m_sPictureDirectory = wxT( "~/Pictures/");
   m_sVideoDirectory = wxT( "~/Videos/");
-
-    // workers for the movie action
-  m_pWork = new boost::asio::io_service::work(m_Srvc);  // keep the asio service running 
-  //m_thrdWorkers = boost::thread( boost::phoenix::bind( &AppProjection::Workers, this ) );
-  for ( std::size_t ix = 0; ix < 2; ix++ ) {
-    m_threadsWorkers.create_thread( boost::phoenix::bind( &boost::asio::io_service::run, &m_Srvc ) );
-  }
 
   // **** will need to set a specific instance id so that multiple frames can be run
   wxApp::GetInstance()->Bind( EVENT_IMAGE, &TreeItemVideo::HandleEventImage, this );
@@ -546,10 +528,6 @@ TreeItemVideo::TreeItemVideo(
 }
 
 TreeItemVideo::~TreeItemVideo( void ) {
-  m_connectionFrameTrigger.disconnect();
-  delete m_pWork;
-  m_pWork = 0;
-  m_threadsWorkers.join_all();
 }
 
 void TreeItemVideo::ShowImage( void ) {
@@ -580,87 +558,6 @@ void TreeItemVideo::ShowContextMenu( void ) {
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVisualCommon::HandleDelete, this, MIDelete );
   
   m_pTree->PopupMenu( pMenu );
-}
-
-void TreeItemVideo::Workers( void ) {
-  m_Srvc.run(); 
-}
-
-void TreeItemVideo::HandleOnFrame( AVCodecContext* context, AVFrame* frame, AVPacket* pkt, void* user, structTimeSteps perf ) {
-  
-#define FMT PIX_FMT_RGB32
-//#define FMT PIX_FMT_RGB24
-  
-  int srcX = context->width;
-  int srcY = context->height;
-  size_t nBytes = avpicture_get_size( FMT, srcX, srcY );
-  
-  double fps = av_q2d(context->time_base);
-  if(fps > 0.0) {
-    //frame_delay = fps * 1000ull * 1000ull * 1000ull;
-    std::cout << "fps: " << fps << std::endl;
-  }
-  
-  struct SwsContext* swsContext = sws_getContext(srcX, srcY, context->pix_fmt, srcX, srcY, FMT, SWS_BILINEAR, NULL, NULL, NULL);
-  //struct SwsContext* swsContext = sws_getContext(srcX, srcY, context->pix_fmt, srcX, srcY, PIX_FMT_RGB24, SWS_BILINEAR, NULL, NULL, NULL);
-  //struct SwsContext* swsContext = sws_getContext(srcX, srcY, context->pix_fmt, srcX, srcY, PIX_FMT_RGB32_1, SWS_BICUBIC, NULL, NULL, NULL);
-  
-  AVFrame* pRGB;
-  pRGB = av_frame_alloc();
-  assert( 0 != pRGB );
-  
-  uint8_t* buf  = (uint8_t*)av_malloc( nBytes * sizeof( uint8_t ) );  // *** todo:  keep from call to call, be aware of frame size changes in test material
-  avpicture_fill( ( AVPicture*)pRGB, buf, FMT, srcX, srcY );
-  
-  perf.filled = boost::chrono::high_resolution_clock::now();
-  
-  sws_scale(swsContext, frame->data, frame->linesize, 0, srcY, pRGB->data, pRGB->linesize );
-  
-  perf.scaled = boost::chrono::high_resolution_clock::now();
-
-  m_Srvc.post( boost::phoenix::bind( &TreeItemVideo::HandleFrameTransformToImage, this, pRGB, buf, user, perf, srcX, srcY ) );
-  
-  // ** note decode currently works faster than the transform, so transform work will queue up.
-  //    need to deal with proper timing of frames.
-  //    need to base frame timing on what is in the file
-  //    need sync so stops at high water mark, resumes decode at low water mark
-  //    be aware that if using multiple threads, that processing needs to be sync'd so frames stay in order
-  //      or do frame ordering in final presentation to screen, buffer loop
-}
-
-void TreeItemVideo::HandleFrameTransformToImage( AVFrame* pRgb, uint8_t* buf, void* user, structTimeSteps perf, int srcX, int srcY ) {
-  
-  perf.queue1 = boost::chrono::high_resolution_clock::now();
-  
-  uint8_t* pSrcFrame( *pRgb->data );
-  
-  boost::shared_ptr<wxImage> pImage( new wxImage( srcX, srcY, false ) );
-  wxImage* image( pImage.get() );
-  wxImagePixelData data( *image );
-  wxImagePixelData::Iterator pDestImage( data );
-  
-  for ( int iy = 0; iy < srcY; ++iy ) {
-    for ( int ix = 0; ix < srcX; ++ix ) {
-      //++pSrc;  // skip A
-      pDestImage.Blue() =  *pSrcFrame; ++pSrcFrame;
-      pDestImage.Green() = *pSrcFrame; ++pSrcFrame;
-      pDestImage.Red() =   *pSrcFrame; ++pSrcFrame;
-      ++pDestImage;
-      ++pSrcFrame; // skip alpha?
-    }
-  }
-
-  perf.copied = boost::chrono::high_resolution_clock::now();
-  
-  // may need to set a unique itemid if multiple events running simultaneously
-  // need to change this to the specific canvas into which the frame is going to be displayed
-  wxApp::GetInstance()->QueueEvent( new EventImage( EVENT_IMAGE, m_pPhysicalDisplay->GetFrame()->GetId(), pImage, user, perf ) );
-  //m_pScreenFrame->GetFrame()->QueueEvent( new EventImage( EVENT_IMAGE, -1, pImage, user, perf ) );
-  //m_pScreenFrame->GetFrame()->get QueueEvent( new EventImage( EVENT_IMAGE, -1, pImage, user, perf ) );
-  
-  av_free( buf );
-  av_free( pRgb );  
-  
 }
 
 void TreeItemVideo::HandleEventImage( EventImage& event ) {
@@ -696,10 +593,6 @@ void TreeItemVideo::HandleEventImage( EventImage& event ) {
     
 }
 
-void TreeItemVideo::ProcessVideoFile( boost::shared_ptr<DecodeH264> pDecoder ) { // is in background  thread
-  pDecoder->ProcessFile();
-}
-
 void TreeItemVideo::HandleLoadVideo( wxCommandEvent& event ) {
   // may want to block this while one is currently playing
   // or kill current in-process one and replace with new one
@@ -712,25 +605,22 @@ void TreeItemVideo::LoadVideo( void ) {
   wxFileDialog dialogOpenFile( 
     m_pPhysicalDisplay->GetFrame(), wxT("Select Video" ), m_sVideoDirectory, "", 
     //"Video Files (*.ts)|*.ts", 
-    "Video Files (*.h264)|*.h264", 
+    //"Video Files (*.h264)|*.h264", 
+    "",
     //_(" Files ") + wxImage::GetImageExtWildcard(),
     wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_CHANGE_DIR );
   if (dialogOpenFile.ShowModal() == wxID_OK) {
     m_sVideoDirectory = dialogOpenFile.GetDirectory();
-    std::cout << "chose " << dialogOpenFile.GetPath() << std::endl;
-    std::cout << "dir " << m_sVideoDirectory << std::endl;
+    
+    std::string sPath( dialogOpenFile.GetPath() );
+    //std::cout << "chose " << sPath << std::endl;
+    //std::cout << "dir " << m_sVideoDirectory << std::endl;
     //assert( m_image.LoadFile( dialogOpenFile.GetPath(), wxBITMAP_TYPE_JPEG ) );
 
-    boost::shared_ptr<DecodeH264> pDecoder( new DecodeH264 ( m_pPhysicalDisplay->GetFrame() ) );
+    //boost::shared_ptr<DecodeH264> pDecoder( new DecodeH264 ( m_pPhysicalDisplay->GetFrame() ) );
     
-    namespace args = boost::phoenix::arg_names;
-    pDecoder->m_OnFrame.connect( 
-      boost::phoenix::bind( &TreeItemVideo::HandleOnFrame, this, args::arg1, args::arg2, args::arg3, args::arg4, args::arg5 ) );
-
-    pDecoder->load( dialogOpenFile.GetPath() );
-    // ProcessFile to be handled in thread
-
-    m_Srvc.post( boost::phoenix::bind( &TreeItemVideo::ProcessVideoFile, this, pDecoder ) );
+    m_player.Play( sPath );
+    
     
     // need to do processing in background, 
     // put frames into queue

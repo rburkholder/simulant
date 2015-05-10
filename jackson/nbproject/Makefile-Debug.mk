@@ -47,6 +47,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/EventImage.o \
 	${OBJECTDIR}/FpsGenerator.o \
 	${OBJECTDIR}/InteractiveTransform.o \
+	${OBJECTDIR}/MediaStreamDecode.o \
 	${OBJECTDIR}/Outline.o \
 	${OBJECTDIR}/PhysicalDisplay.o \
 	${OBJECTDIR}/SEGrid.o \
@@ -148,6 +149,11 @@ ${OBJECTDIR}/InteractiveTransform.o: InteractiveTransform.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/InteractiveTransform.o InteractiveTransform.cpp
+
+${OBJECTDIR}/MediaStreamDecode.o: MediaStreamDecode.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/MediaStreamDecode.o MediaStreamDecode.cpp
 
 ${OBJECTDIR}/Outline.o: Outline.cpp 
 	${MKDIR} -p ${OBJECTDIR}

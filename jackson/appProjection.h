@@ -17,6 +17,8 @@ public:
 protected:
 private:
   
+  wxString m_sMediaDirectory;
+  
   FrameMain *m_pFrameMain;
   panelSurfaceSources* m_pSurfaceSources;
   
@@ -34,6 +36,7 @@ private:
   //void HandleKeyUp( wxKeyEvent& event ) { event.Skip(); }  // EVT_KEY_UP
   void HandleKey( wxKeyEvent& event );
   
-  void CheckMedia( void );
-  void CheckMedia2( const std::string& sFile );
+  void MediaFileStats( void );
+  
 };
+

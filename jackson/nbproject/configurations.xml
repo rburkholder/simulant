@@ -16,6 +16,7 @@
       <itemPath>EventImage.h</itemPath>
       <itemPath>FpsGenerator.h</itemPath>
       <itemPath>InteractiveTransform.h</itemPath>
+      <itemPath>MediaStreamDecode.h</itemPath>
       <itemPath>Network.h</itemPath>
       <itemPath>Outline.h</itemPath>
       <itemPath>PhysicalDisplay.h</itemPath>
@@ -60,6 +61,7 @@
       <itemPath>EventImage.cpp</itemPath>
       <itemPath>FpsGenerator.cpp</itemPath>
       <itemPath>InteractiveTransform.cpp</itemPath>
+      <itemPath>MediaStreamDecode.cpp</itemPath>
       <itemPath>Outline.cpp</itemPath>
       <itemPath>PhysicalDisplay.cpp</itemPath>
       <itemPath>SEGrid.cpp</itemPath>
@@ -182,6 +184,10 @@
       <item path="InteractiveTransform.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="InteractiveTransform.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="MediaStreamDecode.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="MediaStreamDecode.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Network.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -358,6 +364,10 @@
       <item path="InteractiveTransform.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="InteractiveTransform.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="MediaStreamDecode.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="MediaStreamDecode.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Network.h" ex="false" tool="3" flavor2="0">
       </item>
