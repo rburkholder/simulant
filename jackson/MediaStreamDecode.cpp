@@ -228,6 +228,7 @@ void MediaStreamDecode::Close( void ) {
   switch ( m_stateStream ) {
     case EClosed:
       break;
+    case EOpen:
     case EStopped:
       m_vStreamInfo.clear();
       avformat_close_input( &m_pFormatContext );

@@ -80,6 +80,7 @@ public:
   // deals with constructing display surfaces
   TreeItemRoot( TreeDisplayManager* pTree_, wxTreeItemId id_ ): TreeItemBase( pTree_, id_ ) {
   };
+  virtual ~TreeItemRoot( void ) {}
   virtual void ShowContextMenu( void ) {
     //wxMenu* pMenu = new wxMenu( "Surfaces");
     wxMenu* pMenu = new wxMenu();
@@ -211,7 +212,7 @@ public:
   
   TreeItemGrid( 
     TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
-  ~TreeItemGrid( void );
+  virtual ~TreeItemGrid( void );
   
   virtual void ShowContextMenu( void );
   
@@ -284,7 +285,7 @@ public:
   typedef TreeItemVisualCommon::pSceneManager_t pSceneManager_t;
   
   TreeItemImageCommon( TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
-  ~TreeItemImageCommon( void );
+  virtual ~TreeItemImageCommon( void );
   
   boost::signals2::connection ConnectFrameTrigger( const SETexture::slotFrame_t& slot ) { return m_pTexture->Connect( slot ); }
   
@@ -384,7 +385,7 @@ public:
   typedef TreeItemVisualCommon::pSceneManager_t pSceneManager_t;
   
   TreeItemImage( TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
-  ~TreeItemImage( void );
+  virtual ~TreeItemImage( void );
   
   virtual void ShowContextMenu( void );
   
@@ -483,7 +484,7 @@ public:
   typedef TreeItemVisualCommon::pSceneManager_t pSceneManager_t;
   
   TreeItemVideo( TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
-  ~TreeItemVideo( void );
+  virtual ~TreeItemVideo( void );
   
   virtual void ShowContextMenu( void );
   
@@ -492,7 +493,8 @@ private:
   
   enum {
     ID_Null = wxID_HIGHEST,
-    MIReset, MIDelete, MISelectVideo
+    MIReset, MIDelete, MISelectVideo, 
+    MIVideoPause, MIVideoResume, MIVideoStop
   };
   
   typedef SceneManager::key_t key_t;
@@ -501,8 +503,8 @@ private:
   typedef std::vector<pImage_t> vpImage_t;
   typedef std::list<pImage_t> lpImage_t;
   
-  pSETexture_t m_pTexture;
-  key_t m_keyTexture;
+  //pSETexture_t m_pTexture;
+  //key_t m_keyTexture;
   
   wxString m_sPictureDirectory;
   wxString m_sVideoDirectory;
@@ -521,6 +523,10 @@ private:
   
   void HandleLoadVideo( wxCommandEvent& event );  // need to recode (this is where it actually starts)
   void LoadVideo( void );
+  
+  void HandlePause( wxCommandEvent& event );
+  void HandleResume( wxCommandEvent& event );
+  void HandleStop( wxCommandEvent& event );
   
   void HandleImage( MediaStreamDecode::pImage_t, const structTimeSteps& );
   void HandleEventImage( EventImage& );
@@ -558,10 +564,11 @@ TreeItemVideo::TreeItemVideo(
 
 TreeItemVideo::~TreeItemVideo( void ) {
   
-  TreeItemImageCommon::Disable();
-  
   m_connectionImageReady.disconnect();
   m_connectionFrameTrigger.disconnect();
+  
+  TreeItemImageCommon::Disable();
+  
 }
 
 void TreeItemVideo::ShowContextMenu( void ) {
@@ -574,6 +581,15 @@ void TreeItemVideo::ShowContextMenu( void ) {
   pMenu->Append( MIReset, "Reset" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVisualCommon::HandleReset, this, MIReset );
   
+  pMenu->Append( MIVideoPause, "Pause" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVideo::HandlePause, this, MIVideoPause );
+  
+  pMenu->Append( MIVideoResume, "Resume" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVideo::HandleResume, this, MIVideoResume );
+  
+  pMenu->Append( MIVideoStop, "Stop" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVideo::HandleStop, this, MIVideoStop );
+  
   pMenu->Append( MIDelete, "Delete" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVisualCommon::HandleDelete, this, MIDelete );
   
@@ -581,7 +597,19 @@ void TreeItemVideo::ShowContextMenu( void ) {
 }
 
 void TreeItemVideo::HandleLoadVideo( wxCommandEvent& event ) {
-  LoadVideo();  
+  LoadVideo();
+}
+
+void TreeItemVideo::HandlePause( wxCommandEvent& event ) {
+  std::cout << "pause not done" << std::endl;
+}
+
+void TreeItemVideo::HandleResume( wxCommandEvent& event ) {
+  std::cout << "resume not done" << std::endl;
+}
+
+void TreeItemVideo::HandleStop( wxCommandEvent& event ) {
+  m_player.Stop();  // should actually coordinate through local state machine
 }
 
 void TreeItemVideo::LoadVideo( void ) {
@@ -638,15 +666,15 @@ void TreeItemVideo::HandleEventImage( EventImage& event ) {
     m_lpImage.push_back( event.GetImage() );
     
     lpImage_t::size_type size( m_lpImage.size() );
-    std::cout << "v size: " << size;
+    //std::cout << "v size: " << size;
     if ( 16 < size ) {
       if ( m_bResumed ) {
-        std::cout << " paused";
+        //std::cout << " paused";
         m_player.Pause();
         m_bResumed = false;
       }
     }
-    std::cout << std::endl;
+    //std::cout << std::endl;
     
   //  wxBitmap bitmap( *event.GetImage() );
   //  FrameProjection* pfp = (FrameProjection*) event.GetVoid();
@@ -654,7 +682,7 @@ void TreeItemVideo::HandleEventImage( EventImage& event ) {
   //  dc.DrawBitmap( bitmap, wxPoint( 10, 10 ) );
 
     ts.drawn = boost::chrono::high_resolution_clock::now();
-
+/*
     std::cout << "stat:" 
       << "  parse "  << boost::chrono::duration_cast<mu>( ts.parse - ts.start )
       << ", decode " << boost::chrono::duration_cast<mu>( ts.decoded - ts.parse )
@@ -665,7 +693,7 @@ void TreeItemVideo::HandleEventImage( EventImage& event ) {
       << ", queue2 " << boost::chrono::duration_cast<mu>( ts.queue2 - ts.copied )
       << ", drawn "  << boost::chrono::duration_cast<mu>( ts.drawn - ts.queue2 )
       << std::endl;
-    
+  */  
     bSkip = false;
   }
 
@@ -678,20 +706,21 @@ void TreeItemVideo::ShowImage( void ) {
   lpImage_t::size_type size1( m_lpImage.size() );
   if ( 0 != size1 ) {
     pImage_t pImage = m_lpImage.front();
-    m_vpImage.push_back( pImage );
+    //m_vpImage.push_back( pImage );
+    TreeItemImageCommon::SetImage( pImage );
     m_lpImage.pop_front();
   }
   
   size1 = m_lpImage.size();
   if ( 8 > size1 ) {
     if ( !m_bResumed ) {
-      std::cout << "v resumed " << size1 << std::endl;;
+      //std::cout << "v resumed " << size1 << std::endl;;
       m_player.Resume();
       m_bResumed = true;
     }
   }
   
-  
+  /*
   vpImage_t::size_type size( m_vpImage.size() );
   if ( 0 != size ) {
     TreeItemImageCommon::SetImage( m_vpImage[ m_ixvImage ] );
@@ -703,6 +732,7 @@ void TreeItemVideo::ShowImage( void ) {
     else {
     }
   }
+   */
 }
 
 // ================
