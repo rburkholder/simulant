@@ -22,7 +22,7 @@ class DownCount;
 class FpsGenerator {
 public:
   
-  enum FPS { fps24 = 24, fps25 = 25, fps30 = 30, fps48 = 48, fps60 = 60, fps100 = 100 }; 
+  enum FPS { fps24x = 23, fps24 = 24, fps25 = 25, fps30x = 29, fps30 = 30, fps48 = 48, fps60 = 60, fps100 = 100 }; 
   
   typedef boost::signals2::signal<void ( FPS )> signalFrame_t;  // signal definition
   typedef signalFrame_t::slot_type slotFrame_t;       // slot definition

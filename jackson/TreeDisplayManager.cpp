@@ -612,6 +612,7 @@ void TreeItemVideo::HandleEventImage( EventImage& event ) {
     ts.queue2 = boost::chrono::high_resolution_clock::now();
 
     // by putting a lock on the vector, we may no longer need this event
+    // don't do this, doesn't scale for large videos, maybe sometime in the future
     m_vpImage.push_back( event.GetImage() );
 
   //  wxBitmap bitmap( *event.GetImage() );

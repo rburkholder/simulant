@@ -5,27 +5,29 @@
  * Created on April 18, 2015, 6:08 PM
  */
 
+#include <vector>
+
 #include <boost/phoenix/bind/bind_member_function.hpp>
 
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/chrono/duration.hpp>
+
+#include <boost/assign/std/vector.hpp>
 
 #include "FpsGenerator.h"
 
 //typedef boost::chrono::milliseconds ms;
 //typedef boost::chrono::microseconds mu;
   
-class DownCount {
+class DownCount {  // counters are based upon 1ms intervals
 public:
   
-  static const size_t nSourceCounts = 3;
-  DownCount( FpsGenerator::FPS fps, const size_t* pCounts ) 
-  : m_fps( fps ), m_ixSourceCounts( 0 ), m_nCount( 0 )
+  typedef std::vector<size_t> vCounts_t;
+  
+  DownCount( FpsGenerator::FPS fps, const vCounts_t vCounts ) 
+  : m_fps( fps ), m_ixCounts( 0 ), m_nCount( 0 ), m_vCounts( vCounts )
   { // frame pull down rates
-    m_rSourceCounts[ 0 ] = pCounts[ 0 ];
-    m_rSourceCounts[ 1 ] = pCounts[ 1 ];
-    m_rSourceCounts[ 2 ] = pCounts[ 2 ];
-    m_nCount = m_rSourceCounts[ m_ixSourceCounts ];
+    m_nCount = m_vCounts[ m_ixCounts ];
   }
   ~DownCount( void ) {};
   void Check( void ) {
@@ -35,11 +37,11 @@ public:
       // generate event
       m_signal( m_fps );  // send fps as check that correct events are happening
       // then update counters
-      ++m_ixSourceCounts;
-      if ( nSourceCounts == m_ixSourceCounts ) {
-        m_ixSourceCounts = 0;
+      ++m_ixCounts;
+      if ( m_vCounts.size() == m_ixCounts ) {
+        m_ixCounts = 0;
       }
-      m_nCount = m_rSourceCounts[ m_ixSourceCounts ];
+      m_nCount = m_vCounts[ m_ixCounts ];
     }
   }
   
@@ -47,8 +49,8 @@ public:
   
 protected:
 private:
-  size_t m_rSourceCounts[ nSourceCounts ];
-  size_t m_ixSourceCounts;
+  vCounts_t m_vCounts;
+  size_t m_ixCounts;
   size_t m_nCount;
   FpsGenerator::FPS m_fps;
 };
@@ -56,23 +58,62 @@ private:
 FpsGenerator::FpsGenerator( ) 
 : m_bStopThread( false ), m_bThreadRunning( false ), m_thread( boost::phoenix::bind( &FpsGenerator::Thread, this ) )
 {
-  const size_t cnt24fps[DownCount::nSourceCounts] = { 8, 8, 9 };
-  m_mapDownCount.insert( mapDownCount_t::value_type( fps24, pDownCount_t( new DownCount( fps24, cnt24fps ) ) ) );
+  using namespace boost::assign;
+  {
+    DownCount::vCounts_t v24xfps;
+    for ( unsigned int ix = 1; ix <= 7; ++ix ) {
+      v24xfps.push_back( 42 ); v24xfps.push_back( 42 ); v24xfps.push_back( 41 );
+    } // ( 7 * 3 ) entries above + 3 entries below  is 24 frames
+    v24xfps.push_back( 42 ); v24xfps.push_back( 42 ); v24xfps.push_back( 42 ); // 24 frames in 1001 ms
+    assert( 24 == v24xfps.size());
+    m_mapDownCount.insert( mapDownCount_t::value_type( fps24x, pDownCount_t( new DownCount( fps24x, v24xfps ) ) ) );
+  }
 
-  const size_t cnt25fps[DownCount::nSourceCounts] = { 8, 8, 8 };
-  m_mapDownCount.insert( mapDownCount_t::value_type( fps25, pDownCount_t( new DownCount( fps25, cnt25fps ) ) ) );
+  {
+    DownCount::vCounts_t v24fps;
+    v24fps += 42, 42, 41;  // 3 frames in 125 ms
+    m_mapDownCount.insert( mapDownCount_t::value_type( fps24, pDownCount_t( new DownCount( fps24, v24fps ) ) ) );
+  }
 
-  const size_t cnt30fps[DownCount::nSourceCounts] = { 7, 7, 6 };
-  m_mapDownCount.insert( mapDownCount_t::value_type( fps30, pDownCount_t( new DownCount( fps30, cnt30fps ) ) ) );
+  {
+    DownCount::vCounts_t v25fps; 
+    v25fps += 40;  // 1 frame every 40 ms
+    m_mapDownCount.insert( mapDownCount_t::value_type( fps25, pDownCount_t( new DownCount( fps25, v25fps ) ) ) );
+  }
 
-  const size_t cnt48fps[DownCount::nSourceCounts] = { 4, 4, 5 };
-  m_mapDownCount.insert( mapDownCount_t::value_type( fps48, pDownCount_t( new DownCount( fps48, cnt48fps ) ) ) );
+  {
+    DownCount::vCounts_t v30xfps;
+    for ( unsigned int ix = 1; ix <= 9; ++ix ) {
+      v30xfps.push_back( 33 ); v30xfps.push_back( 33 ); v30xfps.push_back( 34 );
+    } // ( 9 * 3 ) entries above + 3 entries below  is 30 frames
+    v30xfps.push_back( 33 ); v30xfps.push_back( 34 ); v30xfps.push_back( 34 ); // 30 frames in 1001 ms
+    assert( 30 == v30xfps.size());
+    m_mapDownCount.insert( mapDownCount_t::value_type( fps30x, pDownCount_t( new DownCount( fps30x, v30xfps ) ) ) );
+  }
 
-  const size_t cnt60fps[DownCount::nSourceCounts] = { 3, 3, 4 };
-  m_mapDownCount.insert( mapDownCount_t::value_type( fps60, pDownCount_t( new DownCount( fps60, cnt60fps ) ) ) );
+  {
+    DownCount::vCounts_t v30fps; 
+    v30fps += 33, 33, 34;  // 3 frames in 100ms
+    m_mapDownCount.insert( mapDownCount_t::value_type( fps30, pDownCount_t( new DownCount( fps30, v30fps ) ) ) );
+  }
+
+  {
+    DownCount::vCounts_t v48fps; 
+    v48fps += 21, 21, 21, 21, 21, 20; // 6 frames in 125ms
+    m_mapDownCount.insert( mapDownCount_t::value_type( fps48, pDownCount_t( new DownCount( fps48, v48fps ) ) ) );
+  }
+
+  {
+    DownCount::vCounts_t v60fps; 
+    v60fps += 17, 17, 16; // 3 frames in 50ms
+    m_mapDownCount.insert( mapDownCount_t::value_type( fps60, pDownCount_t( new DownCount( fps60, v60fps ) ) ) );
+  }
   
-  const size_t cnt100fps[DownCount::nSourceCounts] = { 2, 2, 2 };
-  m_mapDownCount.insert( mapDownCount_t::value_type( fps100, pDownCount_t( new DownCount( fps100, cnt100fps ) ) ) );
+  {
+    DownCount::vCounts_t v100fps; 
+    v100fps += 10; // 1 frame in 10ms
+    m_mapDownCount.insert( mapDownCount_t::value_type( fps100, pDownCount_t( new DownCount( fps100, v100fps ) ) ) );
+  }
   
   }
 
@@ -91,7 +132,7 @@ void FpsGenerator::Thread( void ) {
   
   typedef boost::chrono::high_resolution_clock::time_point tp;
    
-  static boost::chrono::duration<int64_t, boost::milli> duration( 5 );  // 5 milliseconds per step
+  static boost::chrono::duration<int64_t, boost::milli> duration( 1 );  // 1 milliseconds per step
   
   tp tpBase = boost::chrono::high_resolution_clock::now();  // cycle relative to discrete calculations
   

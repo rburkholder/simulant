@@ -256,6 +256,7 @@ void MediaStreamDecode::ProcessStream( size_t ixAudio, size_t ixVideo ) {  // sh
           m_ts.decoded = boost::chrono::high_resolution_clock::now();
           // could put into asio queue
           //HandleOnFrame( m_vStreamInfo[ixVideo].pCodecContext, pFrame, 0, m_ts );
+          // can't run in service queue as we need to return the pFrame, and is not queueable
           //m_Srvc.post( boost::phoenix::bind( &MediaStreamDecode::HandleOnFrame, this, m_vStreamInfo[ixVideo].pCodecContext, pFrame, m_ts ) );
           HandleOnFrame( m_vStreamInfo[ixVideo].pCodecContext, pFrame, m_ts );
           //std::cout << "width: " << pFrame->width << " height: " << pFrame->height << " format: " << pFrame->format;
