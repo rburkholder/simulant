@@ -300,6 +300,10 @@ protected:
   key_t m_keyTexture;
   pSETexture_t m_pTexture;
   
+  void Enable( FpsGenerator::FPS );
+  void Enable( size_t num, size_t den );
+  void Disable( void );
+  
   void SetImage( pImage_t pImage );
   
   virtual void UpdateTransformMatrix( void );
@@ -324,12 +328,25 @@ TreeItemImageCommon::TreeItemImageCommon(
   wxImage::AddHandler( new wxJPEGHandler );
 
   m_pTexture.reset( new SETexture );
-  // m_keyTexture = m_pSceneManager->Add( FpsGenerator::fps24, m_pTexture ); /video needs something different, so set in each derived class
   m_pTexture->SetTransform( InteractiveTransform::m_mat4Transform );
     
 }
 
 TreeItemImageCommon::~TreeItemImageCommon( void ) {
+  Disable();
+}
+
+void TreeItemImageCommon::Enable(size_t num, size_t den) {
+  Disable();
+  m_keyTexture = m_pSceneManager->Add( num, den, m_pTexture );
+}
+
+void TreeItemImageCommon::Enable( FpsGenerator::FPS fps ) {
+  Disable();
+  m_keyTexture = m_pSceneManager->Add( fps, m_pTexture );
+}
+
+void TreeItemImageCommon::Disable() {
   if ( 0 != m_keyTexture ) {
     m_pSceneManager->Delete( m_keyTexture );
     m_keyTexture = 0;
@@ -394,22 +411,18 @@ TreeItemImage::TreeItemImage(
   
   std::cout << "Tree Item Add Image" << std::endl;
   
-  TreeItemImageCommon::m_keyTexture 
-    = m_pSceneManager->Add( FpsGenerator::fps24, TreeItemImageCommon::m_pTexture );
-  
   ResetTransformMatrix();
   
   LoadImage();
   
   UpdateTransformMatrix();
   
+  TreeItemImageCommon::Enable( FpsGenerator::fps24 );
+  
 }
 
 TreeItemImage::~TreeItemImage( void ) {
-  if ( 0 != TreeItemImageCommon::m_keyTexture ) {
-    m_pSceneManager->Delete( m_keyTexture );
-    m_keyTexture = 0;
-  }
+  TreeItemImageCommon::Disable();
 }
 
 void TreeItemImage::HandleLoadImage( wxCommandEvent& event ) {
@@ -536,18 +549,11 @@ TreeItemVideo::TreeItemVideo(
   
   UpdateTransformMatrix();  // probably won't have coordinates at this time, so may not be necessary
   
-//  TreeItemImageCommon::m_keyTexture 
-//    = m_pSceneManager->Add( FpsGenerator::fps24, TreeItemImageCommon::m_pTexture );
-  
 }
 
 TreeItemVideo::~TreeItemVideo( void ) {
   
-  // may need to factor out so can redo the key as needed
-  if ( 0 != TreeItemImageCommon::m_keyTexture ) {
-    m_pSceneManager->Delete( m_keyTexture );
-    m_keyTexture = 0;
-  }
+  TreeItemImageCommon::Disable();
   
   m_connectionImageReady.disconnect();
   m_connectionFrameTrigger.disconnect();
@@ -570,8 +576,6 @@ void TreeItemVideo::ShowContextMenu( void ) {
 }
 
 void TreeItemVideo::HandleLoadVideo( wxCommandEvent& event ) {
-  // may want to block this while one is currently playing
-  // or kill current in-process one and replace with new one
   LoadVideo();  
 }
 
@@ -590,27 +594,15 @@ void TreeItemVideo::LoadVideo( void ) {
     
     std::string sPath( dialogOpenFile.GetPath() );
     //std::cout << "chose " << sPath << std::endl;
-    //std::cout << "dir " << m_sVideoDirectory << std::endl;
-    //assert( m_image.LoadFile( dialogOpenFile.GetPath(), wxBITMAP_TYPE_JPEG ) );
-
     
     m_player.Close();
     if ( m_player.Open( sPath ) ) {  // means it needs to be closed manually or automatically
       AVRational fr = m_player.GetVideoFrameRate();
-      // need to use a Add/Clear method in other class instead
-      TreeItemImageCommon::m_keyTexture 
-        = m_pSceneManager->Add( fr.num, fr.den, TreeItemImageCommon::m_pTexture );
+      TreeItemImageCommon::Enable( fr.num, fr.den );
       m_player.Play();
     }
     
-    
-    // need to do processing in background, 
-    // put frames into queue
-    // pass from background to gui thread for gui update
-    // use thread pool when processing multiple streams
-    // therefore can handle async termination of stream
-    
-    // put in logger
+    // handle async termination of stream
     
   }
   else {

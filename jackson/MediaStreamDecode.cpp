@@ -278,6 +278,8 @@ void MediaStreamDecode::ProcessStream( size_t ixAudio, size_t ixVideo ) {  // sh
 }
 
 void MediaStreamDecode::Close( void ) {
+
+  // todo: need to ensure stream is stopped
   
   if ( m_bInUse ) {
     m_vStreamInfo.clear();
@@ -293,19 +295,13 @@ void MediaStreamDecode::HandleOnFrame( AVCodecContext* pContext, AVFrame* pFrame
 #define FMT PIX_FMT_RGB32
 //#define FMT PIX_FMT_RGB24
   
-  //int srcX = pFrame->width;  // these are actually 0
+  //int srcX = pFrame->width;  // these are actually 0, so can't use
   //int srcY = pFrame->height;
   
   int srcX = pContext->width;
   int srcY = pContext->height;
   
   size_t nBytes = avpicture_get_size( FMT, srcX, srcY );
-  
-  //double fps = av_q2d(pContext->time_base);
-  //if(fps > 0.0) {
-    //frame_delay = fps * 1000ull * 1000ull * 1000ull;
-  //  std::cout << "fps: " << fps << std::endl;
-  //}
   
   struct SwsContext* swsContext = sws_getContext(srcX, srcY, pContext->pix_fmt, srcX, srcY, FMT, SWS_BILINEAR, NULL, NULL, NULL);
   //struct SwsContext* swsContext = sws_getContext(srcX, srcY, context->pix_fmt, srcX, srcY, PIX_FMT_RGB24, SWS_BILINEAR, NULL, NULL, NULL);
@@ -341,8 +337,6 @@ void MediaStreamDecode::HandleFrameTransformToImage( AVFrame* pRgb, uint8_t* buf
   uint8_t* pSrcFrame( *pRgb->data );
   
   pImage_t pImage( new wxImage( srcX, srcY, false ) );
-  //wxImage* image( pImage.get() );
-  //wxImagePixelData data( *image );
   wxImagePixelData data( *pImage );
   wxImagePixelData::Iterator pDestImage( data );
   
@@ -361,15 +355,6 @@ void MediaStreamDecode::HandleFrameTransformToImage( AVFrame* pRgb, uint8_t* buf
   
   m_signalImageReady( pImage, perf );
 
-  //m_pWin->QueueEvent(  );
-  //wxApp::GetInstance()->QueueEvent( new EventImage( EVENT_IMAGE, 0, pImage, user, perf ) );
-  //wxApp->GetInstance()->QueueEvent( new EventImage( EVENT_IMAGE, m_pWin->GetId(), pImage, user, perf ) );
-  
-  // may need to set a unique itemid if multiple events running simultaneously
-  // need to change this to the specific canvas into which the frame is going to be displayed
-  //m_pScreenFrame->GetFrame()->QueueEvent( new EventImage( EVENT_IMAGE, -1, pImage, user, perf ) );
-  //m_pScreenFrame->GetFrame()->get QueueEvent( new EventImage( EVENT_IMAGE, -1, pImage, user, perf ) );
-  
   av_free( buf );
   av_free( pRgb );  
   
