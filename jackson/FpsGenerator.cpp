@@ -14,6 +14,8 @@
 
 #include <boost/assign/std/vector.hpp>
 
+#include <boost/foreach.hpp>
+
 #include "FpsGenerator.h"
 
 //typedef boost::chrono::milliseconds ms;
@@ -24,9 +26,15 @@ public:
   
   typedef std::vector<size_t> vCounts_t;
   
-  DownCount( FpsGenerator::FPS fps, const vCounts_t vCounts ) 
+  DownCount( FpsGenerator::FPS fps, const vCounts_t vCounts, const size_t frames, const size_t ms ) 
   : m_fps( fps ), m_ixCounts( 0 ), m_nCount( 0 ), m_vCounts( vCounts )
   { // frame pull down rates
+    assert( frames == m_vCounts.size() );
+    size_t msSum( 0 );
+    BOOST_FOREACH( size_t ms_, m_vCounts ) {
+      msSum += ms_;
+    }
+    assert( ms == msSum );
     m_nCount = m_vCounts[ m_ixCounts ];
   }
   ~DownCount( void ) {};
@@ -62,57 +70,55 @@ FpsGenerator::FpsGenerator( )
   {
     DownCount::vCounts_t v24xfps;
     for ( unsigned int ix = 1; ix <= 7; ++ix ) {
-      v24xfps.push_back( 42 ); v24xfps.push_back( 42 ); v24xfps.push_back( 41 );
+      v24xfps += 42, 42, 41;
     } // ( 7 * 3 ) entries above + 3 entries below  is 24 frames
-    v24xfps.push_back( 42 ); v24xfps.push_back( 42 ); v24xfps.push_back( 42 ); // 24 frames in 1001 ms
-    assert( 24 == v24xfps.size());
-    m_mapDownCount.insert( mapDownCount_t::value_type( fps24x, pDownCount_t( new DownCount( fps24x, v24xfps ) ) ) );
+    v24xfps += 42, 42, 42;
+    m_mapDownCount.insert( mapDownCount_t::value_type( fps24x, pDownCount_t( new DownCount( fps24x, v24xfps, 24, 1001 ) ) ) );
   }
 
   {
     DownCount::vCounts_t v24fps;
     v24fps += 42, 42, 41;  // 3 frames in 125 ms
-    m_mapDownCount.insert( mapDownCount_t::value_type( fps24, pDownCount_t( new DownCount( fps24, v24fps ) ) ) );
+    m_mapDownCount.insert( mapDownCount_t::value_type( fps24, pDownCount_t( new DownCount( fps24, v24fps, 3, 125 ) ) ) );
   }
 
   {
     DownCount::vCounts_t v25fps; 
     v25fps += 40;  // 1 frame every 40 ms
-    m_mapDownCount.insert( mapDownCount_t::value_type( fps25, pDownCount_t( new DownCount( fps25, v25fps ) ) ) );
+    m_mapDownCount.insert( mapDownCount_t::value_type( fps25, pDownCount_t( new DownCount( fps25, v25fps, 1, 40 ) ) ) );
   }
 
   {
     DownCount::vCounts_t v30xfps;
     for ( unsigned int ix = 1; ix <= 9; ++ix ) {
-      v30xfps.push_back( 33 ); v30xfps.push_back( 33 ); v30xfps.push_back( 34 );
+      v30xfps += 33, 33, 34;
     } // ( 9 * 3 ) entries above + 3 entries below  is 30 frames
-    v30xfps.push_back( 33 ); v30xfps.push_back( 34 ); v30xfps.push_back( 34 ); // 30 frames in 1001 ms
-    assert( 30 == v30xfps.size());
-    m_mapDownCount.insert( mapDownCount_t::value_type( fps30x, pDownCount_t( new DownCount( fps30x, v30xfps ) ) ) );
+    v30xfps += 33, 34, 34;
+    m_mapDownCount.insert( mapDownCount_t::value_type( fps30x, pDownCount_t( new DownCount( fps30x, v30xfps, 30, 1001 ) ) ) );
   }
 
   {
     DownCount::vCounts_t v30fps; 
     v30fps += 33, 33, 34;  // 3 frames in 100ms
-    m_mapDownCount.insert( mapDownCount_t::value_type( fps30, pDownCount_t( new DownCount( fps30, v30fps ) ) ) );
+    m_mapDownCount.insert( mapDownCount_t::value_type( fps30, pDownCount_t( new DownCount( fps30, v30fps, 3, 100 ) ) ) );
   }
 
   {
     DownCount::vCounts_t v48fps; 
     v48fps += 21, 21, 21, 21, 21, 20; // 6 frames in 125ms
-    m_mapDownCount.insert( mapDownCount_t::value_type( fps48, pDownCount_t( new DownCount( fps48, v48fps ) ) ) );
+    m_mapDownCount.insert( mapDownCount_t::value_type( fps48, pDownCount_t( new DownCount( fps48, v48fps, 6, 125 ) ) ) );
   }
 
   {
     DownCount::vCounts_t v60fps; 
     v60fps += 17, 17, 16; // 3 frames in 50ms
-    m_mapDownCount.insert( mapDownCount_t::value_type( fps60, pDownCount_t( new DownCount( fps60, v60fps ) ) ) );
+    m_mapDownCount.insert( mapDownCount_t::value_type( fps60, pDownCount_t( new DownCount( fps60, v60fps, 3, 50 ) ) ) );
   }
   
   {
     DownCount::vCounts_t v100fps; 
     v100fps += 10; // 1 frame in 10ms
-    m_mapDownCount.insert( mapDownCount_t::value_type( fps100, pDownCount_t( new DownCount( fps100, v100fps ) ) ) );
+    m_mapDownCount.insert( mapDownCount_t::value_type( fps100, pDownCount_t( new DownCount( fps100, v100fps, 1, 10 ) ) ) );
   }
   
   }

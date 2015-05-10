@@ -27,11 +27,18 @@ public:
   typedef boost::signals2::signal<void (pImage_t, const structTimeSteps&)> signalImageReady_t;
   typedef signalImageReady_t::slot_type slotImageReady_t;
   
+  typedef boost::signals2::signal<void ()> signalDecodeDone_t;
+  typedef signalDecodeDone_t::slot_type slotDecodeDone_t;
+  
   MediaStreamDecode( void );
   virtual ~MediaStreamDecode( void );
   
   boost::signals2::connection ConnectImageReady( const slotImageReady_t& slot ) {
     return m_signalImageReady.connect( slot );
+  }
+  
+  boost::signals2::connection ConnectDecodeDone( const slotDecodeDone_t& slot ) {
+    return m_signaDecodeDone.connect( slot );
   }
   
   bool Open( const std::string& sFile );
@@ -72,6 +79,7 @@ private:
   boost::asio::io_service::work* m_pWork;
   
   signalImageReady_t m_signalImageReady;
+  signalDecodeDone_t m_signaDecodeDone;
   
   int m_ixBestAudioStream;
   int m_ixBestVideoStream;

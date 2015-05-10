@@ -269,6 +269,8 @@ void MediaStreamDecode::ProcessStream( size_t ixAudio, size_t ixVideo ) {  // sh
     //if ( 0 == cnt ) break;
     m_ts.start = boost::chrono::high_resolution_clock::now();  // reset for next loop
   }
+  
+  m_signaDecodeDone();
 
   // may want to use seek at some point (when looping) av_seek_frame : https://libav.org/doxygen/master/group__lavf__decoding.html)
 
