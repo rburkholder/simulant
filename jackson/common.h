@@ -23,6 +23,9 @@ struct structTimeSteps {
   tp copied;
   tp queue2;
   tp drawn;
+  void clear( void ) {
+    drawn = queue2 = copied = queue1 = scaled = filled = decoded = parse = start;
+  }
 };
 
 

@@ -41,6 +41,9 @@ public:
     return m_signaDecodeDone.connect( slot );
   }
   
+  AVRational GetAudioFrameRate( void ) const { return m_pFormatContext->streams[m_ixBestAudioStream]->avg_frame_rate; }
+  AVRational GetVideoFrameRate( void ) const { return m_pFormatContext->streams[m_ixBestVideoStream]->avg_frame_rate; }
+  
   bool Open( const std::string& sFile );
   void EmitStats( void );
   void Play( void );
@@ -49,7 +52,7 @@ public:
   void Stop( void );
   void PauseResume( void );
   
-  void Close( void );
+  void Close( void );  // need to ensure background thread is finished
   
 private:
   

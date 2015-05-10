@@ -20,6 +20,9 @@
 
 //typedef boost::chrono::milliseconds ms;
 //typedef boost::chrono::microseconds mu;
+
+// 2015/05/10 optimization:
+//   maybe use least downcount to determine when next to set the alarm
   
 class DownCount {  // counters are based upon 1ms intervals
 public:

@@ -193,9 +193,9 @@ void MediaStreamDecode::EmitStats( void ) {
     int64_t nbFrames( m_pFormatContext->streams[ix]->nb_frames );
     std::cout << "info strm " << ix << " frames " << nbFrames << std::endl;
     std::cout << "info strm " << ix << " buffer size " << m_pFormatContext->max_picture_buffer << std::endl;
-    std::cout << "info strm " << ix << " h/w " 
-      << m_pFormatContext->streams[ix]->codec->height << ", " << m_pFormatContext->streams[ix]->codec->coded_height << ", "
-      << m_pFormatContext->streams[ix]->codec->width  << ", " << m_pFormatContext->streams[ix]->codec->coded_width << std::endl;
+    std::cout << "info strm " << ix << " w/h " 
+      << m_pFormatContext->streams[ix]->codec->width  << ", " << m_pFormatContext->streams[ix]->codec->coded_width << ", "
+      << m_pFormatContext->streams[ix]->codec->height << ", " << m_pFormatContext->streams[ix]->codec->coded_height << std::endl;
     AVRational ar( m_pFormatContext->streams[ix]->codec->sample_aspect_ratio );
     std::cout << "info strm " << ix << " ar " << ar.num << "/" << ar.den << std::endl;
     std::cout << "info strm " << ix << " channels " << m_pFormatContext->streams[ix]->codec->channels << std::endl; // audio channels
@@ -227,11 +227,9 @@ void MediaStreamDecode::ProcessStream( size_t ixAudio, size_t ixVideo ) {  // sh
   pFrame = av_frame_alloc();
   //pFrame = avcodec_alloc_frame(); // http://pastebin.com/ByYzePa3  deprecated
   assert( 0 != pFrame );
-  //int cnt( 100 );
   int status( 0 );
   m_ts.start = boost::chrono::high_resolution_clock::now();
   while ( 0 == ( status = av_read_frame( m_pFormatContext, &packet ) ) ) {  // https://libav.org/doxygen/master/group__lavf__decoding.html
-    //std::cout << "packet " << packet.stream_index << ": " << packet.pts << ", " << packet.dts << ", " << packet.duration << std::endl;
     //std::cout << "packet " << packet.stream_index << ": " << packet.size << ", " << std::endl;
     m_ts.parse = boost::chrono::high_resolution_clock::now();
     int gotFrame( 0 );
@@ -254,6 +252,7 @@ void MediaStreamDecode::ProcessStream( size_t ixAudio, size_t ixVideo ) {  // sh
       else {
         if ( 0 != gotFrame ) {  // emit picture
           m_ts.decoded = boost::chrono::high_resolution_clock::now();
+          //std::cout << "packet " << packet.stream_index << ": " << packet.pts << ", " << packet.dts << ", " << packet.duration << std::endl;
           // could put into asio queue
           //HandleOnFrame( m_vStreamInfo[ixVideo].pCodecContext, pFrame, 0, m_ts );
           // can't run in service queue as we need to return the pFrame, and is not queueable
@@ -262,12 +261,11 @@ void MediaStreamDecode::ProcessStream( size_t ixAudio, size_t ixVideo ) {  // sh
           //std::cout << "width: " << pFrame->width << " height: " << pFrame->height << " format: " << pFrame->format;
           //if ( 1 == pFrame->key_frame ) std::cout << " key frame " << pFrame->display_picture_number;
           //std::cout << std::endl;
+          m_ts.start = boost::chrono::high_resolution_clock::now();  // reset for next portion of read
+          m_ts.clear();
         }
       }
     }
-    //--cnt;
-    //if ( 0 == cnt ) break;
-    m_ts.start = boost::chrono::high_resolution_clock::now();  // reset for next loop
   }
   
   m_signaDecodeDone();
@@ -361,7 +359,7 @@ void MediaStreamDecode::HandleFrameTransformToImage( AVFrame* pRgb, uint8_t* buf
 
   perf.copied = boost::chrono::high_resolution_clock::now();
   
-  m_signalImageReady( pImage, m_ts );
+  m_signalImageReady( pImage, perf );
 
   //m_pWin->QueueEvent(  );
   //wxApp::GetInstance()->QueueEvent( new EventImage( EVENT_IMAGE, 0, pImage, user, perf ) );

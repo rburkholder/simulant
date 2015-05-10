@@ -39,7 +39,7 @@ bool AppProjection::OnInit( ) {
   
   wxBoxSizer* sizer = new wxBoxSizer( wxHORIZONTAL );
   m_pSurfaceSources = new panelSurfaceSources( m_pFrameMain, -1 );
-  sizer->Add( m_pSurfaceSources, 1, wxEXPAND );
+  sizer->Add( m_pSurfaceSources, 1, wxEXPAND|wxGROW|wxALL );
 
   unsigned int nDisplays = wxDisplay::GetCount();
   std::cout << "#connected displays: " << nDisplays << std::endl;

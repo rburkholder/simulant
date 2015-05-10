@@ -289,10 +289,16 @@ public:
   
 protected:
   
-  typedef SETexture::pImage_t pImage_t;
-  
   static wxString m_sPictureDirectory;
   static wxString m_sVideoDirectory;
+  
+  typedef SETexture::pImage_t pImage_t;
+  
+  typedef SceneManager::key_t key_t;
+  typedef boost::shared_ptr<SETexture> pSETexture_t;
+  
+  key_t m_keyTexture;
+  pSETexture_t m_pTexture;
   
   void SetImage( pImage_t pImage );
   
@@ -300,13 +306,7 @@ protected:
   
 private:
   
-  typedef SceneManager::key_t key_t;
-  typedef boost::shared_ptr<SETexture> pSETexture_t;
-  
   pImage_t m_pImage;
-  
-  pSETexture_t m_pTexture;
-  key_t m_keyTexture;
   
 };
 
@@ -324,14 +324,16 @@ TreeItemImageCommon::TreeItemImageCommon(
   wxImage::AddHandler( new wxJPEGHandler );
 
   m_pTexture.reset( new SETexture );
-  m_keyTexture = m_pSceneManager->Add( FpsGenerator::fps24, m_pTexture );
+  // m_keyTexture = m_pSceneManager->Add( FpsGenerator::fps24, m_pTexture ); /video needs something different, so set in each derived class
   m_pTexture->SetTransform( InteractiveTransform::m_mat4Transform );
     
 }
 
 TreeItemImageCommon::~TreeItemImageCommon( void ) {
-  if ( 0 != m_keyTexture ) 
+  if ( 0 != m_keyTexture ) {
     m_pSceneManager->Delete( m_keyTexture );
+    m_keyTexture = 0;
+  }
 }
 
 void TreeItemImageCommon::SetImage( pImage_t pImage ) {  // load picture and create object
@@ -392,6 +394,9 @@ TreeItemImage::TreeItemImage(
   
   std::cout << "Tree Item Add Image" << std::endl;
   
+  TreeItemImageCommon::m_keyTexture 
+    = m_pSceneManager->Add( FpsGenerator::fps24, TreeItemImageCommon::m_pTexture );
+  
   ResetTransformMatrix();
   
   LoadImage();
@@ -401,6 +406,10 @@ TreeItemImage::TreeItemImage(
 }
 
 TreeItemImage::~TreeItemImage( void ) {
+  if ( 0 != TreeItemImageCommon::m_keyTexture ) {
+    m_pSceneManager->Delete( m_keyTexture );
+    m_keyTexture = 0;
+  }
 }
 
 void TreeItemImage::HandleLoadImage( wxCommandEvent& event ) {
@@ -624,13 +633,13 @@ void TreeItemVideo::HandleEventImage( EventImage& event ) {
 
     std::cout << "stat:" 
       << "  parse "  << boost::chrono::duration_cast<mu>( ts.parse - ts.start )
-      << ", decode " << boost::chrono::duration_cast<ms>( ts.decoded - ts.parse )
+      << ", decode " << boost::chrono::duration_cast<mu>( ts.decoded - ts.parse )
       << ", filled " << boost::chrono::duration_cast<mu>( ts.filled - ts.decoded )
       << ", scaled " << boost::chrono::duration_cast<ms>( ts.scaled - ts.filled )
       << ", queue1 " << boost::chrono::duration_cast<mu>( ts.queue1 - ts.scaled )
       << ", xformd " << boost::chrono::duration_cast<ms>( ts.copied - ts.queue1 )
       << ", queue2 " << boost::chrono::duration_cast<mu>( ts.queue2 - ts.copied )
-      << ", drawn "  << boost::chrono::duration_cast<ms>( ts.drawn - ts.queue2 )
+      << ", drawn "  << boost::chrono::duration_cast<mu>( ts.drawn - ts.queue2 )
       << std::endl;
     
     bSkip = false;
