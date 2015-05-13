@@ -12,6 +12,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/signals2.hpp>
 
+#include "RawImage.h"
 #include "SceneElement.h"
 
 #include <glm/glm.hpp>
@@ -22,6 +23,7 @@ public:
   typedef boost::signals2::signal<void()> signalFrame_t;
   typedef signalFrame_t::slot_type slotFrame_t;
   typedef boost::shared_ptr<wxImage> pImage_t;
+  typedef RawImage::pRawImage_t pRawImage_t;
   
   SETexture( );
   virtual ~SETexture( );
@@ -34,6 +36,7 @@ public:
   void SetTransform( const glm::mat4& mat4Transform );
   
   void SetImage( pImage_t pImage );
+  void SetImage( pRawImage_t pRawImage );
   
   virtual void OnFrameTrigger( void ) { m_signal(); };
   boost::signals2::connection Connect( const slotFrame_t& );
@@ -56,6 +59,9 @@ private:
   pImage_t m_pImage;
   bool m_bNewImageAvailable;
   
+  pRawImage_t m_pRawImage;
+  bool m_bNewRawImageAvailable;
+  
   signalFrame_t m_signal;
   
   glm::mat4 m_mat4BasicTransform;
@@ -73,6 +79,7 @@ private:
   
   void AddTexture( void );
   void AssignImageToTexture( void );
+  void AssignRawImageToTexture( void );
   
   void SetBasicTransform( void );
   

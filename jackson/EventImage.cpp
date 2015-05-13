@@ -9,8 +9,8 @@
 
 #include "EventImage.h"
 
-EventImage::EventImage( wxEventType eventType, int winid, pImage_t p, void* user, structTimeSteps ts ) 
-  : wxEvent( winid, eventType ), m_pImage( p ), m_pVoid( user ), m_ts( ts )
+EventImage::EventImage( wxEventType eventType, int winid, pRawImage_t p, void* user, structTimeSteps ts ) 
+  : wxEvent( winid, eventType ), m_pRawImage( p ), m_pVoid( user ), m_ts( ts )
 {
 }
 

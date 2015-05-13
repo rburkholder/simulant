@@ -30,7 +30,11 @@ public:
   
   typedef std::vector<size_t> vCounts_t;
   
-  FrameRate( FpsGenerator::FPS fps, const vCounts_t vCounts, size_t frames, size_t ms, size_t fr_num, size_t fr_den ) 
+  FrameRate( 
+    FpsGenerator::FPS fps, const vCounts_t vCounts, // vCounts - ms down count per frame
+    size_t frames, size_t ms,  // for validation of #frames in ms duration
+    size_t fr_num, size_t fr_den  // for looking up a frame rate
+  ) 
   : m_fps( fps ), m_ixCounts( 0 ), m_nCount( 0 ), m_vCounts( vCounts ),
     m_nFrameRateNumerator( fr_num ), m_nFrameRateDenominator( fr_den )
   { // frame pull down rates
@@ -86,7 +90,7 @@ FpsGenerator::FpsGenerator( )
     FrameRate::vCounts_t v24xfps;
     for ( unsigned int ix = 1; ix <= 7; ++ix ) {
       v24xfps += 42, 42, 41;
-    } // ( 7 * 3 ) entries above + 3 entries below is 24 frames
+    } // ( 7 * 3 ) entries above + 3 entries below is 24 frames in 1001 ms
     v24xfps += 42, 42, 42;
     m_mapFrameRate.insert( 
       mapFrameRate_t::value_type( fps24x, pFrameRate_t( new FrameRate( fps24x, v24xfps, 24, 1001, 24000, 1001 ) ) ) );
@@ -110,7 +114,7 @@ FpsGenerator::FpsGenerator( )
     FrameRate::vCounts_t v30xfps;
     for ( unsigned int ix = 1; ix <= 9; ++ix ) {
       v30xfps += 33, 33, 34;
-    } // ( 9 * 3 ) entries above + 3 entries below is 30 frames
+    } // ( 9 * 3 ) entries above + 3 entries below is 30 frames in 1001 ms
     v30xfps += 33, 34, 34;
     m_mapFrameRate.insert( 
       mapFrameRate_t::value_type( fps30x, pFrameRate_t( new FrameRate( fps30x, v30xfps, 30, 1001, 30000, 1001 ) ) ) );

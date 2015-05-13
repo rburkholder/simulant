@@ -402,18 +402,30 @@ void MediaStreamDecode::HandleOnFrame( AVCodecContext* pContext, AVFrame* pFrame
   pRGB = av_frame_alloc();
   assert( 0 != pRGB );
   
-  uint8_t* buf  = (uint8_t*)av_malloc( nBytes * sizeof( uint8_t ) );  // *** todo:  keep from call to call, be aware of frame size changes in test material
-  avpicture_fill( ( AVPicture*)pRGB, buf, FMT, srcX, srcY );
+  RawImage::pRawImage_t pRawImage;
+  pRawImage.reset( new RawImage( RawImage::FormatBGRA, nBytes, srcX, srcY ) );
+  
+  //uint8_t* buf  = (uint8_t*)av_malloc( nBytes * sizeof( uint8_t ) );  // *** todo:  keep from call to call, be aware of frame size changes in test material
+  avpicture_fill( ( AVPicture*)pRGB, pRawImage->GetBuffer(), FMT, srcX, srcY );  // effectively assigns buf ptr to pRGB entry 0, linesize is # bytes in line
   
   perf.filled = boost::chrono::high_resolution_clock::now();
   
   sws_scale(swsContext, pFrame->data, pFrame->linesize, 0, srcY, pRGB->data, pRGB->linesize );
   
+  sws_freeContext( swsContext );
+  
   perf.scaled = boost::chrono::high_resolution_clock::now();
 
   //m_Srvc.post( boost::phoenix::bind( &MediaStreamDecode::HandleFrameTransformToImage, this, pRGB, buf, perf, srcX, srcY ) );
   
-  HandleFrameTransformToImage( pRGB, buf, perf, srcX, srcY );
+  if ( false ) {
+    //HandleFrameTransformToImage( pRGB, buf, perf, srcX, srcY );
+  }
+  else {
+    m_signalImageReady( pRawImage, perf );
+    av_free( pRGB );  
+    pRGB = 0;
+  }
   
   // ** note decode currently works faster than the transform, so transform work will queue up.
   //    need to deal with proper timing of frames.
@@ -424,7 +436,7 @@ void MediaStreamDecode::HandleOnFrame( AVCodecContext* pContext, AVFrame* pFrame
 }
 
 void MediaStreamDecode::HandleFrameTransformToImage( AVFrame* pRgb, uint8_t* buf, structTimeSteps perf, int srcX, int srcY ) {
-  
+  /*
   perf.queue1 = boost::chrono::high_resolution_clock::now();
   
   uint8_t* pSrcFrame( *pRgb->data );
@@ -451,5 +463,7 @@ void MediaStreamDecode::HandleFrameTransformToImage( AVFrame* pRgb, uint8_t* buf
   av_free( buf );
   av_free( pRgb );  
   
+  buf = pRgb = 0;
+  */
 }
 

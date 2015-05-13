@@ -50,6 +50,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/MediaStreamDecode.o \
 	${OBJECTDIR}/Outline.o \
 	${OBJECTDIR}/PhysicalDisplay.o \
+	${OBJECTDIR}/RawImage.o \
 	${OBJECTDIR}/SEGrid.o \
 	${OBJECTDIR}/SETexture.o \
 	${OBJECTDIR}/SceneElement.o \
@@ -164,6 +165,11 @@ ${OBJECTDIR}/PhysicalDisplay.o: PhysicalDisplay.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/PhysicalDisplay.o PhysicalDisplay.cpp
+
+${OBJECTDIR}/RawImage.o: RawImage.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/RawImage.o RawImage.cpp
 
 ${OBJECTDIR}/SEGrid.o: SEGrid.cpp 
 	${MKDIR} -p ${OBJECTDIR}

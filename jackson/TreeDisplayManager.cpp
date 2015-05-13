@@ -42,6 +42,7 @@
 //#include "tut1.h"
 #include "tex2.h"
 
+#include "RawImage.h"
 #include "EventImage.h"
 
 #include "Outline.h"
@@ -124,8 +125,6 @@ public:
   
 protected:
   
-  //volatile bool m_bActive;
-  
   signalTransformUpdated_t m_signalTransformUpdated;
   
   pPhysicalDisplay_t m_pPhysicalDisplay;
@@ -135,9 +134,6 @@ protected:
 
   void SetSelected( void );  // from tree menu
   void RemoveSelected( void );  // from tree menu
-  
-  //void HandleRefreshTimer( FpsGenerator::FPS fps );  // is in work thread
-  //void HandleRefresh( EventGenerateFrame& event );
   
 private:
 };
@@ -183,25 +179,7 @@ void TreeItemVisualCommon::SetSelected( void ) {
 void TreeItemVisualCommon::RemoveSelected( void ) {
   InteractiveTransform::DeActivate();
 }
-/*
-void TreeItemVisualCommon::HandleRefreshTimer( FpsGenerator::FPS fps ) {
-  if ( m_bActive ) { // cross thread action
-    wxApp::GetInstance()->QueueEvent( new EventGenerateFrame( EVENT_GENERATEFRAME, m_pPhysicalDisplay->GetFrame()->GetId() ) );
-  }
-}
 
-void TreeItemVisualCommon::HandleRefresh( EventGenerateFrame& event ) {
-  if ( m_pPhysicalDisplay->GetFrame()->GetId() == event.GetId() ) {
-    m_pSceneManager->Refresh(); // this isn't the right way, as it will get called to many times
-    //  when registering, registers with a specific fps queue
-    // this should set a flag, so SceneManager draws everything, or does an auto refresh.
-  }
-  else {
-    //std::cout << "not our event" << std::endl;  // this does get hit, so the if above is appropriate
-  }
-  event.Skip( true );  // let other ones process this as well
-}
-*/
 // ================
 
 class TreeItemGrid: public TreeItemVisualCommon {
@@ -299,6 +277,8 @@ protected:
   typedef SceneManager::key_t key_t;
   typedef boost::shared_ptr<SETexture> pSETexture_t;
   
+  typedef RawImage::pRawImage_t pRawImage_t;
+  
   key_t m_keyTexture;
   pSETexture_t m_pTexture;
   
@@ -307,6 +287,7 @@ protected:
   void Disable( void );
   
   void SetImage( pImage_t pImage );
+  void SetImage( pRawImage_t pRawImage );
   
   virtual void UpdateTransformMatrix( void );
   
@@ -367,6 +348,13 @@ void TreeItemImageCommon::SetImage( pImage_t pImage ) {  // load picture and cre
 //    wxClientDC dc( pfp );
 //    dc.DrawBitmap( bitmap, wxPoint( 0, 0 ) );
   
+}
+
+void TreeItemImageCommon::SetImage( pRawImage_t pRawImage ) {  // load picture and create object
+  assert( 0 != m_pTexture.use_count() );
+  assert( 0 != pRawImage.use_count() );
+  m_pTexture->SetImage( pRawImage );
+  UpdateTransformMatrix();
 }
 
 void TreeItemImageCommon::UpdateTransformMatrix( void ) {
@@ -499,21 +487,19 @@ private:
   
   typedef SceneManager::key_t key_t;
   typedef boost::shared_ptr<SETexture> pSETexture_t;
-  typedef boost::shared_ptr<wxImage> pImage_t;
-  typedef std::vector<pImage_t> vpImage_t;
-  typedef std::list<pImage_t> lpImage_t;
-  
-  //pSETexture_t m_pTexture;
-  //key_t m_keyTexture;
+  //typedef boost::shared_ptr<wxImage> pImage_t;
+  typedef RawImage::pRawImage_t pRawImage_t;
+  typedef std::vector<pRawImage_t> vpRawImage_t;
+  typedef std::list<pRawImage_t> lpRawImage_t;
   
   wxString m_sPictureDirectory;
   wxString m_sVideoDirectory;
   
-  wxImage m_image;
-  vpImage_t m_vpImage;
-  vpImage_t::size_type m_ixvImage;  // allows cycling through m_vpImage
+  //wxImage m_image;
+  vpRawImage_t m_vpRawImage;
+  vpRawImage_t::size_type m_ixvRawImage;  // allows cycling through m_vpRawImage
   
-  lpImage_t m_lpImage;
+  lpRawImage_t m_lpRawImage;
   
   MediaStreamDecode m_player;
   bool m_bResumed;
@@ -528,7 +514,8 @@ private:
   void HandleResume( wxCommandEvent& event );
   void HandleStop( wxCommandEvent& event );
   
-  void HandleImage( MediaStreamDecode::pImage_t, const structTimeSteps& );
+  //void HandleImage( MediaStreamDecode::pImage_t, const structTimeSteps& );
+  void HandleImage( RawImage::pRawImage_t, const structTimeSteps& );
   void HandleEventImage( EventImage& );
   void ShowImage( void );  // show next image from vector
   
@@ -537,7 +524,7 @@ private:
 TreeItemVideo::TreeItemVideo( 
   TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager )
 : TreeItemImageCommon( pTree, id, pPhysicalDisplay, pSceneManager ),
-  m_ixvImage( 0 ), m_bResumed( true )
+  m_ixvRawImage( 0 ), m_bResumed( true )
 {
   
   std::cout << "Tree Item Add Video" << std::endl; 
@@ -643,8 +630,8 @@ void TreeItemVideo::LoadVideo( void ) {
   }
 }
 
-void TreeItemVideo::HandleImage( MediaStreamDecode::pImage_t pImage, const structTimeSteps& ts ) {
-  wxApp::GetInstance()->QueueEvent( new EventImage( EVENT_IMAGE, -1, pImage, GetTreeItemId(), ts ) );
+void TreeItemVideo::HandleImage( RawImage::pRawImage_t pRawImage, const structTimeSteps& ts ) {
+  wxApp::GetInstance()->QueueEvent( new EventImage( EVENT_IMAGE, -1, pRawImage, GetTreeItemId(), ts ) );
 }
 
 void TreeItemVideo::HandleEventImage( EventImage& event ) {
@@ -663,9 +650,9 @@ void TreeItemVideo::HandleEventImage( EventImage& event ) {
     // by putting a lock on the vector, we may no longer need this event
     // don't do this, doesn't scale for large videos, maybe sometime in the future
     
-    m_lpImage.push_back( event.GetImage() );
+    m_lpRawImage.push_back( event.GetRawImage() );
     
-    lpImage_t::size_type size( m_lpImage.size() );
+    lpRawImage_t::size_type size( m_lpRawImage.size() );
     //std::cout << "v size: " << size;
     if ( 16 < size ) {
       if ( m_bResumed ) {
@@ -703,15 +690,15 @@ void TreeItemVideo::HandleEventImage( EventImage& event ) {
 
 void TreeItemVideo::ShowImage( void ) {
   
-  lpImage_t::size_type size1( m_lpImage.size() );
+  lpRawImage_t::size_type size1( m_lpRawImage.size() );
   if ( 0 != size1 ) {
-    pImage_t pImage = m_lpImage.front();
+    pRawImage_t pRawImage = m_lpRawImage.front();
     //m_vpImage.push_back( pImage );
-    TreeItemImageCommon::SetImage( pImage );
-    m_lpImage.pop_front();
+    TreeItemImageCommon::SetImage( pRawImage );
+    m_lpRawImage.pop_front();
   }
   
-  size1 = m_lpImage.size();
+  size1 = m_lpRawImage.size();
   if ( 8 > size1 ) {
     if ( !m_bResumed ) {
       //std::cout << "v resumed " << size1 << std::endl;;

@@ -31,7 +31,8 @@ SETexture::SETexture( ):
   m_idVertexArray( 0 ), m_idTexture( 0 ), m_idElements( 0 ), 
   m_idVertexBufferForImageCoords( 0 ), m_idVertexBufferForTextureCoords( 0 ), 
   m_idVapImageCoords( 0 ), m_idVapTextureCoords( 0 ), 
-  m_idUniformTransform( 0 ), m_bNewImageAvailable( false )
+  m_idUniformTransform( 0 ), 
+  m_bNewImageAvailable( false ), m_bNewRawImageAvailable( false )
 {
   
   using namespace boost::assign;
@@ -121,7 +122,18 @@ void SETexture::SetImage( pImage_t pImage ) {
   
 }
 
+void SETexture::SetImage( pRawImage_t pRawImage ) {
+  
+  assert( 0 != pRawImage.use_count() );
+  m_pRawImage = pRawImage;
+  SetBasicTransform();
+  m_bNewRawImageAvailable = true;
+  
+}
+
 void SETexture::SetImage( void ) {
+  
+  bool bSetImageCoords( false );
   
   if ( m_bNewImageAvailable ) {
     assert( 0 != m_pImage.use_count() );
@@ -131,12 +143,29 @@ void SETexture::SetImage( void ) {
       AssignImageToTexture();
       //std::cout << "assigned to idTexture " << m_idTexture << std::endl;
     }
+    m_bNewImageAvailable = false;
+    bSetImageCoords = true;
+  }
+  
+  if ( m_bNewRawImageAvailable ) {
+    assert( 0 != m_pRawImage.use_count() );
+    GLboolean b;
+    b = glIsTexture( m_idTexture );
+    if ( GL_TRUE == b ) {
+      AssignRawImageToTexture();
+      //std::cout << "assigned to idTexture " << m_idTexture << std::endl;
+    }
+    m_bNewRawImageAvailable = false;
+    bSetImageCoords = true;
+  }
+  
+  if ( bSetImageCoords ) {
+    GLboolean b;
     b = glIsBuffer( m_idVertexBufferForImageCoords );
     if ( GL_TRUE == b ) {
       SetImageCoords();
       //std::cout << "assigned to idVertex " << m_idVertexBufferForImageCoords << std::endl;
     }
-    m_bNewImageAvailable = false;
   }
   
 }
@@ -156,6 +185,22 @@ void SETexture::AssignImageToTexture( void ) {
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // GL doesn't like packed structures, used to get the RGB out
     //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, pData);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pDest.m_pRGB );
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 10, 10, 0, GL_RGB, GL_UNSIGNED_BYTE, col );
+  }
+  
+}
+  
+void SETexture::AssignRawImageToTexture( void ) {
+  
+  if ( 0 != m_pRawImage.use_count() ) {
+    int width = m_pRawImage->GetWidth();
+    int height = m_pRawImage->GetHeight();
+
+    // https://www.opengl.org/wiki/Common_Mistakes
+    // http://stackoverflow.com/questions/10918684/strange-color-shift-after-loading-a-gl-rgb-texture
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // GL doesn't like packed structures, used to get the RGB out
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, pData);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_pRawImage->GetBuffer() );
     //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 10, 10, 0, GL_RGB, GL_UNSIGNED_BYTE, col );
   }
   

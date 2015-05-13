@@ -8,20 +8,22 @@
 #ifndef EVENTIMAGE_H
 #define	EVENTIMAGE_H
 
-#include <boost/shared_ptr.hpp>
+//#include <boost/shared_ptr.hpp>
 
-#include <wx/image.h>
+//#include <wx/image.h>
 #include <wx/event.h>
 
+#include "RawImage.h"
 #include "common.h"
 
 class EventImage: public wxEvent {
 public:
-  typedef boost::shared_ptr<wxImage> pImage_t;
-  EventImage( wxEventType eventType, int winid, pImage_t p, void* user, structTimeSteps );
+  //typedef boost::shared_ptr<wxImage> pImage_t;
+  typedef RawImage::pRawImage_t pRawImage_t;
+  EventImage( wxEventType eventType, int winid, pRawImage_t p, void* user, structTimeSteps );
   virtual ~EventImage( void );
   
-  pImage_t GetImage( void ) { return m_pImage; };
+  pRawImage_t GetRawImage( void ) { return m_pRawImage; };
   void* GetUser( void ) { return m_pVoid; };
   structTimeSteps& GetTimeSteps( void ) { return m_ts; };
   
@@ -33,7 +35,7 @@ public:
 protected:  
 private:
 
-  pImage_t m_pImage;
+  pRawImage_t m_pRawImage;
   void* m_pVoid;  
   structTimeSteps m_ts;
 };

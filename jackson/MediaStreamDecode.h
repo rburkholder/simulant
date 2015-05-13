@@ -22,13 +22,15 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
+#include "RawImage.h"
 #include "common.h"
 
 class MediaStreamDecode {
 public:
   
-  typedef boost::shared_ptr<wxImage> pImage_t;
-  typedef boost::signals2::signal<void (pImage_t, const structTimeSteps&)> signalImageReady_t;
+  typedef RawImage::pRawImage_t pRawImage_t;
+  //typedef boost::shared_ptr<wxImage> pImage_t;
+  typedef boost::signals2::signal<void (pRawImage_t, const structTimeSteps&)> signalImageReady_t;
   typedef signalImageReady_t::slot_type slotImageReady_t;
   
   typedef boost::signals2::signal<void ()> signalDecodeDone_t;
