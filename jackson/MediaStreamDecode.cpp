@@ -416,54 +416,12 @@ void MediaStreamDecode::HandleOnFrame( AVCodecContext* pContext, AVFrame* pFrame
   
   perf.scaled = boost::chrono::high_resolution_clock::now();
 
-  //m_Srvc.post( boost::phoenix::bind( &MediaStreamDecode::HandleFrameTransformToImage, this, pRGB, buf, perf, srcX, srcY ) );
-  
-  if ( false ) {
-    //HandleFrameTransformToImage( pRGB, buf, perf, srcX, srcY );
-  }
-  else {
-    m_signalImageReady( pRawImage, perf );
-    av_free( pRGB );  
-    pRGB = 0;
-  }
+  m_signalImageReady( pRawImage, perf );
+  av_free( pRGB );  
+  pRGB = 0;
   
   // ** note decode currently works faster than the transform, so transform work will queue up.
-  //    need to deal with proper timing of frames.
-  //    need to base frame timing on what is in the file
-  //    need sync so stops at high water mark, resumes decode at low water mark
   //    be aware that if using multiple threads, that processing needs to be sync'd so frames stay in order
   //      or do frame ordering in final presentation to screen, buffer loop
-}
-
-void MediaStreamDecode::HandleFrameTransformToImage( AVFrame* pRgb, uint8_t* buf, structTimeSteps perf, int srcX, int srcY ) {
-  /*
-  perf.queue1 = boost::chrono::high_resolution_clock::now();
-  
-  uint8_t* pSrcFrame( *pRgb->data );
-  
-  pImage_t pImage( new wxImage( srcX, srcY, false ) );
-  wxImagePixelData data( *pImage );
-  wxImagePixelData::Iterator pDestImage( data );
-  
-  for ( int iy = 0; iy < srcY; ++iy ) {
-    for ( int ix = 0; ix < srcX; ++ix ) {
-      //++pSrc;  // skip A
-      pDestImage.Blue() =  *pSrcFrame; ++pSrcFrame;
-      pDestImage.Green() = *pSrcFrame; ++pSrcFrame;
-      pDestImage.Red() =   *pSrcFrame; ++pSrcFrame;
-      ++pDestImage;
-      ++pSrcFrame; // skip alpha?
-    }
-  }
-
-  perf.copied = boost::chrono::high_resolution_clock::now();
-  
-  m_signalImageReady( pImage, perf );
-
-  av_free( buf );
-  av_free( pRgb );  
-  
-  buf = pRgb = 0;
-  */
 }
 

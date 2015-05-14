@@ -680,7 +680,7 @@ void TreeItemVideo::HandleEventImage( EventImage& event ) {
       << ", queue2 " << boost::chrono::duration_cast<mu>( ts.queue2 - ts.copied )
       << ", drawn "  << boost::chrono::duration_cast<mu>( ts.drawn - ts.queue2 )
       << std::endl;
-  */  
+*/    
     bSkip = false;
   }
 

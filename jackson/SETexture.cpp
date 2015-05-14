@@ -80,13 +80,26 @@ boost::signals2::connection SETexture::Connect(const slotFrame_t& slot ) {
 }
 
 void SETexture::SetBasicTransform( void ) {
+  
+  bool bImageAvailable( false );
+  float height( 0.0 );
+  float width( 0.0 );
+  
   if ( 0 != m_pImage.use_count() ) {
+    height = m_pImage->GetHeight();
+    width = m_pImage->GetWidth();
+    bImageAvailable = true;
+  }
     
-    float height = m_pImage->GetHeight();
-    float width = m_pImage->GetWidth();
+  if ( 0 != m_pRawImage.use_count() ) {
+    height = m_pRawImage->GetHeight();
+    width = m_pRawImage->GetWidth();
+    bImageAvailable = true;
+  }
     
-    using namespace boost::assign;
+  if ( bImageAvailable ) {
     m_vtxImageCoords.clear();
+    using namespace boost::assign;
     m_vtxImageCoords +=  // regular pixel screen coordinates
        glm::vec2(         0.0f,          0.0f ), // Top-left 
        glm::vec2( width - 1.0f,          0.0f ), // Top-right
@@ -200,7 +213,7 @@ void SETexture::AssignRawImageToTexture( void ) {
     // http://stackoverflow.com/questions/10918684/strange-color-shift-after-loading-a-gl-rgb-texture
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // GL doesn't like packed structures, used to get the RGB out
     //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, pData);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_pRawImage->GetBuffer() );
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, m_pRawImage->GetBuffer() );
     //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 10, 10, 0, GL_RGB, GL_UNSIGNED_BYTE, col );
   }
   
@@ -219,7 +232,8 @@ void SETexture::AddTexture( void ) {
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-  AssignImageToTexture();
+  if ( 0 != m_pImage.use_count() ) AssignImageToTexture();
+  if ( 0 != m_pRawImage.use_count() ) AssignRawImageToTexture();
 
 }
 
@@ -295,7 +309,8 @@ void SETexture::Paint( void ) {
   
   SceneElement::Paint();
   
-  if ( 0 != m_pImage.use_count() ) {
+//  if ( 0 != m_pImage.use_count() ) {
+    if ( ( 0 != m_pImage.use_count() ) || ( 0 != m_pRawImage.use_count() ) ) {
   
     glUseProgram(m_idProgram);
 
