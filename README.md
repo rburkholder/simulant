@@ -13,7 +13,7 @@ The first main project was Test5, which is used for testing the capabilities of:
   
 The current active project in this bundle is 'Jackson', which is meant 
 be used for projective scenarios.  At this point, it can project to multiple 
-displays, it uses OpenGL for rendering, uses LibAv to open run almost any 
+displays, uses OpenGL for rendering, uses LibAv to open run almost any 
 video file (but doesn't play the audio track yet), offers 
 interactive addition/removal of images and videos, with
 individual manual translation, scaling, and rotation capabilities. The
