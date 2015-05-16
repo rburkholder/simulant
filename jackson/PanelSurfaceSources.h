@@ -52,9 +52,9 @@ public:
   void Append( pPhysicalDisplay_t pPhysicalDisplay );
   
   // when range is 0, should disable the control
-  void SetScrollMin( int min ) { assert( 0 != m_sliderHorizontal ); m_sliderHorizontal->SetMin( min ); }  // defaults to 0..100
-  void SetScrollMax( int max ) { assert( 0 != m_sliderHorizontal ); m_sliderHorizontal->SetMax( max ); }  // defaults to 0..100
-  void SetScrollRange( int min, int max) { assert( 0 != m_sliderHorizontal ); m_sliderHorizontal->SetRange( min, max ); }
+  //void SetScrollMin( int min ) { assert( 0 != m_sliderHorizontal ); m_sliderHorizontal->SetMin( min ); }  // defaults to 0..100
+  //void SetScrollMax( int max ) { assert( 0 != m_sliderHorizontal ); m_sliderHorizontal->SetMax( max ); }  // defaults to 0..100
+  //void SetScrollRange( int min, int max) { assert( 0 != m_sliderHorizontal ); m_sliderHorizontal->SetRange( min, max ); }
 
 protected:  
 private:
@@ -85,7 +85,7 @@ private:
   wxToggleButton* m_btnEditMode;
   wxButton* m_btnUndo;
   wxSlider* m_sliderHorizontal;
-  wxStaticText* m_stFrameCount;
+  wxStaticText* m_stInfo;
 
   TreeDisplayManager* m_treeDisplays;
   

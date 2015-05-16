@@ -14,17 +14,17 @@ extern "C" {
 #include "RawImage.h"
 
 
-RawImage::RawImage( void ): m_format( FormatRGBA ), m_pImageData( 0 ) {
+RawImage::RawImage( void ): m_format( FormatRGBA ), m_pImageData( 0 ), m_nImage( 0 ) {
 }
 
-RawImage::RawImage( Format format, size_t size, size_t width, size_t height )
-: m_format( format ), m_height( height ), m_width( width ), m_pImageData( 0 )
+RawImage::RawImage( Format format, size_t size, size_t width, size_t height, int64_t nImage )
+: m_format( format ), m_height( height ), m_width( width ), m_pImageData( 0 ), m_nImage( nImage )
 {
   m_pImageData = (uint8_t*)av_malloc( size );
 }
 
-RawImage::RawImage( Format format, size_t width, size_t height )
-: m_format( format ), m_height( height ), m_width( width ), m_pImageData( 0 )
+RawImage::RawImage( Format format, size_t width, size_t height, int64_t nImage )
+: m_format( format ), m_height( height ), m_width( width ), m_pImageData( 0 ), m_nImage( nImage )
 {
   switch ( format ) {
     case FormatRGB:

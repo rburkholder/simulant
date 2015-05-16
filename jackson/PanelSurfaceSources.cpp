@@ -68,6 +68,7 @@ void PanelSurfaceSources::CreateControls() {
   itemPanel1->SetSizer(itemBoxSizerForPanel);
   
   m_sliderHorizontal = new wxSlider( itemPanel1, ID_SLIDER_HORIZONTAL, 0, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
+  m_sliderHorizontal->Enable( false );
   itemBoxSizerForPanel->Add( m_sliderHorizontal, 0, wxALIGN_TOP|wxGROW|wxALL, 1 );
   
   wxBoxSizer* itemBoxSizerHorizontal = new wxBoxSizer( wxHORIZONTAL );
@@ -88,11 +89,8 @@ void PanelSurfaceSources::CreateControls() {
   wxBoxSizer* itemBoxSizerPanelStatus = new wxBoxSizer( wxHORIZONTAL );
   itemBoxSizerPanelVertical->Add( itemBoxSizerPanelStatus, 0, wxGROW|wxALL, 0 );
   
-  wxStaticText* stFrameCountLabel = new wxStaticText( m_panelRight, -1, _("Frame#: "), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
-  itemBoxSizerPanelStatus->Add( stFrameCountLabel, 0, wxGROW|wxALL, 2 );
-
-  m_stFrameCount = new wxStaticText( m_panelRight, ID_ST_FRAMECOUNTER, _("_"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
-  itemBoxSizerPanelStatus->Add( m_stFrameCount, 0, wxGROW|wxALL, 2 );
+  m_stInfo = new wxStaticText( m_panelRight, ID_ST_FRAMECOUNTER, _("_"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+  itemBoxSizerPanelStatus->Add( m_stInfo, 0, wxGROW|wxALL, 2 );
 
   wxBoxSizer* itemBoxSizerPanelButtonColumns = new wxBoxSizer( wxHORIZONTAL );
   itemBoxSizerPanelVertical->Add( itemBoxSizerPanelButtonColumns, 1, wxGROW|wxALL, 0 );
@@ -133,14 +131,15 @@ void PanelSurfaceSources::CreateControls() {
   m_btnUndo = new wxButton( m_panelRight, ID_BTN_UNDO, _("Undo"), wxDefaultPosition, wxDefaultSize, 0 );
   itemBoxSizerVertColumn3->Add(m_btnUndo, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 3);
   
-  m_treeDisplays->SetStaticTextFrameCounter( m_stFrameCount );
+  m_treeDisplays->SetStaticTextInfo( m_stInfo );
+  m_treeDisplays->SetSlider( m_sliderHorizontal );
 
   Bind( wxEVT_TOGGLEBUTTON, &PanelSurfaceSources::HandleToggleEditMode, this, ID_BTN_EDITMODE );
   Bind( wxEVT_BUTTON, &PanelSurfaceSources::HandleUndo, this, ID_BTN_UNDO );
-  Bind( wxEVT_SCROLL_THUMBTRACK, &PanelSurfaceSources::HandleScrollThumbTrack, this, ID_SLIDER_HORIZONTAL );
-  Bind( wxEVT_SCROLL_LINEUP, &PanelSurfaceSources::HandleScrollLineChange, this, ID_SLIDER_HORIZONTAL );
-  Bind( wxEVT_SCROLL_LINEDOWN, &PanelSurfaceSources::HandleScrollLineChange, this, ID_SLIDER_HORIZONTAL );
-  Bind( wxEVT_SCROLL_THUMBRELEASE, &PanelSurfaceSources::HandleScrollThumbRelease, this, ID_SLIDER_HORIZONTAL );
+  //Bind( wxEVT_SCROLL_THUMBTRACK, &PanelSurfaceSources::HandleScrollThumbTrack, this, ID_SLIDER_HORIZONTAL );
+  //Bind( wxEVT_SCROLL_LINEUP, &PanelSurfaceSources::HandleScrollLineChange, this, ID_SLIDER_HORIZONTAL );
+  //Bind( wxEVT_SCROLL_LINEDOWN, &PanelSurfaceSources::HandleScrollLineChange, this, ID_SLIDER_HORIZONTAL );
+  //Bind( wxEVT_SCROLL_THUMBRELEASE, &PanelSurfaceSources::HandleScrollThumbRelease, this, ID_SLIDER_HORIZONTAL );
 }
 
 void PanelSurfaceSources::HandleUndo( wxCommandEvent& event ) {

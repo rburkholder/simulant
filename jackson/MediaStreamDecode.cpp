@@ -157,6 +157,7 @@ bool MediaStreamDecode::Open( const std::string& sFile ) {
         }
         else {
           m_fi.ttlVideoFrames = m_pFormatContext->streams[m_ixBestVideoStream]->nb_frames;
+          m_fi.duration = m_pFormatContext->duration;
         }
 
         AVCodec* pBestCodecForAudio( 0 );  // should be able to discard this, may need to match addresses 
@@ -239,7 +240,10 @@ void MediaStreamDecode::EmitStats( void ) {
     std::cout << "info strm " << ix << " pixfmt " << pf << std::endl;
     AVMediaType mt( m_pFormatContext->streams[ix]->codec->codec_type );
     std::cout << "info strm " << ix << " type " << mt << std::endl;
-    std::cout << "refcounted frames " << m_vStreamInfo[ix].pCodecContext->refcounted_frames << std::endl;
+    if ( 0 != m_vStreamInfo[ix].pCodecContext ) {
+      std::cout << "refcounted frames " << m_vStreamInfo[ix].pCodecContext->refcounted_frames << std::endl;
+    }
+    
     // AVCodecContext::frame_number
   }
     
@@ -428,7 +432,7 @@ void MediaStreamDecode::ProcessVideoFrame( AVCodecContext* pContext, AVFrame* pF
   assert( 0 != pRGB );
   
   RawImage::pRawImage_t pRawImage;
-  pRawImage.reset( new RawImage( RawImage::FormatBGRA, nBytes, srcX, srcY ) );
+  pRawImage.reset( new RawImage( RawImage::FormatBGRA, nBytes, srcX, srcY, m_fi.nVideoFrame ) );
   
   //uint8_t* buf  = (uint8_t*)av_malloc( nBytes * sizeof( uint8_t ) );  // *** todo:  keep from call to call, be aware of frame size changes in test material
   avpicture_fill( ( AVPicture*)pRGB, pRawImage->GetBuffer(), FMT, srcX, srcY );  // effectively assigns buf ptr to pRGB entry 0, linesize is # bytes in line
@@ -441,7 +445,8 @@ void MediaStreamDecode::ProcessVideoFrame( AVCodecContext* pContext, AVFrame* pF
   
   perf.scaled = boost::chrono::high_resolution_clock::now();
 
-  m_signalImageReady( pRawImage, perf, m_fi );
+  //m_signalImageReady( pRawImage, perf, m_fi );
+  m_signalImageReady( pRawImage, perf );
   av_free( pRGB );  
   pRGB = 0;
   

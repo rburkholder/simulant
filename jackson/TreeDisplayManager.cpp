@@ -498,8 +498,11 @@ private:
   
   int64_t m_ttlVideoFrames;
   int64_t m_ttlAudioFrames;
+  int64_t m_duration;  
   
-  wxStaticText* m_pstFrameCounter;
+  int m_nThumbPosition;
+  
+  wxStaticText* m_pstInfo;
   
   boost::signals2::connection m_connectionFrameTrigger;
   boost::signals2::connection m_connectionImageReady;
@@ -511,11 +514,14 @@ private:
   void HandleResume( wxCommandEvent& event );
   void HandleStop( wxCommandEvent& event );
   
-  //void HandleImage( MediaStreamDecode::pImage_t, const structTimeSteps& );
-  void HandleImage( RawImage::pRawImage_t, const structTimeSteps&, const MediaStreamDecode::FrameInfo& );
+  //void HandleImage( RawImage::pRawImage_t, const structTimeSteps&, const MediaStreamDecode::FrameInfo& );
+  void HandleImage( RawImage::pRawImage_t, const structTimeSteps& );
   void HandleEventImage( EventImage& );
   void ShowImage( void );  // show next image from vector
   
+  void HandleScrollThumbTrack( wxScrollEvent& event );
+  void HandleScrollLineChange( wxScrollEvent& event );
+  void HandleScrollThumbRelease( wxScrollEvent& event );
 };
 
 TreeItemVideo::TreeItemVideo( 
@@ -523,7 +529,7 @@ TreeItemVideo::TreeItemVideo(
 : TreeItemImageCommon( pTree, id, pPhysicalDisplay, pSceneManager ),
   m_ttlVideoFrames( 0 ), m_ttlAudioFrames( 0 ),
   m_ixvRawImage( 0 ), m_bResumed( true ),
-  m_pstFrameCounter( 0 )
+  m_pstInfo( 0 ), m_nThumbPosition( 0 )
 {
   
   std::cout << "Tree Item Add Video" << std::endl; 
@@ -538,7 +544,8 @@ TreeItemVideo::TreeItemVideo(
   
   namespace args = boost::phoenix::arg_names;
   m_connectionFrameTrigger = TreeItemImageCommon::ConnectFrameTrigger( boost::phoenix::bind( &TreeItemVideo::ShowImage, this ) );
-  m_connectionImageReady = m_player.ConnectImageReady( boost::phoenix::bind( &TreeItemVideo::HandleImage, this, args::arg1, args::arg2, args::arg3 ) );
+  //m_connectionImageReady = m_player.ConnectImageReady( boost::phoenix::bind( &TreeItemVideo::HandleImage, this, args::arg1, args::arg2, args::arg3 ) );
+  m_connectionImageReady = m_player.ConnectImageReady( boost::phoenix::bind( &TreeItemVideo::HandleImage, this, args::arg1, args::arg2 ) );
   
   ResetTransformMatrix();
   
@@ -558,16 +565,68 @@ TreeItemVideo::~TreeItemVideo( void ) {
 }
 
   void TreeItemVideo::SetSelected( CommonGuiElements& elements ) {
+    std::cout << "setting " << this->m_id.GetID() << std::endl;
     TreeItemVisualCommon::SetSelected( elements );
-    m_pstFrameCounter = elements.pstFrameCounter;
+    m_pstInfo = elements.pstInfo;
+    if ( 0 != elements.pSlider ) {
+      elements.pSlider->Bind( wxEVT_SCROLL_THUMBTRACK, &TreeItemVideo::HandleScrollThumbTrack, this );
+      elements.pSlider->Bind( wxEVT_SCROLL_LINEUP, &TreeItemVideo::HandleScrollLineChange, this );
+      elements.pSlider->Bind( wxEVT_SCROLL_LINEDOWN, &TreeItemVideo::HandleScrollLineChange, this );
+      elements.pSlider->Bind( wxEVT_SCROLL_THUMBRELEASE, &TreeItemVideo::HandleScrollThumbRelease, this );
+      if ( 0 < m_ttlVideoFrames ) {
+        elements.pSlider->SetMin( 1 );
+        elements.pSlider->SetMax( m_ttlVideoFrames );
+        elements.pSlider->Enable( true );
+      }
+      else {
+        if ( 0 < m_duration ) {
+          elements.pSlider->SetMin( 1 );
+          elements.pSlider->SetMax( m_duration );
+          elements.pSlider->Enable( true );
+        }
+      }
+      if ( 0 == m_nThumbPosition ) {
+        elements.pSlider->SetValue( 1 );
+      }
+      else {
+        elements.pSlider->SetValue( m_nThumbPosition );
+      }
+
+    }
   }
   
   void TreeItemVideo::RemoveSelected( CommonGuiElements& elements ) {
-    m_pstFrameCounter = 0;
+    std::cout << "removing " << this->m_id.GetID() << std::endl;
+    if ( 0 != m_pstInfo ) {
+      m_pstInfo->SetLabel( "" );
+      m_pstInfo = 0;
+    }
+    if ( 0 != elements.pSlider ) {
+      m_nThumbPosition = elements.pSlider->GetValue();
+      elements.pSlider->Enable( false );
+      elements.pSlider->SetMin( 0 );
+      elements.pSlider->SetMax( 100 );
+      elements.pSlider->Unbind( wxEVT_SCROLL_THUMBTRACK, &TreeItemVideo::HandleScrollThumbTrack, this );
+      elements.pSlider->Unbind( wxEVT_SCROLL_LINEUP, &TreeItemVideo::HandleScrollLineChange, this );
+      elements.pSlider->Unbind( wxEVT_SCROLL_LINEDOWN, &TreeItemVideo::HandleScrollLineChange, this );
+      elements.pSlider->Unbind( wxEVT_SCROLL_THUMBRELEASE, &TreeItemVideo::HandleScrollThumbRelease, this );
+    }
     TreeItemVisualCommon::RemoveSelected( elements );
   }
   
   
+void TreeItemVideo::HandleScrollThumbTrack( wxScrollEvent& event ) {
+  std::cout << "ThumbTrack " << event.GetPosition() << std::endl;
+}
+
+void TreeItemVideo::HandleScrollLineChange( wxScrollEvent& event ) {
+  std::cout << "LineChange " << event.GetPosition() << std::endl;
+}
+
+void TreeItemVideo::HandleScrollThumbRelease( wxScrollEvent& event ) {
+  std::cout << "ThumbRelease " << event.GetPosition() << std::endl;
+}
+
 void TreeItemVideo::ShowContextMenu( void ) {
   
   wxMenu* pMenu = new wxMenu();
@@ -628,8 +687,9 @@ void TreeItemVideo::LoadVideo( void ) {
     m_player.Close();
     if ( m_player.Open( sPath ) ) {  // means it needs to be closed manually or automatically
       AVRational fr = m_player.GetVideoFrameRate();
-      this->m_ttlAudioFrames = m_player.GetTotalAudioFrames();
-      this->m_ttlVideoFrames = m_player.GetTotalVideoFrames();
+      m_ttlAudioFrames = m_player.GetTotalAudioFrames();
+      m_ttlVideoFrames = m_player.GetTotalVideoFrames();
+      m_duration = m_player.GetDuration();
       TreeItemImageCommon::Enable( fr.num, fr.den );
       m_player.Play();
     }
@@ -642,10 +702,11 @@ void TreeItemVideo::LoadVideo( void ) {
   }
 }
 
-void TreeItemVideo::HandleImage( RawImage::pRawImage_t pRawImage, const structTimeSteps& ts, const MediaStreamDecode::FrameInfo& info ) {
+//void TreeItemVideo::HandleImage( RawImage::pRawImage_t pRawImage, const structTimeSteps& ts, const MediaStreamDecode::FrameInfo& info ) {
+void TreeItemVideo::HandleImage( RawImage::pRawImage_t pRawImage, const structTimeSteps& ts ) {
   EventImage* p( new EventImage( EVENT_IMAGE, -1, pRawImage, GetTreeItemId(), ts ) );
-  p->nAudioFrame = info.nAudioFrame;
-  p->nVideoFrame = info.nVideoFrame;
+  //p->nAudioFrame = info.nAudioFrame;
+  //p->nVideoFrame = info.nVideoFrame;
   wxApp::GetInstance()->QueueEvent( p );
 }
 
@@ -699,12 +760,6 @@ void TreeItemVideo::HandleEventImage( EventImage& event ) {
     bSkip = false;
   }
   
-  if ( 0 != m_pstFrameCounter ) {
-    std::string sNum;
-    sNum = boost::lexical_cast<std::string>( event.nVideoFrame );
-    m_pstFrameCounter->SetLabel( sNum );
-  }
-
   event.Skip( bSkip );
     
 }
@@ -717,6 +772,13 @@ void TreeItemVideo::ShowImage( void ) {
     //m_vpImage.push_back( pImage );
     TreeItemImageCommon::SetImage( pRawImage );
     m_lpRawImage.pop_front();
+
+    if ( 0 != m_pstInfo ) {
+      std::string sNum;
+      sNum = boost::lexical_cast<std::string>( pRawImage->GetImageNumber() );
+      m_pstInfo->SetLabel( sNum );
+    }
+
   }
   
   size1 = m_lpRawImage.size();
@@ -1065,6 +1127,13 @@ void TreeDisplayManager::Delete( wxTreeItemId id ) {
   //wxTreeItemId id( pTreeItem->GetTreeItemId() );
   if ( 0 == GetChildrenCount( id ) ) {
     
+    // need to detect that it is deleting itself, and that it is currently selected
+    if ( m_idOld.IsOk() ) {
+      if ( m_idOld = id ) {
+        m_mapDecoder[ m_idOld ]->RemoveSelected( m_guiElements );
+      }
+    }
+    
     wxTreeItemId idParent = wxTreeCtrl::GetItemParent( id );
     assert( idParent.IsOk() );
     mapDecoder_t::iterator iterParent = m_mapDecoder.find( idParent.GetID() );
@@ -1103,8 +1172,12 @@ void TreeDisplayManager::CreateControls() {
   
 }
 
-void TreeDisplayManager::SetStaticTextFrameCounter( wxStaticText* pstFrameCounter ) {
-  m_guiElements.pstFrameCounter = pstFrameCounter;
+void TreeDisplayManager::SetStaticTextInfo( wxStaticText* pstInfo ) {
+  m_guiElements.pstInfo = pstInfo;
+}
+
+void TreeDisplayManager::SetSlider( wxSlider* pSlider ) {
+  m_guiElements.pSlider = pSlider;
 }
 
 void TreeDisplayManager::HandleContextMenu( wxTreeEvent& event ) {
@@ -1118,10 +1191,14 @@ void TreeDisplayManager::HandleSelectionChanged( wxTreeEvent& event ) {
   
 }
 
-void TreeDisplayManager::HandleSelectionChanging( wxTreeEvent& event ) {
+void TreeDisplayManager::RemoveSelectOld( void ) {
   //std::cout << "HandleSelectionChanging " << event.GetItem().GetID() << std::endl;
   if ( m_idOld.IsOk() ) m_mapDecoder[ m_idOld ]->RemoveSelected( m_guiElements );
   m_idOld.Unset();
+}
+
+void TreeDisplayManager::HandleSelectionChanging( wxTreeEvent& event ) {
+  RemoveSelectOld();
 }
 
 void TreeDisplayManager::HandleItemActivated( wxTreeEvent& event ) {

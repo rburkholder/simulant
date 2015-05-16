@@ -26,8 +26,9 @@
 class TreeItemBase;
 
 struct CommonGuiElements {
-  wxStaticText* pstFrameCounter;
-  CommonGuiElements( void ): pstFrameCounter( 0 ) {}
+  wxStaticText* pstInfo;
+  wxSlider* pSlider;
+  CommonGuiElements( void ): pstInfo( 0 ), pSlider( 0 ) {}
 };
 
 class TreeDisplayManager: public wxTreeCtrl {
@@ -59,7 +60,8 @@ public:
   void Add( const wxTreeItemId& id, pTreeItem_t pTreeItem );
   void Delete( wxTreeItemId id );
   
-  void SetStaticTextFrameCounter( wxStaticText* pstFrameCounter );
+  void SetStaticTextInfo( wxStaticText* pstInfo );
+  void SetSlider( wxSlider* pSlider );
 
 protected:
 private:
@@ -84,6 +86,8 @@ private:
   void HandleSelectionChanging( wxTreeEvent& event );
   void HandleItemActivated( wxTreeEvent& event );
   void HandleItemDeleted( wxTreeEvent& event );
+  
+  void RemoveSelectOld( void );
 
   wxBitmap GetBitmapResource( const wxString& name );
   wxIcon GetIconResource( const wxString& name );
