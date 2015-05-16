@@ -74,7 +74,8 @@ private:
     ID_TREE_DISPLAYS,
     ID_SLIDER_HORIZONTAL,
     ID_SPLITTER_HORIZONTAL,
-    ID_PANEL
+    ID_PANEL, 
+    ID_ST_FRAMECOUNTER
   };
   
   bool m_bInEditMode;
@@ -84,6 +85,7 @@ private:
   wxToggleButton* m_btnEditMode;
   wxButton* m_btnUndo;
   wxSlider* m_sliderHorizontal;
+  wxStaticText* m_stFrameCount;
 
   TreeDisplayManager* m_treeDisplays;
   

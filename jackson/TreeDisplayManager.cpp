@@ -64,8 +64,8 @@ public:
   TreeItemBase( TreeDisplayManager* pTree_, wxTreeItemId id_ ): m_pTree( pTree_ ), m_id( id_ ) {}
   virtual ~TreeItemBase( void ) {}
   virtual void ShowContextMenu( void ) {}
-  virtual void SetSelected( void ) {}
-  virtual void RemoveSelected( void ) {}
+  virtual void SetSelected( CommonGuiElements& ) {}
+  virtual void RemoveSelected( CommonGuiElements& ) {}
   virtual void DeletingChild( wxTreeItemId id ) {};
   wxTreeItemId GetTreeItemId( void ) { return m_id; }
 protected:
@@ -132,8 +132,8 @@ protected:
   
   virtual void UpdateTransformMatrix( void ) {};
 
-  void SetSelected( void );  // from tree menu
-  void RemoveSelected( void );  // from tree menu
+  void SetSelected( CommonGuiElements& );  // from tree menu
+  void RemoveSelected( CommonGuiElements& );  // from tree menu
   
 private:
 };
@@ -145,20 +145,9 @@ TreeItemVisualCommon::TreeItemVisualCommon( TreeDisplayManager* pTree, wxTreeIte
   m_pPhysicalDisplay( pPhysicalDisplay ), m_pSceneManager( pSceneManager )
 {
   
-//  wxApp::GetInstance()->Bind( EVENT_GENERATEFRAME, &TreeItemVisualCommon::HandleRefresh, this ); 
-  //m_pScreenFrame->GetFrame()->Bind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this );  // doesn't propagate properly
-  
-//  namespace args = boost::phoenix::arg_names;
-//  m_slotTimer = fps.Connect( FpsGenerator::fps24, boost::phoenix::bind( &TreeItemVisualCommon::HandleRefreshTimer, this, args::arg1 ) );
- 
-//  m_bActive = true;
-  
 }
 
 TreeItemVisualCommon::~TreeItemVisualCommon( void ) {
-//  m_slotTimer.disconnect();
-//  wxApp::GetInstance()->Unbind( EVENT_GENERATEFRAME, &TreeItemVisualCommon::HandleRefresh, this );
-//  m_bActive = false;
 }
 
 void TreeItemVisualCommon::HandleDelete( wxCommandEvent& event ) {
@@ -172,11 +161,11 @@ void TreeItemVisualCommon::HandleReset( wxCommandEvent& event ) {
   UpdateTransformMatrix();
 }
 
-void TreeItemVisualCommon::SetSelected( void ) {
+void TreeItemVisualCommon::SetSelected( CommonGuiElements& ) {
   InteractiveTransform::Activate( m_pSceneManager.get() );
 }
 
-void TreeItemVisualCommon::RemoveSelected( void ) {
+void TreeItemVisualCommon::RemoveSelected( CommonGuiElements& ) {
   InteractiveTransform::DeActivate();
 }
 
@@ -476,6 +465,9 @@ public:
   
   virtual void ShowContextMenu( void );
   
+  virtual void SetSelected( CommonGuiElements& );
+  virtual void RemoveSelected( CommonGuiElements& );
+
 protected:
 private:
   
@@ -504,6 +496,11 @@ private:
   MediaStreamDecode m_player;
   bool m_bResumed;
   
+  int64_t m_ttlVideoFrames;
+  int64_t m_ttlAudioFrames;
+  
+  wxStaticText* m_pstFrameCounter;
+  
   boost::signals2::connection m_connectionFrameTrigger;
   boost::signals2::connection m_connectionImageReady;
   
@@ -515,7 +512,7 @@ private:
   void HandleStop( wxCommandEvent& event );
   
   //void HandleImage( MediaStreamDecode::pImage_t, const structTimeSteps& );
-  void HandleImage( RawImage::pRawImage_t, const structTimeSteps& );
+  void HandleImage( RawImage::pRawImage_t, const structTimeSteps&, const MediaStreamDecode::FrameInfo& );
   void HandleEventImage( EventImage& );
   void ShowImage( void );  // show next image from vector
   
@@ -524,7 +521,9 @@ private:
 TreeItemVideo::TreeItemVideo( 
   TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager )
 : TreeItemImageCommon( pTree, id, pPhysicalDisplay, pSceneManager ),
-  m_ixvRawImage( 0 ), m_bResumed( true )
+  m_ttlVideoFrames( 0 ), m_ttlAudioFrames( 0 ),
+  m_ixvRawImage( 0 ), m_bResumed( true ),
+  m_pstFrameCounter( 0 )
 {
   
   std::cout << "Tree Item Add Video" << std::endl; 
@@ -539,7 +538,7 @@ TreeItemVideo::TreeItemVideo(
   
   namespace args = boost::phoenix::arg_names;
   m_connectionFrameTrigger = TreeItemImageCommon::ConnectFrameTrigger( boost::phoenix::bind( &TreeItemVideo::ShowImage, this ) );
-  m_connectionImageReady = m_player.ConnectImageReady( boost::phoenix::bind( &TreeItemVideo::HandleImage, this, args::arg1, args::arg2 ) );
+  m_connectionImageReady = m_player.ConnectImageReady( boost::phoenix::bind( &TreeItemVideo::HandleImage, this, args::arg1, args::arg2, args::arg3 ) );
   
   ResetTransformMatrix();
   
@@ -558,6 +557,17 @@ TreeItemVideo::~TreeItemVideo( void ) {
   
 }
 
+  void TreeItemVideo::SetSelected( CommonGuiElements& elements ) {
+    TreeItemVisualCommon::SetSelected( elements );
+    m_pstFrameCounter = elements.pstFrameCounter;
+  }
+  
+  void TreeItemVideo::RemoveSelected( CommonGuiElements& elements ) {
+    m_pstFrameCounter = 0;
+    TreeItemVisualCommon::RemoveSelected( elements );
+  }
+  
+  
 void TreeItemVideo::ShowContextMenu( void ) {
   
   wxMenu* pMenu = new wxMenu();
@@ -618,6 +628,8 @@ void TreeItemVideo::LoadVideo( void ) {
     m_player.Close();
     if ( m_player.Open( sPath ) ) {  // means it needs to be closed manually or automatically
       AVRational fr = m_player.GetVideoFrameRate();
+      this->m_ttlAudioFrames = m_player.GetTotalAudioFrames();
+      this->m_ttlVideoFrames = m_player.GetTotalVideoFrames();
       TreeItemImageCommon::Enable( fr.num, fr.den );
       m_player.Play();
     }
@@ -630,8 +642,11 @@ void TreeItemVideo::LoadVideo( void ) {
   }
 }
 
-void TreeItemVideo::HandleImage( RawImage::pRawImage_t pRawImage, const structTimeSteps& ts ) {
-  wxApp::GetInstance()->QueueEvent( new EventImage( EVENT_IMAGE, -1, pRawImage, GetTreeItemId(), ts ) );
+void TreeItemVideo::HandleImage( RawImage::pRawImage_t pRawImage, const structTimeSteps& ts, const MediaStreamDecode::FrameInfo& info ) {
+  EventImage* p( new EventImage( EVENT_IMAGE, -1, pRawImage, GetTreeItemId(), ts ) );
+  p->nAudioFrame = info.nAudioFrame;
+  p->nVideoFrame = info.nVideoFrame;
+  wxApp::GetInstance()->QueueEvent( p );
 }
 
 void TreeItemVideo::HandleEventImage( EventImage& event ) {
@@ -682,6 +697,12 @@ void TreeItemVideo::HandleEventImage( EventImage& event ) {
       << std::endl;
 */    
     bSkip = false;
+  }
+  
+  if ( 0 != m_pstFrameCounter ) {
+    std::string sNum;
+    sNum = boost::lexical_cast<std::string>( event.nVideoFrame );
+    m_pstFrameCounter->SetLabel( sNum );
   }
 
   event.Skip( bSkip );
@@ -782,8 +803,8 @@ private:
   
   mapSceneElementInfo_t m_mapSceneElementInfo;
   
-  void SetSelected( void );
-  void RemoveSelected( void );
+  void SetSelected( CommonGuiElements& );
+  void RemoveSelected( CommonGuiElements& );
   void DeletingChild( wxTreeItemId );
   
   void HandleAddPicture( wxCommandEvent& event );
@@ -801,7 +822,7 @@ TreeItemPlaceHolder::TreeItemPlaceHolder(
 }
 
 TreeItemPlaceHolder::~TreeItemPlaceHolder( void ) {
-  RemoveSelected();
+  //RemoveSelected( m_guiElements );
 }
 
 void TreeItemPlaceHolder::ShowContextMenu( void ) {
@@ -823,13 +844,13 @@ void TreeItemPlaceHolder::ShowContextMenu( void ) {
   m_pTree->PopupMenu( pMenu );
 }
 
-void TreeItemPlaceHolder::SetSelected( void ) {
+void TreeItemPlaceHolder::SetSelected( CommonGuiElements& ) {
   //std::cout << "Tree Item Canvas Selected" << std::endl;
   m_pPhysicalDisplay->GetFrame()->SetOutline( m_pOutline );
   m_pPhysicalDisplay->GetFrame()->Refresh();
 }
 
-void TreeItemPlaceHolder::RemoveSelected( void ) {
+void TreeItemPlaceHolder::RemoveSelected( CommonGuiElements& ) {  // should happen before delete
   pOutline_t pOutline;
   m_pPhysicalDisplay->GetFrame()->SetOutline( pOutline );
   m_pPhysicalDisplay->GetFrame()->Refresh();
@@ -1082,6 +1103,10 @@ void TreeDisplayManager::CreateControls() {
   
 }
 
+void TreeDisplayManager::SetStaticTextFrameCounter( wxStaticText* pstFrameCounter ) {
+  m_guiElements.pstFrameCounter = pstFrameCounter;
+}
+
 void TreeDisplayManager::HandleContextMenu( wxTreeEvent& event ) {
   m_mapDecoder[ event.GetItem().GetID() ]->ShowContextMenu();
 }
@@ -1089,13 +1114,13 @@ void TreeDisplayManager::HandleContextMenu( wxTreeEvent& event ) {
 void TreeDisplayManager::HandleSelectionChanged( wxTreeEvent& event ) {
   std::cout << "HandleSelectionChanged " << event.GetItem().GetID() << std::endl;
   m_idOld = event.GetItem();
-  m_mapDecoder[ m_idOld.GetID() ]->SetSelected();
+  m_mapDecoder[ m_idOld.GetID() ]->SetSelected( m_guiElements );
   
 }
 
 void TreeDisplayManager::HandleSelectionChanging( wxTreeEvent& event ) {
   //std::cout << "HandleSelectionChanging " << event.GetItem().GetID() << std::endl;
-  if ( m_idOld.IsOk() ) m_mapDecoder[ m_idOld ]->RemoveSelected();
+  if ( m_idOld.IsOk() ) m_mapDecoder[ m_idOld ]->RemoveSelected( m_guiElements );
   m_idOld.Unset();
 }
 

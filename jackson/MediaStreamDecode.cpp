@@ -155,6 +155,9 @@ bool MediaStreamDecode::Open( const std::string& sFile ) {
           if ( AVERROR_DECODER_NOT_FOUND == m_ixBestVideoStream ) std::cout << "no decoder found for best video stream found" << std::endl;
           m_stateStream = EError;
         }
+        else {
+          m_fi.ttlVideoFrames = m_pFormatContext->streams[m_ixBestVideoStream]->nb_frames;
+        }
 
         AVCodec* pBestCodecForAudio( 0 );  // should be able to discard this, may need to match addresses 
         m_ixBestAudioStream = av_find_best_stream( m_pFormatContext, AVMediaType::AVMEDIA_TYPE_AUDIO, -1, -1, &pBestCodecForAudio, 0 );
@@ -162,6 +165,9 @@ bool MediaStreamDecode::Open( const std::string& sFile ) {
           if ( AVERROR_STREAM_NOT_FOUND == m_ixBestAudioStream ) std::cout << "no best audio stream found" << std::endl;
           if ( AVERROR_DECODER_NOT_FOUND == m_ixBestAudioStream ) std::cout << "no decoder found for best audio stream found" << std::endl;
           //m_stateStream = EError;  // ignore audio for now
+        }
+        else {
+          m_fi.ttlAudioFrames = m_pFormatContext->streams[m_ixBestAudioStream]->nb_frames;
         }
         
         if ( EError == m_stateStream ) {
@@ -357,6 +363,7 @@ void MediaStreamDecode::ProcessStream( size_t ixAudio, size_t ixVideo ) {  // ba
         else {
           // emit the audio
           m_ts.decoded = boost::chrono::high_resolution_clock::now();
+          m_fi.nAudioFrame = m_vStreamInfo[ixAudio].pCodecContext->frame_number;
         }
       }
       if ( ixVideo == packet.stream_index ) {
@@ -368,11 +375,12 @@ void MediaStreamDecode::ProcessStream( size_t ixAudio, size_t ixVideo ) {  // ba
           if ( 0 != gotFrame ) {  // emit picture
             m_ts.decoded = boost::chrono::high_resolution_clock::now();
             //std::cout << "packet " << packet.stream_index << ": " << packet.pts << ", " << packet.dts << ", " << packet.duration << std::endl;
-            // could put into asio queue
-            //HandleOnFrame( m_vStreamInfo[ixVideo].pCodecContext, pFrame, 0, m_ts );
-            // can't run in service queue as we need to return the pFrame, and is not queueable
-            //m_Srvc.post( boost::phoenix::bind( &MediaStreamDecode::HandleOnFrame, this, m_vStreamInfo[ixVideo].pCodecContext, pFrame, m_ts ) );
-            HandleOnFrame( m_vStreamInfo[ixVideo].pCodecContext, pFrame, m_ts );
+            // can't run in service queue as we need to return the pFrame, and is not queueable, unless we refcount it
+            m_fi.nVideoFrame = m_vStreamInfo[ixVideo].pCodecContext->frame_number;  // 1 .. n
+            m_fi.pts = pFrame->pts;
+            m_fi.pkt_pts = pFrame->pkt_pts;
+            m_fi.pkt_dts = pFrame->pkt_dts;
+            ProcessVideoFrame( m_vStreamInfo[ixVideo].pCodecContext, pFrame, m_ts );
             //std::cout << "width: " << pFrame->width << " height: " << pFrame->height << " format: " << pFrame->format;
             //if ( 1 == pFrame->key_frame ) std::cout << " key frame " << pFrame->display_picture_number;
             //std::cout << std::endl;
@@ -398,7 +406,7 @@ void MediaStreamDecode::ProcessStream( size_t ixAudio, size_t ixVideo ) {  // ba
   std::cout << "ProcessStream exited" << std::endl;
 }
 
-void MediaStreamDecode::HandleOnFrame( AVCodecContext* pContext, AVFrame* pFrame, structTimeSteps perf ) {
+void MediaStreamDecode::ProcessVideoFrame( AVCodecContext* pContext, AVFrame* pFrame, structTimeSteps perf ) {
   
 #define FMT PIX_FMT_RGB32
 //#define FMT PIX_FMT_RGB24
@@ -433,7 +441,7 @@ void MediaStreamDecode::HandleOnFrame( AVCodecContext* pContext, AVFrame* pFrame
   
   perf.scaled = boost::chrono::high_resolution_clock::now();
 
-  m_signalImageReady( pRawImage, perf );
+  m_signalImageReady( pRawImage, perf, m_fi );
   av_free( pRGB );  
   pRGB = 0;
   

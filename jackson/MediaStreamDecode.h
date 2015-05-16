@@ -26,8 +26,19 @@ extern "C" {
 class MediaStreamDecode {
 public:
   
+  struct FrameInfo {
+    int64_t nAudioFrame; // current audio frame number
+    int64_t ttlAudioFrames;
+    int64_t nVideoFrame; // current video frame number, 1 ... n
+    int64_t ttlVideoFrames;
+    int64_t pts;
+    int64_t pkt_pts;  // 1001, 2002, 3003, ... 
+    int64_t pkt_dts;
+    FrameInfo(): nAudioFrame( 0 ), ttlAudioFrames( 0 ), nVideoFrame( 0 ), ttlVideoFrames( 0 ), pts( 0 ), pkt_pts( 0 ), pkt_dts( 0 ) {}
+  };
+  
   typedef RawImage::pRawImage_t pRawImage_t;
-  typedef boost::signals2::signal<void (pRawImage_t, const structTimeSteps&)> signalImageReady_t;
+  typedef boost::signals2::signal<void (pRawImage_t, const structTimeSteps&, const FrameInfo&)> signalImageReady_t;
   typedef signalImageReady_t::slot_type slotImageReady_t;
   
   typedef boost::signals2::signal<void ()> signalDecodeDone_t;
@@ -47,7 +58,10 @@ public:
   AVRational GetAudioFrameRate( void ) const { return m_pFormatContext->streams[m_ixBestAudioStream]->avg_frame_rate; }
   AVRational GetVideoFrameRate( void ) const { return m_pFormatContext->streams[m_ixBestVideoStream]->avg_frame_rate; }
   
-  bool Open( const std::string& sFile );
+  uint64_t GetTotalVideoFrames( void ) const { return m_fi.ttlVideoFrames; }
+  uint64_t GetTotalAudioFrames( void ) const { return m_fi.ttlAudioFrames; }
+  
+  bool Open( const std::string& sFile ); // return some initial info
   void EmitStats( void );
   void Play( void );
   void Rewind( void );
@@ -90,6 +104,8 @@ private:
   
   typedef std::vector<StreamInfo> vStreamInfo_t;
   vStreamInfo_t m_vStreamInfo;
+  
+  FrameInfo m_fi;
 
   AVFormatContext* m_pFormatContext;
   
@@ -116,7 +132,7 @@ private:
   structTimeSteps m_ts;
   
   void ProcessStream( size_t ixAudio, size_t ixVideo );  // background thread
-  void HandleOnFrame( AVCodecContext* pContext, AVFrame* pFrame, structTimeSteps perf );
+  void ProcessVideoFrame( AVCodecContext* pContext, AVFrame* pFrame, structTimeSteps perf );
   void HandleFrameTransformToImage( AVFrame* pRgb, uint8_t* buf, structTimeSteps perf, int srcX, int srcY );
   
 };

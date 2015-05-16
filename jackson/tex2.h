@@ -14,7 +14,7 @@
 
 #include "SETexture.h"
 
-class tex2: public canvasOpenGL<tex2> {
+class tex2: public CanvasOpenGL<tex2> {
 public:
   
   tex2( wxFrame* parent, int* args );

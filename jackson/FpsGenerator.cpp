@@ -12,6 +12,8 @@
 
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/chrono/duration.hpp>
+//#include <boost/chrono/io/duration_io.hpp>
+#include <boost/chrono/io/time_point_io.hpp>
 
 #include <boost/assign/std/vector.hpp>
 
@@ -184,7 +186,7 @@ void FpsGenerator::Thread( void ) {
   tp tpBase = boost::chrono::high_resolution_clock::now();  // cycle relative to discrete calculations
   
   m_bThreadRunning = true;
-  while ( ! m_bStopThread ) {
+  while ( !m_bStopThread ) {
     // generate events
     for ( mapFrameRate_t::iterator iter = m_mapFrameRate.begin(); m_mapFrameRate.end() != iter; ++iter ) {
       iter->second->Check();
@@ -193,11 +195,16 @@ void FpsGenerator::Thread( void ) {
     // could move this to prior to Check and provide current time to slots as well
     tp tpNow = boost::chrono::high_resolution_clock::now();
     tp tpNext = tpBase + duration;
-    if ( tpNext < tpNow ) { //stutter step, not processing fast enough
-      tpNext = tpNow + duration;
-      std::cout << "FpsGenerator stutter step" << std::endl;
-    }
     tpBase = tpNext;  // keep track for next cycle through
-    boost::this_thread::sleep_until( tpNext );
+    if ( tpNext <= tpNow ) { //stutter step, not processing fast enough
+      //boost::chrono::duration<int64_t, boost::micro> diff( tpNow - tpNext );
+      //std::cout << "FpsGenerator stutter step " << tpNext << ", " << tpNow << std::endl;
+      std::cout << "FpsGenerator stutter step " << ( tpNow - tpNext ) << std::endl;
+      //tpNext = tpNow + duration;
+      // making the assumption we can catch up
+    }
+    else {
+      boost::this_thread::sleep_until( tpNext );
+    }
   }
 }

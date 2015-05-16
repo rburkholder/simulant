@@ -25,6 +25,11 @@
 
 class TreeItemBase;
 
+struct CommonGuiElements {
+  wxStaticText* pstFrameCounter;
+  CommonGuiElements( void ): pstFrameCounter( 0 ) {}
+};
+
 class TreeDisplayManager: public wxTreeCtrl {
   DECLARE_DYNAMIC_CLASS( TreeDisplayManager )
 public:
@@ -53,6 +58,8 @@ public:
   
   void Add( const wxTreeItemId& id, pTreeItem_t pTreeItem );
   void Delete( wxTreeItemId id );
+  
+  void SetStaticTextFrameCounter( wxStaticText* pstFrameCounter );
 
 protected:
 private:
@@ -66,6 +73,8 @@ private:
   
   typedef std::map<void*,pTreeItem_t> mapDecoder_t;  // void* is from wxTreeItemId
   mapDecoder_t m_mapDecoder;
+  
+  CommonGuiElements m_guiElements;
   
   void Init();
   void CreateControls();

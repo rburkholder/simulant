@@ -8,9 +8,6 @@
 #ifndef EVENTIMAGE_H
 #define	EVENTIMAGE_H
 
-//#include <boost/shared_ptr.hpp>
-
-//#include <wx/image.h>
 #include <wx/event.h>
 
 #include "RawImage.h"
@@ -18,7 +15,6 @@
 
 class EventImage: public wxEvent {
 public:
-  //typedef boost::shared_ptr<wxImage> pImage_t;
   typedef RawImage::pRawImage_t pRawImage_t;
   EventImage( wxEventType eventType, int winid, pRawImage_t p, void* user, structTimeSteps );
   virtual ~EventImage( void );
@@ -32,12 +28,21 @@ public:
     return new EventImage( *this ); 
   };
 
+  int64_t nAudioFrame; // current audio frame number
+  int64_t ttlAudioFrames;
+  int64_t nVideoFrame; // current video frame number, 1 ... n
+  int64_t ttlVideoFrames;
+  int64_t pts;
+  int64_t pkt_pts;  // 1001, 2002, 3003, ... 
+  int64_t pkt_dts;
+  
 protected:  
 private:
 
   pRawImage_t m_pRawImage;
   void* m_pVoid;  
   structTimeSteps m_ts;
+  
 };
 
 wxDECLARE_EVENT( EVENT_IMAGE, EventImage );
