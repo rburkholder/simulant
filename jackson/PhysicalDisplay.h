@@ -13,7 +13,7 @@
 #include <wx/wx.h>
 #include <wx/display.h>
 
-#include "frameProjection.h"
+#include "FrameProjection.h"
 #include "CanvasBase.h"
 
 //#include "structures.h"

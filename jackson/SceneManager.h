@@ -15,12 +15,12 @@
 
 #include "EventGenerateFrame.h"
 
-#include "canvasOpenGL.h"
+#include "CanvasOpenGL.h"
 
 class SceneElement;
 
-class SceneManager: public canvasOpenGL<SceneManager> {
-  friend class canvasOpenGL<SceneManager>;
+class SceneManager: public CanvasOpenGL<SceneManager> {
+  friend class CanvasOpenGL<SceneManager>;
 public:
   
   typedef size_t key_t;

@@ -35,8 +35,10 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/AppProjection.o \
 	${OBJECTDIR}/AspectRatio.o \
 	${OBJECTDIR}/CanvasBase.o \
+	${OBJECTDIR}/CanvasOpenGL.o \
 	${OBJECTDIR}/Cue.o \
 	${OBJECTDIR}/CueList.o \
 	${OBJECTDIR}/DecodeH264.o \
@@ -46,6 +48,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/EventGenerateFrame.o \
 	${OBJECTDIR}/EventImage.o \
 	${OBJECTDIR}/FpsGenerator.o \
+	${OBJECTDIR}/FrameMain.o \
+	${OBJECTDIR}/FrameProjection.o \
 	${OBJECTDIR}/InteractiveTransform.o \
 	${OBJECTDIR}/MediaStreamDecode.o \
 	${OBJECTDIR}/Outline.o \
@@ -58,10 +62,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/SceneManager.o \
 	${OBJECTDIR}/ShaderManager.o \
 	${OBJECTDIR}/TreeDisplayManager.o \
-	${OBJECTDIR}/appProjection.o \
-	${OBJECTDIR}/canvasOpenGL.o \
-	${OBJECTDIR}/frameMain.o \
-	${OBJECTDIR}/frameProjection.o \
 	${OBJECTDIR}/tex1.o \
 	${OBJECTDIR}/tex2.o \
 	${OBJECTDIR}/tut1.o
@@ -91,6 +91,11 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/jackson: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/jackson ${OBJECTFILES} ${LDLIBSOPTIONS} `/usr/local/bin/wx-config --libs`
 
+${OBJECTDIR}/AppProjection.o: AppProjection.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AppProjection.o AppProjection.cpp
+
 ${OBJECTDIR}/AspectRatio.o: AspectRatio.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -100,6 +105,11 @@ ${OBJECTDIR}/CanvasBase.o: CanvasBase.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/CanvasBase.o CanvasBase.cpp
+
+${OBJECTDIR}/CanvasOpenGL.o: CanvasOpenGL.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/CanvasOpenGL.o CanvasOpenGL.cpp
 
 ${OBJECTDIR}/Cue.o: Cue.cpp 
 	${MKDIR} -p ${OBJECTDIR}
@@ -145,6 +155,16 @@ ${OBJECTDIR}/FpsGenerator.o: FpsGenerator.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/FpsGenerator.o FpsGenerator.cpp
+
+${OBJECTDIR}/FrameMain.o: FrameMain.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/FrameMain.o FrameMain.cpp
+
+${OBJECTDIR}/FrameProjection.o: FrameProjection.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/FrameProjection.o FrameProjection.cpp
 
 ${OBJECTDIR}/InteractiveTransform.o: InteractiveTransform.cpp 
 	${MKDIR} -p ${OBJECTDIR}
@@ -205,26 +225,6 @@ ${OBJECTDIR}/TreeDisplayManager.o: TreeDisplayManager.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/TreeDisplayManager.o TreeDisplayManager.cpp
-
-${OBJECTDIR}/appProjection.o: appProjection.cpp 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/appProjection.o appProjection.cpp
-
-${OBJECTDIR}/canvasOpenGL.o: canvasOpenGL.cpp 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/canvasOpenGL.o canvasOpenGL.cpp
-
-${OBJECTDIR}/frameMain.o: frameMain.cpp 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/frameMain.o frameMain.cpp
-
-${OBJECTDIR}/frameProjection.o: frameProjection.cpp 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/frameProjection.o frameProjection.cpp
 
 ${OBJECTDIR}/tex1.o: tex1.cpp 
 	${MKDIR} -p ${OBJECTDIR}

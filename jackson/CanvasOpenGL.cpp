@@ -5,5 +5,5 @@
  * Created on March 15, 2015, 10:13 PM
  */
 
-#include "canvasOpenGL.h"
+#include "CanvasOpenGL.h"
 

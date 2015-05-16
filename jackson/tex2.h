@@ -10,7 +10,7 @@
 
 #include <vector>
 
-#include "canvasOpenGL.h"
+#include "CanvasOpenGL.h"
 
 #include "SETexture.h"
 

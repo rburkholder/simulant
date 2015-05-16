@@ -51,6 +51,7 @@ void PanelSurfaceSources::Init() {
   m_btnUndo = NULL;
 
   m_bInEditMode = false;
+  m_sliderHorizontal = 0;
 }
 
 void PanelSurfaceSources::Append( pPhysicalDisplay_t pPhysicalDisplay ) {
@@ -123,14 +124,25 @@ void PanelSurfaceSources::CreateControls() {
   Bind( wxEVT_TOGGLEBUTTON, &PanelSurfaceSources::HandleToggleEditMode, this, ID_BTN_EDITMODE );
   Bind( wxEVT_BUTTON, &PanelSurfaceSources::HandleUndo, this, ID_BTN_UNDO );
   Bind( wxEVT_SCROLL_THUMBTRACK, &PanelSurfaceSources::HandleScrollThumbTrack, this, ID_SLIDER_HORIZONTAL );
+  Bind( wxEVT_SCROLL_LINEUP, &PanelSurfaceSources::HandleScrollLineChange, this, ID_SLIDER_HORIZONTAL );
+  Bind( wxEVT_SCROLL_LINEDOWN, &PanelSurfaceSources::HandleScrollLineChange, this, ID_SLIDER_HORIZONTAL );
+  Bind( wxEVT_SCROLL_THUMBRELEASE, &PanelSurfaceSources::HandleScrollThumbRelease, this, ID_SLIDER_HORIZONTAL );
 }
 
 void PanelSurfaceSources::HandleUndo( wxCommandEvent& event ) {
   event.Skip();
 }
 
-void PanelSurfaceSources::HandleScrollThumbTrack( wxScrollEvent& event ) {
-  
+void PanelSurfaceSources::HandleScrollThumbTrack( wxScrollEvent& event ) { // could pause playing while seeking, then on release resume playing
+  std::cout << "ThumbTrack " << event.GetPosition() << std::endl;
+}
+
+void PanelSurfaceSources::HandleScrollLineChange( wxScrollEvent& event ) {  // cursor key related changes
+  std::cout << "LineChange " << event.GetPosition() << std::endl;
+}
+
+void PanelSurfaceSources::HandleScrollThumbRelease( wxScrollEvent& event ) { // on mouse release
+  std::cout << "ThumbRelease " << event.GetPosition() << std::endl;
 }
 
 void PanelSurfaceSources::HandleToggleEditMode( wxCommandEvent& event ) {

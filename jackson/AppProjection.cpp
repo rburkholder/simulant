@@ -14,7 +14,7 @@
 #include "MediaStreamDecode.h"
 
 #include "PanelSurfaceSources.h"
-#include "appProjection.h"
+#include "AppProjection.h"
 
 IMPLEMENT_APP( AppProjection )
 

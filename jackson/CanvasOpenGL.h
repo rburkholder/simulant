@@ -12,10 +12,10 @@
 // ===============================
 
 template <typename CRTP>
-class canvasOpenGL: public CanvasBase  {
+class CanvasOpenGL: public CanvasBase  {
 public:
-  canvasOpenGL( wxFrame* parent, int* args );
-  virtual ~canvasOpenGL( void );
+  CanvasOpenGL( wxFrame* parent, int* args );
+  virtual ~CanvasOpenGL( void );
 protected:
   bool Initialized( void ) { return m_bPaintInited; }
 private:
@@ -33,7 +33,7 @@ private:
 };
 
 template <typename CRTP>
-canvasOpenGL<CRTP>::canvasOpenGL( wxFrame* parent, int* args )
+CanvasOpenGL<CRTP>::CanvasOpenGL( wxFrame* parent, int* args )
 : CanvasBase( parent, args ), 
 //  wxGLCanvas( parent, wxID_ANY, args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE ), 
   m_bPaintInited( false ), m_context( 0 )
@@ -43,17 +43,17 @@ canvasOpenGL<CRTP>::canvasOpenGL( wxFrame* parent, int* args )
   // To avoid flashing on MSW
   SetBackgroundStyle( wxBG_STYLE_CUSTOM );
   
-  wxGLCanvas::Bind( wxEVT_PAINT, &canvasOpenGL<CRTP>::HandlePaint, this );
-  wxGLCanvas::Bind( wxEVT_SIZE, &canvasOpenGL<CRTP>::HandleResize, this );
+  wxGLCanvas::Bind( wxEVT_PAINT, &CanvasOpenGL<CRTP>::HandlePaint, this );
+  wxGLCanvas::Bind( wxEVT_SIZE, &CanvasOpenGL<CRTP>::HandleResize, this );
 }
 
 template <typename CRTP>
-canvasOpenGL<CRTP>::~canvasOpenGL( ) {
+CanvasOpenGL<CRTP>::~CanvasOpenGL( ) {
   if ( 0 != m_context ) delete m_context;
 }
 
 template <typename CRTP>
-void canvasOpenGL<CRTP>::HandlePaint( wxPaintEvent& event ) {
+void CanvasOpenGL<CRTP>::HandlePaint( wxPaintEvent& event ) {
   
   if (!IsShown( )) return;
 
@@ -88,12 +88,12 @@ void canvasOpenGL<CRTP>::HandlePaint( wxPaintEvent& event ) {
     glGetIntegerv( GL_MAX_TEXTURE_UNITS, &units );
     std::cout << "Texture Units " << units << std::endl;
 
-    if ( &canvasOpenGL<CRTP>::OnPaintInit != &CRTP::OnPaintInit ) {
+    if ( &CanvasOpenGL<CRTP>::OnPaintInit != &CRTP::OnPaintInit ) {
       static_cast<CRTP*>( this )->OnPaintInit();
     }
   }
 
-  if ( &canvasOpenGL<CRTP>::OnPaint != &CRTP::OnPaint ) {
+  if ( &CanvasOpenGL<CRTP>::OnPaint != &CRTP::OnPaint ) {
     static_cast<CRTP*>( this )->OnPaint();
   }
 
@@ -106,10 +106,10 @@ void canvasOpenGL<CRTP>::HandlePaint( wxPaintEvent& event ) {
 }
 
 template <typename CRTP>
-void canvasOpenGL<CRTP>::HandleResize( wxSizeEvent& event ) {
+void CanvasOpenGL<CRTP>::HandleResize( wxSizeEvent& event ) {
   //	wxGLCanvas::OnSize(evt);
   
-  if ( &canvasOpenGL<CRTP>::OnResize != &CRTP::OnResize ) {
+  if ( &CanvasOpenGL<CRTP>::OnResize != &CRTP::OnResize ) {
     static_cast<CRTP*>( this )->OnResize( event.GetSize().GetWidth(), event.GetSize().GetHeight() );
   }
   

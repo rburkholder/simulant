@@ -5,7 +5,7 @@
  * Created on March 8, 2015, 12:59 PM
  */
 
-#include "frameProjection.h"
+#include "FrameProjection.h"
 
 FrameProjection::FrameProjection(void) {
   Init();

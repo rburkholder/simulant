@@ -9,7 +9,7 @@
 
 #include <wx/wx.h>
 
-#include "frameMain.h"
+#include "FrameMain.h"
 
 class AppProjection : public wxApp {
 public:

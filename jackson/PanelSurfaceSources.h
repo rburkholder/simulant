@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <boost/signals2.hpp>
+
 #include <wx/wx.h>
 #include <wx/panel.h>
 #include <wx/tglbtn.h>
@@ -27,6 +29,9 @@ public:
   
   typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
   
+  typedef boost::signals2::signal<void ()> signalSlider_t;
+  typedef signalSlider_t::slot_type slotSlider_t;  
+  
   PanelSurfaceSources();
   PanelSurfaceSources( 
           wxWindow* parent, 
@@ -45,6 +50,11 @@ public:
   ~PanelSurfaceSources();
   
   void Append( pPhysicalDisplay_t pPhysicalDisplay );
+  
+  // when range is 0, should disable the control
+  void SetScrollMin( int min ) { assert( 0 != m_sliderHorizontal ); m_sliderHorizontal->SetMin( min ); }  // defaults to 0..100
+  void SetScrollMax( int max ) { assert( 0 != m_sliderHorizontal ); m_sliderHorizontal->SetMax( max ); }  // defaults to 0..100
+  void SetScrollRange( int min, int max) { assert( 0 != m_sliderHorizontal ); m_sliderHorizontal->SetRange( min, max ); }
 
 protected:  
 private:
@@ -80,6 +90,8 @@ private:
   void HandleToggleEditMode( wxCommandEvent& event );
   void HandleUndo( wxCommandEvent& event );
   void HandleScrollThumbTrack( wxScrollEvent& event );
+  void HandleScrollLineChange( wxScrollEvent& event );
+  void HandleScrollThumbRelease( wxScrollEvent& event );
 
   void Init();
   void CreateControls();

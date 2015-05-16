@@ -4,8 +4,10 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>AppProjection.h</itemPath>
       <itemPath>AspectRatio.h</itemPath>
       <itemPath>CanvasBase.h</itemPath>
+      <itemPath>CanvasOpenGL.h</itemPath>
       <itemPath>Cue.h</itemPath>
       <itemPath>CueList.h</itemPath>
       <itemPath>DecodeH264.h</itemPath>
@@ -15,6 +17,8 @@
       <itemPath>EventGenerateFrame.h</itemPath>
       <itemPath>EventImage.h</itemPath>
       <itemPath>FpsGenerator.h</itemPath>
+      <itemPath>FrameMain.h</itemPath>
+      <itemPath>FrameProjection.h</itemPath>
       <itemPath>InteractiveTransform.h</itemPath>
       <itemPath>MediaStreamDecode.h</itemPath>
       <itemPath>Network.h</itemPath>
@@ -29,11 +33,7 @@
       <itemPath>ShaderManager.h</itemPath>
       <itemPath>SpinLock.h</itemPath>
       <itemPath>TreeDisplayManager.h</itemPath>
-      <itemPath>appProjection.h</itemPath>
-      <itemPath>canvasOpenGL.h</itemPath>
       <itemPath>common.h</itemPath>
-      <itemPath>frameMain.h</itemPath>
-      <itemPath>frameProjection.h</itemPath>
       <itemPath>structures.h</itemPath>
       <itemPath>tex1.h</itemPath>
       <itemPath>tex2.h</itemPath>
@@ -50,8 +50,10 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <itemPath>AppProjection.cpp</itemPath>
       <itemPath>AspectRatio.cpp</itemPath>
       <itemPath>CanvasBase.cpp</itemPath>
+      <itemPath>CanvasOpenGL.cpp</itemPath>
       <itemPath>Cue.cpp</itemPath>
       <itemPath>CueList.cpp</itemPath>
       <itemPath>DecodeH264.cpp</itemPath>
@@ -61,6 +63,8 @@
       <itemPath>EventGenerateFrame.cpp</itemPath>
       <itemPath>EventImage.cpp</itemPath>
       <itemPath>FpsGenerator.cpp</itemPath>
+      <itemPath>FrameMain.cpp</itemPath>
+      <itemPath>FrameProjection.cpp</itemPath>
       <itemPath>InteractiveTransform.cpp</itemPath>
       <itemPath>MediaStreamDecode.cpp</itemPath>
       <itemPath>Outline.cpp</itemPath>
@@ -73,10 +77,6 @@
       <itemPath>SceneManager.cpp</itemPath>
       <itemPath>ShaderManager.cpp</itemPath>
       <itemPath>TreeDisplayManager.cpp</itemPath>
-      <itemPath>appProjection.cpp</itemPath>
-      <itemPath>canvasOpenGL.cpp</itemPath>
-      <itemPath>frameMain.cpp</itemPath>
-      <itemPath>frameProjection.cpp</itemPath>
       <itemPath>tex1.cpp</itemPath>
       <itemPath>tex2.cpp</itemPath>
       <itemPath>tut1.cpp</itemPath>
@@ -139,6 +139,10 @@
           <commandLine>`/usr/local/bin/wx-config --libs`</commandLine>
         </linkerTool>
       </compileType>
+      <item path="AppProjection.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="AppProjection.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="AspectRatio.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="AspectRatio.h" ex="false" tool="3" flavor2="0">
@@ -146,6 +150,10 @@
       <item path="CanvasBase.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="CanvasBase.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="CanvasOpenGL.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="CanvasOpenGL.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Cue.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -182,6 +190,14 @@
       <item path="FpsGenerator.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="FpsGenerator.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="FrameMain.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="FrameMain.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="FrameProjection.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="FrameProjection.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="InteractiveTransform.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -235,23 +251,7 @@
       </item>
       <item path="TreeDisplayManager.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="appProjection.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="appProjection.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="canvasOpenGL.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="canvasOpenGL.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="common.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="frameMain.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="frameMain.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="frameProjection.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="frameProjection.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="gl_notes.txt" ex="false" tool="3" flavor2="0">
       </item>
@@ -323,6 +323,10 @@
           <commandLine>`/usr/local/bin/wx-config --libs`</commandLine>
         </linkerTool>
       </compileType>
+      <item path="AppProjection.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="AppProjection.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="AspectRatio.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="AspectRatio.h" ex="false" tool="3" flavor2="0">
@@ -330,6 +334,10 @@
       <item path="CanvasBase.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="CanvasBase.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="CanvasOpenGL.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="CanvasOpenGL.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Cue.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -366,6 +374,14 @@
       <item path="FpsGenerator.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="FpsGenerator.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="FrameMain.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="FrameMain.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="FrameProjection.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="FrameProjection.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="InteractiveTransform.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -419,23 +435,7 @@
       </item>
       <item path="TreeDisplayManager.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="appProjection.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="appProjection.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="canvasOpenGL.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="canvasOpenGL.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="common.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="frameMain.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="frameMain.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="frameProjection.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="frameProjection.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="gl_notes.txt" ex="false" tool="3" flavor2="0">
       </item>

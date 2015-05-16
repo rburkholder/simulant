@@ -8,12 +8,12 @@
 #ifndef TUT1_H
 #define	TUT1_H
 
-#include "canvasOpenGL.h"
+#include "CanvasOpenGL.h"
 
-class tut1: public canvasOpenGL<tut1> {
+class tut1: public CanvasOpenGL<tut1> {
 public:
   
-  tut1( wxFrame* parent, int* args ): canvasOpenGL<tut1>( parent, args ) {};
+  tut1( wxFrame* parent, int* args ): CanvasOpenGL<tut1>( parent, args ) {};
   virtual ~tut1() {};
   
   void OnResize( int w, int h );

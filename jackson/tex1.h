@@ -8,12 +8,12 @@
 #ifndef TEX1_H
 #define	TEX1_H
 
-#include "canvasOpenGL.h"
+#include "CanvasOpenGL.h"
 
-class tex1: public canvasOpenGL<tex1> {
+class tex1: public CanvasOpenGL<tex1> {
 public:
   
-  tex1( wxFrame* parent, int* args ): canvasOpenGL<tex1>( parent, args ), m_pImage( 0 ) {};
+  tex1( wxFrame* parent, int* args ): CanvasOpenGL<tex1>( parent, args ), m_pImage( 0 ) {};
   virtual ~tex1() {};
   
   void SetImage( wxImage* pImage ) {

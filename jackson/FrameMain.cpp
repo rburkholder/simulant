@@ -16,7 +16,7 @@
 
 //#include "stdafx.h"
 
-#include "frameMain.h"
+#include "FrameMain.h"
 
 FrameMain::FrameMain(void) {
   Init();
