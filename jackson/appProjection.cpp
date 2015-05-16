@@ -37,10 +37,10 @@ bool AppProjection::OnInit( ) {
 //  vMenuItems.push_back( new mi( "Movie Screen", boost::phoenix::bind( &AppProjection::CreateMovieScreen, this ) ) );
 //  m_pFrameMain->AddDynamicMenu( "Create", vMenuItems );
   
-  wxBoxSizer* sizer = new wxBoxSizer( wxHORIZONTAL );
+  wxBoxSizer* sizer = new wxBoxSizer( wxVERTICAL );
+  
   m_pSurfaceSources = new panelSurfaceSources( m_pFrameMain, -1 );
-  sizer->Add( m_pSurfaceSources, 1, wxEXPAND|wxGROW|wxALL );
-
+  
   unsigned int nDisplays = wxDisplay::GetCount();
   std::cout << "#connected displays: " << nDisplays << std::endl;
   
@@ -59,6 +59,8 @@ bool AppProjection::OnInit( ) {
   
   m_pFrameMain->SetSizer( sizer );
   m_pFrameMain->SetAutoLayout( true );
+
+  sizer->Add( m_pSurfaceSources, 1, wxEXPAND|wxGROW|wxALL );
 
   m_pFrameMain->Show( );
   // serialize the following for session to session persistence

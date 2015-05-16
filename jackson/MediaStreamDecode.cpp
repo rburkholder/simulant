@@ -18,14 +18,20 @@
 extern "C" {
 #include <libavutil/dict.h>
 #include <libswscale/swscale.h>
+//#include <libavutil/log.h>
 }
 
-//#include <wx/image.h>
 #include <wx/rawbmp.h>
 
 #include "MediaStreamDecode.h"
 
-// 2015/05/09  need to use fifo to queue processing
+//void log(void* ptr, int level, const char* fmt, va_list vl) {
+//  std::array<char,256> line;
+//  int printBuffer = 1;
+//  av_log_format_line(ptr, level, fmt, vl, line.data(), line.size(), &printBuffer);
+  //OutputDebugStringA(line.data());
+//  std::cout << line.data() << std::endl;
+//}
 
 MediaStreamDecode::MediaStreamDecode( )
 : m_pFormatContext( 0 ), m_ixBestVideoStream( 0 ), m_ixBestAudioStream( 0 ),
@@ -38,6 +44,8 @@ MediaStreamDecode::MediaStreamDecode( )
   for ( std::size_t ix = 0; ix < 2; ix++ ) {  // one for each of ProcessStream, HandleFrameTransformToImage
     m_threadsWorkers.create_thread( boost::phoenix::bind( &boost::asio::io_service::run, &m_Srvc ) );
   }
+  
+  av_log_set_level(AV_LOG_DEBUG);  //AV_LOG_VERBOSE AV_LOG_INFO AV_LOG_WARNING AV_LOG_ERROR AV_LOG_FATAL
   
 }
 
@@ -200,8 +208,18 @@ void MediaStreamDecode::EmitStats( void ) {
   }
   
   for ( unsigned int ix = 0; ix < m_vStreamInfo.size(); ++ix ) {
-    AVRational fr( m_pFormatContext->streams[ix]->avg_frame_rate );
-    std::cout << "info strm " << ix << " fr " << fr.num << "/" << fr.den << std::endl;
+    std::cout << "info times " 
+      << "curdts: " << m_pFormatContext->streams[ix]->cur_dts
+      << ", frstdts: " << m_pFormatContext->streams[ix]->first_dts
+      << ", start: " << m_pFormatContext->streams[ix]->start_time
+      << std::endl;
+      
+    AVRational fr1( m_pFormatContext->streams[ix]->codec->framerate );
+    std::cout << "info strm " << ix << " frame rate " << fr1.num << "/" << fr1.den << std::endl;
+    AVRational tb1( m_pFormatContext->streams[ix]->time_base );
+    std::cout << "info strm " << ix << " time_base " << tb1.num << "/" << tb1.den << " (use frame rate instead)" << std::endl;
+    AVRational afr( m_pFormatContext->streams[ix]->avg_frame_rate );
+    std::cout << "info strm " << ix << " afr " << afr.num << "/" << afr.den << std::endl;
     int64_t nbFrames( m_pFormatContext->streams[ix]->nb_frames );
     std::cout << "info strm " << ix << " frames " << nbFrames << std::endl;
     std::cout << "info strm " << ix << " buffer size " << m_pFormatContext->max_picture_buffer << std::endl;
@@ -215,9 +233,8 @@ void MediaStreamDecode::EmitStats( void ) {
     std::cout << "info strm " << ix << " pixfmt " << pf << std::endl;
     AVMediaType mt( m_pFormatContext->streams[ix]->codec->codec_type );
     std::cout << "info strm " << ix << " type " << mt << std::endl;
-    AVRational tb( m_pFormatContext->streams[ix]->time_base );
-    std::cout << "info strm " << ix << " tb " << tb.num << "/" << tb.den << std::endl;
     std::cout << "refcounted frames " << m_vStreamInfo[ix].pCodecContext->refcounted_frames << std::endl;
+    // AVCodecContext::frame_number
   }
     
   std::cout << "best video stream: " << m_ixBestVideoStream << ", best audio stream: " << m_ixBestAudioStream << std::endl;

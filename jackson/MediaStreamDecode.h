@@ -15,8 +15,6 @@
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/mutex.hpp>
 
-#include <wx/wx.h>
-
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -29,7 +27,6 @@ class MediaStreamDecode {
 public:
   
   typedef RawImage::pRawImage_t pRawImage_t;
-  //typedef boost::shared_ptr<wxImage> pImage_t;
   typedef boost::signals2::signal<void (pRawImage_t, const structTimeSteps&)> signalImageReady_t;
   typedef signalImageReady_t::slot_type slotImageReady_t;
   
