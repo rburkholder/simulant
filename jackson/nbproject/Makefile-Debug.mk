@@ -49,6 +49,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/InteractiveTransform.o \
 	${OBJECTDIR}/MediaStreamDecode.o \
 	${OBJECTDIR}/Outline.o \
+	${OBJECTDIR}/PanelSurfaceSources.o \
 	${OBJECTDIR}/PhysicalDisplay.o \
 	${OBJECTDIR}/RawImage.o \
 	${OBJECTDIR}/SEGrid.o \
@@ -61,7 +62,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/canvasOpenGL.o \
 	${OBJECTDIR}/frameMain.o \
 	${OBJECTDIR}/frameProjection.o \
-	${OBJECTDIR}/panelSurfaceSources.o \
 	${OBJECTDIR}/tex1.o \
 	${OBJECTDIR}/tex2.o \
 	${OBJECTDIR}/tut1.o
@@ -161,6 +161,11 @@ ${OBJECTDIR}/Outline.o: Outline.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Outline.o Outline.cpp
 
+${OBJECTDIR}/PanelSurfaceSources.o: PanelSurfaceSources.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/PanelSurfaceSources.o PanelSurfaceSources.cpp
+
 ${OBJECTDIR}/PhysicalDisplay.o: PhysicalDisplay.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -220,11 +225,6 @@ ${OBJECTDIR}/frameProjection.o: frameProjection.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/frameProjection.o frameProjection.cpp
-
-${OBJECTDIR}/panelSurfaceSources.o: panelSurfaceSources.cpp 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/panelSurfaceSources.o panelSurfaceSources.cpp
 
 ${OBJECTDIR}/tex1.o: tex1.cpp 
 	${MKDIR} -p ${OBJECTDIR}

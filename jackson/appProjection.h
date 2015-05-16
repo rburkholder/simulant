@@ -20,7 +20,7 @@ private:
   wxString m_sMediaDirectory;
   
   FrameMain *m_pFrameMain;
-  panelSurfaceSources* m_pSurfaceSources;
+  PanelSurfaceSources* m_pSurfaceSources;
   
   virtual bool OnInit( );
   virtual void OnClose( wxCloseEvent& event );

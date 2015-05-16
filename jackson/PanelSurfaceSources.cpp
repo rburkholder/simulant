@@ -13,20 +13,20 @@
 
 #include "DndSourceButton.h"
 #include "DndTargetButton.h"
-#include "panelSurfaceSources.h"
+#include "PanelSurfaceSources.h"
 
-IMPLEMENT_DYNAMIC_CLASS( panelSurfaceSources, wxPanel )
+IMPLEMENT_DYNAMIC_CLASS( PanelSurfaceSources, wxPanel )
 
-panelSurfaceSources::panelSurfaceSources() {
+PanelSurfaceSources::PanelSurfaceSources() {
   Init();
 }
 
-panelSurfaceSources::panelSurfaceSources( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) {
+PanelSurfaceSources::PanelSurfaceSources( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) {
   Init();
   Create(parent, id, pos, size, style);
 }
 
-bool panelSurfaceSources::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) {
+bool PanelSurfaceSources::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) {
     
   SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
   wxPanel::Create( parent, id, pos, size, style );
@@ -40,10 +40,10 @@ bool panelSurfaceSources::Create( wxWindow* parent, wxWindowID id, const wxPoint
   return true;
 }
 
-panelSurfaceSources::~panelSurfaceSources() {
+PanelSurfaceSources::~PanelSurfaceSources() {
 }
 
-void panelSurfaceSources::Init() {
+void PanelSurfaceSources::Init() {
 
   m_btnPoly4Side = NULL;
   m_btnDisplay = NULL;
@@ -53,15 +53,15 @@ void panelSurfaceSources::Init() {
   m_bInEditMode = false;
 }
 
-void panelSurfaceSources::Append( pPhysicalDisplay_t pPhysicalDisplay ) {
+void PanelSurfaceSources::Append( pPhysicalDisplay_t pPhysicalDisplay ) {
   m_treeDisplays->Append( pPhysicalDisplay );
 }
 
-void panelSurfaceSources::CreateControls() {    
+void PanelSurfaceSources::CreateControls() {    
   
   // notice that the relative scale factor is important:  0 no scale, 1 scales with window size change
 
-  panelSurfaceSources* itemPanel1 = this;
+  PanelSurfaceSources* itemPanel1 = this;
   
   wxBoxSizer* itemBoxSizerForPanel = new wxBoxSizer( wxVERTICAL );
   itemPanel1->SetSizer(itemBoxSizerForPanel);
@@ -74,7 +74,7 @@ void panelSurfaceSources::CreateControls() {
   
   wxSplitterWindow* itemSplitterWindow = new wxSplitterWindow( itemPanel1, ID_SPLITTER_HORIZONTAL, wxDefaultPosition, wxSize(100, 100), wxNO_BORDER|wxSP_LIVE_UPDATE ); // wxSP_3DSASH|wxNO_BORDER|wxSP_BORDER
   itemSplitterWindow->SetMinimumPaneSize(10);
-  itemSplitterWindow->SetSashGravity(0.9);
+  itemSplitterWindow->SetSashGravity(1.0);
   
   m_treeDisplays = new TreeDisplayManager( itemSplitterWindow, ID_TREE_DISPLAYS, wxDefaultPosition, wxSize( 150, 10 ), wxTR_HAS_BUTTONS | wxTR_SINGLE );
   
@@ -120,15 +120,20 @@ void panelSurfaceSources::CreateControls() {
   m_btnUndo = new wxButton( m_panelRight, ID_BTN_UNDO, _("Undo"), wxDefaultPosition, wxDefaultSize, 0 );
   itemBoxSizerVertColumn3->Add(m_btnUndo, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 3);
 
-  Bind( wxEVT_TOGGLEBUTTON, &panelSurfaceSources::HandleToggleEditMode, this, ID_BTN_EDITMODE );
-  Bind( wxEVT_BUTTON, &panelSurfaceSources::HandleUndo, this, ID_BTN_UNDO );
+  Bind( wxEVT_TOGGLEBUTTON, &PanelSurfaceSources::HandleToggleEditMode, this, ID_BTN_EDITMODE );
+  Bind( wxEVT_BUTTON, &PanelSurfaceSources::HandleUndo, this, ID_BTN_UNDO );
+  Bind( wxEVT_SCROLL_THUMBTRACK, &PanelSurfaceSources::HandleScrollThumbTrack, this, ID_SLIDER_HORIZONTAL );
 }
 
-void panelSurfaceSources::HandleUndo( wxCommandEvent& event ) {
+void PanelSurfaceSources::HandleUndo( wxCommandEvent& event ) {
   event.Skip();
 }
 
-void panelSurfaceSources::HandleToggleEditMode( wxCommandEvent& event ) {
+void PanelSurfaceSources::HandleScrollThumbTrack( wxScrollEvent& event ) {
+  
+}
+
+void PanelSurfaceSources::HandleToggleEditMode( wxCommandEvent& event ) {
   if ( m_bInEditMode ) {
     m_bInEditMode = false;
     m_btnEditMode->SetLabel( "Editing Off" );
@@ -139,13 +144,13 @@ void panelSurfaceSources::HandleToggleEditMode( wxCommandEvent& event ) {
   }
 }
 
-wxBitmap panelSurfaceSources::GetBitmapResource( const wxString& name ) {
+wxBitmap PanelSurfaceSources::GetBitmapResource( const wxString& name ) {
   // Bitmap retrieval
   wxUnusedVar(name);
   return wxNullBitmap;
 }
 
-wxIcon panelSurfaceSources::GetIconResource( const wxString& name ) {
+wxIcon PanelSurfaceSources::GetIconResource( const wxString& name ) {
   // Icon retrieval
   wxUnusedVar(name);
   return wxNullIcon;

@@ -13,7 +13,7 @@
 
 #include "MediaStreamDecode.h"
 
-#include "panelSurfaceSources.h"
+#include "PanelSurfaceSources.h"
 #include "appProjection.h"
 
 IMPLEMENT_APP( AppProjection )
@@ -39,7 +39,7 @@ bool AppProjection::OnInit( ) {
   
   wxBoxSizer* sizer = new wxBoxSizer( wxVERTICAL );
   
-  m_pSurfaceSources = new panelSurfaceSources( m_pFrameMain, -1 );
+  m_pSurfaceSources = new PanelSurfaceSources( m_pFrameMain, -1 );
   
   unsigned int nDisplays = wxDisplay::GetCount();
   std::cout << "#connected displays: " << nDisplays << std::endl;

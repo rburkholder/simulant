@@ -5,8 +5,7 @@
  * Created on February 28, 2015, 9:55 PM
  */
 
-#ifndef PANELSURFACESOURCES_H
-#define	PANELSURFACESOURCES_H
+#pragma once
 
 #include <wx/wx.h>
 #include <wx/panel.h>
@@ -22,14 +21,14 @@
 #define SYMBOL_PANELSURFACESOURCES_SIZE wxSize(400, 300)
 #define SYMBOL_PANELSURFACESOURCES_POSITION wxDefaultPosition
 
-class panelSurfaceSources: public wxPanel {    
-  DECLARE_DYNAMIC_CLASS( panelSurfaceSources )
+class PanelSurfaceSources: public wxPanel {    
+  DECLARE_DYNAMIC_CLASS( PanelSurfaceSources )
 public:
   
   typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
   
-  panelSurfaceSources();
-  panelSurfaceSources( 
+  PanelSurfaceSources();
+  PanelSurfaceSources( 
           wxWindow* parent, 
           wxWindowID id = SYMBOL_PANELSURFACESOURCES_IDNAME, 
           const wxPoint& pos = SYMBOL_PANELSURFACESOURCES_POSITION, 
@@ -43,7 +42,7 @@ public:
           const wxSize& size = SYMBOL_PANELSURFACESOURCES_SIZE, 
           long style = SYMBOL_PANELSURFACESOURCES_STYLE );
 
-  ~panelSurfaceSources();
+  ~PanelSurfaceSources();
   
   void Append( pPhysicalDisplay_t pPhysicalDisplay );
 
@@ -80,6 +79,7 @@ private:
   
   void HandleToggleEditMode( wxCommandEvent& event );
   void HandleUndo( wxCommandEvent& event );
+  void HandleScrollThumbTrack( wxScrollEvent& event );
 
   void Init();
   void CreateControls();
@@ -89,4 +89,4 @@ private:
   static bool ShowToolTips( void ) { return true; };
 
 };
-#endif	/* PANELSURFACESOURCES_H */
+

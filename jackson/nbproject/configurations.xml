@@ -19,6 +19,7 @@
       <itemPath>MediaStreamDecode.h</itemPath>
       <itemPath>Network.h</itemPath>
       <itemPath>Outline.h</itemPath>
+      <itemPath>PanelSurfaceSources.h</itemPath>
       <itemPath>PhysicalDisplay.h</itemPath>
       <itemPath>RawImage.h</itemPath>
       <itemPath>SEGrid.h</itemPath>
@@ -33,7 +34,6 @@
       <itemPath>common.h</itemPath>
       <itemPath>frameMain.h</itemPath>
       <itemPath>frameProjection.h</itemPath>
-      <itemPath>panelSurfaceSources.h</itemPath>
       <itemPath>structures.h</itemPath>
       <itemPath>tex1.h</itemPath>
       <itemPath>tex2.h</itemPath>
@@ -64,6 +64,7 @@
       <itemPath>InteractiveTransform.cpp</itemPath>
       <itemPath>MediaStreamDecode.cpp</itemPath>
       <itemPath>Outline.cpp</itemPath>
+      <itemPath>PanelSurfaceSources.cpp</itemPath>
       <itemPath>PhysicalDisplay.cpp</itemPath>
       <itemPath>RawImage.cpp</itemPath>
       <itemPath>SEGrid.cpp</itemPath>
@@ -76,7 +77,6 @@
       <itemPath>canvasOpenGL.cpp</itemPath>
       <itemPath>frameMain.cpp</itemPath>
       <itemPath>frameProjection.cpp</itemPath>
-      <itemPath>panelSurfaceSources.cpp</itemPath>
       <itemPath>tex1.cpp</itemPath>
       <itemPath>tex2.cpp</itemPath>
       <itemPath>tut1.cpp</itemPath>
@@ -197,6 +197,10 @@
       </item>
       <item path="Outline.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="PanelSurfaceSources.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="PanelSurfaceSources.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="PhysicalDisplay.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="PhysicalDisplay.h" ex="false" tool="3" flavor2="0">
@@ -254,10 +258,6 @@
       <item path="oglGrid.shfrag" ex="false" tool="3" flavor2="0">
       </item>
       <item path="oglGrid.shvert" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="panelSurfaceSources.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="panelSurfaceSources.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="structures.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -381,6 +381,10 @@
       </item>
       <item path="Outline.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="PanelSurfaceSources.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="PanelSurfaceSources.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="PhysicalDisplay.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="PhysicalDisplay.h" ex="false" tool="3" flavor2="0">
@@ -438,10 +442,6 @@
       <item path="oglGrid.shfrag" ex="false" tool="3" flavor2="0">
       </item>
       <item path="oglGrid.shvert" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="panelSurfaceSources.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="panelSurfaceSources.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="structures.h" ex="false" tool="3" flavor2="0">
       </item>
