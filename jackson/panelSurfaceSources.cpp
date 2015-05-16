@@ -9,6 +9,8 @@
 // Licence:     
 /////////////////////////////////////////////////////////////////////////////
 
+#include <wx/splitter.h>
+
 #include "DndSourceButton.h"
 #include "DndTargetButton.h"
 #include "panelSurfaceSources.h"
@@ -56,50 +58,67 @@ void panelSurfaceSources::Append( pPhysicalDisplay_t pPhysicalDisplay ) {
 }
 
 void panelSurfaceSources::CreateControls() {    
+  
+  // notice that the relative scale factor is important:  0 no scale, 1 scales with window size change
 
   panelSurfaceSources* itemPanel1 = this;
   
-  wxBoxSizer* itemBoxSizerForPanel = new wxBoxSizer( wxHORIZONTAL );
+  wxBoxSizer* itemBoxSizerForPanel = new wxBoxSizer( wxVERTICAL );
   itemPanel1->SetSizer(itemBoxSizerForPanel);
-
-  m_treeDisplays = new TreeDisplayManager( itemPanel1, ID_TREE_DISPLAYS, wxDefaultPosition, wxDefaultSize, wxTR_HAS_BUTTONS | wxTR_SINGLE );
-  itemBoxSizerForPanel->Add( m_treeDisplays, 0, wxALIGN_CENTER_HORIZONTAL|wxGROW|wxALL, 5);
-
-  wxBoxSizer* itemBoxSizer2 = new wxBoxSizer(wxHORIZONTAL);
-  itemBoxSizerForPanel->Add( itemBoxSizer2, 0, wxGROW|wxALL, 0 );
-
-  wxBoxSizer* itemBoxSizer3 = new wxBoxSizer(wxVERTICAL);
-  itemBoxSizer2->Add(itemBoxSizer3, 0, 0, 0);
-
-  m_btnPoly4Side = new wxButton( itemPanel1, ID_BTN_Poly4Side, _("Button Maybe"), wxDefaultPosition, wxDefaultSize, 0 );
-  itemBoxSizer3->Add(m_btnPoly4Side, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-
-  DndSourceButton* itemButton5 = new DndSourceButton( itemPanel1, ID_BTN_DNDSOURCE, _("4Poly Source"), wxDefaultPosition, wxDefaultSize, 0 );
-  itemBoxSizer3->Add(itemButton5, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-
-  wxButton* itemButton6 = new wxButton( itemPanel1, ID_BUTTON2, _("Button"), wxDefaultPosition, wxDefaultSize, 0 );
-  itemBoxSizer3->Add(itemButton6, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-
-  wxBoxSizer* itemBoxSizer7 = new wxBoxSizer(wxVERTICAL);
-  itemBoxSizer2->Add(itemBoxSizer7, 0, wxGROW|wxALL, 0);
-
-  m_btnDisplay = new wxButton( itemPanel1, ID_BTN_DISPLAY, _("Display"), wxDefaultPosition, wxDefaultSize, 0 );
-  itemBoxSizer7->Add(m_btnDisplay, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-
-  DndTargetButton* itemButton10 = new DndTargetButton( itemPanel1, ID_BTN_DNDTARGET, _("4Poly Target"), wxDefaultPosition, wxDefaultSize, 0 );
-  itemBoxSizer7->Add(itemButton10, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-
-  wxButton* itemButton9 = new wxButton( itemPanel1, ID_BUTTON3, _("Button"), wxDefaultPosition, wxDefaultSize, 0 );
-  itemBoxSizer7->Add(itemButton9, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-
-  wxBoxSizer* itemBoxSizer10 = new wxBoxSizer(wxVERTICAL);
-  itemBoxSizer2->Add(itemBoxSizer10, 0, wxGROW|wxALL, 0);
   
-  m_btnEditMode = new wxToggleButton( itemPanel1, ID_BTN_EDITMODE, _("Editing Off"), wxDefaultPosition, wxDefaultSize, 0 );
-  itemBoxSizer10->Add(m_btnEditMode, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
+  m_sliderHorizontal = new wxSlider( itemPanel1, ID_SLIDER_HORIZONTAL, 0, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
+  itemBoxSizerForPanel->Add( m_sliderHorizontal, 0, wxALIGN_TOP|wxGROW|wxALL, 1 );
+  
+  wxBoxSizer* itemBoxSizerHorizontal = new wxBoxSizer( wxHORIZONTAL );
+  itemBoxSizerForPanel->Add( itemBoxSizerHorizontal, 1, wxALIGN_LEFT|wxGROW|wxALL, 0 );
+  
+  wxSplitterWindow* itemSplitterWindow = new wxSplitterWindow( itemPanel1, ID_SPLITTER_HORIZONTAL, wxDefaultPosition, wxSize(100, 100), wxNO_BORDER|wxSP_LIVE_UPDATE ); // wxSP_3DSASH|wxNO_BORDER|wxSP_BORDER
+  itemSplitterWindow->SetMinimumPaneSize(10);
+  itemSplitterWindow->SetSashGravity(0.9);
+  
+  m_treeDisplays = new TreeDisplayManager( itemSplitterWindow, ID_TREE_DISPLAYS, wxDefaultPosition, wxSize( 150, 10 ), wxTR_HAS_BUTTONS | wxTR_SINGLE );
+  
+  wxPanel* m_panelRight = new wxPanel( itemSplitterWindow, ID_PANEL, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
+  m_panelRight->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
 
-  m_btnUndo = new wxButton( itemPanel1, ID_BTN_UNDO, _("Undo"), wxDefaultPosition, wxDefaultSize, 0 );
-  itemBoxSizer10->Add(m_btnUndo, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
+  wxBoxSizer* itemBoxSizerPanelHorizontal = new wxBoxSizer( wxHORIZONTAL );
+  m_panelRight->SetSizer( itemBoxSizerPanelHorizontal );
+  
+  itemSplitterWindow->SplitVertically(m_treeDisplays, m_panelRight, 40);
+  itemBoxSizerHorizontal->Add(itemSplitterWindow, 1, wxGROW|wxALL, 0);
+
+  wxBoxSizer* itemBoxSizerVertColumn1 = new wxBoxSizer(wxVERTICAL);
+  itemBoxSizerPanelHorizontal->Add(itemBoxSizerVertColumn1, 0, wxALIGN_TOP|wxALL, 0);
+
+  m_btnPoly4Side = new wxButton( m_panelRight, ID_BTN_Poly4Side, _("Button Maybe"), wxDefaultPosition, wxDefaultSize, 0 );
+  itemBoxSizerVertColumn1->Add(m_btnPoly4Side, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 3);
+
+  DndSourceButton* itemButton5 = new DndSourceButton( m_panelRight, ID_BTN_DNDSOURCE, _("4Poly Source"), wxDefaultPosition, wxDefaultSize, 0 );
+  itemBoxSizerVertColumn1->Add(itemButton5, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 3);
+
+  wxButton* itemButton6 = new wxButton( m_panelRight, ID_BUTTON2, _("Button"), wxDefaultPosition, wxDefaultSize, 0 );
+  itemBoxSizerVertColumn1->Add(itemButton6, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 3);
+
+  wxBoxSizer* itemBoxSizerVertColumn2 = new wxBoxSizer(wxVERTICAL);
+  itemBoxSizerPanelHorizontal->Add(itemBoxSizerVertColumn2, 0, wxALIGN_TOP|wxALL, 0);
+
+  m_btnDisplay = new wxButton( m_panelRight, ID_BTN_DISPLAY, _("Display"), wxDefaultPosition, wxDefaultSize, 0 );
+  itemBoxSizerVertColumn2->Add(m_btnDisplay, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 3);
+
+  DndTargetButton* itemButton10 = new DndTargetButton( m_panelRight, ID_BTN_DNDTARGET, _("4Poly Target"), wxDefaultPosition, wxDefaultSize, 0 );
+  itemBoxSizerVertColumn2->Add(itemButton10, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 3);
+
+  wxButton* itemButton9 = new wxButton( m_panelRight, ID_BUTTON3, _("Button"), wxDefaultPosition, wxDefaultSize, 0 );
+  itemBoxSizerVertColumn2->Add(itemButton9, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 3);
+
+  wxBoxSizer* itemBoxSizerVertColumn3 = new wxBoxSizer(wxVERTICAL);
+  itemBoxSizerPanelHorizontal->Add(itemBoxSizerVertColumn3, 0, wxALIGN_TOP|wxALL, 0);
+  
+  m_btnEditMode = new wxToggleButton( m_panelRight, ID_BTN_EDITMODE, _("Editing Off"), wxDefaultPosition, wxDefaultSize, 0 );
+  itemBoxSizerVertColumn3->Add(m_btnEditMode, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 3);
+
+  m_btnUndo = new wxButton( m_panelRight, ID_BTN_UNDO, _("Undo"), wxDefaultPosition, wxDefaultSize, 0 );
+  itemBoxSizerVertColumn3->Add(m_btnUndo, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 3);
 
   Bind( wxEVT_TOGGLEBUTTON, &panelSurfaceSources::HandleToggleEditMode, this, ID_BTN_EDITMODE );
   Bind( wxEVT_BUTTON, &panelSurfaceSources::HandleUndo, this, ID_BTN_UNDO );

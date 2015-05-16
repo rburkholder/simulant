@@ -11,6 +11,7 @@
 #include <wx/wx.h>
 #include <wx/panel.h>
 #include <wx/tglbtn.h>
+#include <wx/slider.h>
 //#include <wx/treectrl.h>
 
 #include "TreeDisplayManager.h"
@@ -61,7 +62,10 @@ private:
     ID_BTN_DNDSOURCE, 
     ID_BTN_EDITMODE, 
     ID_BTN_UNDO, 
-    ID_TREE_DISPLAYS
+    ID_TREE_DISPLAYS,
+    ID_SLIDER_HORIZONTAL,
+    ID_SPLITTER_HORIZONTAL,
+    ID_PANEL
   };
   
   bool m_bInEditMode;
@@ -70,6 +74,7 @@ private:
   wxButton* m_btnDisplay;
   wxToggleButton* m_btnEditMode;
   wxButton* m_btnUndo;
+  wxSlider* m_sliderHorizontal;
 
   TreeDisplayManager* m_treeDisplays;
   
