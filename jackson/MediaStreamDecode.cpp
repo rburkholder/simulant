@@ -18,6 +18,7 @@
 extern "C" {
 #include <libavutil/dict.h>
 #include <libswscale/swscale.h>
+#include <libavutil/mathematics.h>
 //#include <libavutil/log.h>
 }
 
@@ -278,8 +279,36 @@ void MediaStreamDecode::Play( void ) {
   
 }
 
-  // may want to use seek at some point (when looping) av_seek_frame : https://libav.org/doxygen/master/group__lavf__decoding.html)
+// http://www.mjbshaw.com/2012/04/seeking-in-ffmpeg-know-your-timestamp.html
+// https://code.google.com/p/qtffmpegwrapper/issues/detail?id=18
+
+// av_seek_frame : https://libav.org/doxygen/master/group__lavf__decoding.html
+void MediaStreamDecode::SeekByFrame( int64_t nFrame ) {
   
+  assert( ( m_stateStream == EOpen ) || ( m_stateStream == EStopped ) || ( m_stateStream == ESeekRequest ) );
+  m_stateStream = ESeeking;
+  
+  int result = avformat_seek_file( m_pFormatContext, m_ixBestVideoStream, nFrame - 10, nFrame, nFrame + 10, AVSEEK_FLAG_FRAME );
+  
+  //m_Srvc.post( boost::phoenix::bind( &MediaStreamDecode::ProcessStream, this, m_ixBestAudioStream, m_ixBestVideoStream ) );
+  
+  m_stateStream = EStopped;
+}
+void MediaStreamDecode::SeekByTime( int64_t time ) {
+  
+  assert( ( m_stateStream == EOpen ) || ( m_stateStream == EStopped ) || ( m_stateStream == ESeekRequest ) );
+  m_stateStream = ESeeking;
+  
+  // http://stackoverflow.com/questions/6395100/problem-with-ffmpeg-function-avformat-seek-file
+  int64_t tm = av_rescale(time, m_pFormatContext->streams[m_ixBestVideoStream]->time_base.den, m_pFormatContext->streams[m_ixBestVideoStream]->time_base.num);
+  tm /= 1000;
+  
+  int result = avformat_seek_file( m_pFormatContext, -1, 0, time, INT64_MAX, 0 );
+  
+  //m_Srvc.post( boost::phoenix::bind( &MediaStreamDecode::ProcessStream, this, m_ixBestAudioStream, m_ixBestVideoStream ) );
+  
+  m_stateStream = EStopped;
+}
 
 void MediaStreamDecode::Pause( void ) {
   // todo put in lock and wait for ThreadRequestFilled
@@ -311,6 +340,8 @@ void MediaStreamDecode::Rewind( void ) {
 void MediaStreamDecode::ProcessStream( size_t ixAudio, size_t ixVideo ) {  // background thread
   
   // need asserts to verify indexes are for valid codecs of the type specified
+  
+  // need a state to play one frame and then end for handling seek and find
   
   assert( ThreadStateStopped == m_stateThread );
   

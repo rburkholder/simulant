@@ -474,7 +474,8 @@ private:
   enum {
     ID_Null = wxID_HIGHEST,
     MIReset, MIDelete, MISelectVideo, 
-    MIVideoPause, MIVideoResume, MIVideoStop
+    MIVideoPause, MIVideoResume, MIVideoStop,
+    MIVideoSeek, MIVideoPlay, MIVideoStats
   };
   
   typedef SceneManager::key_t key_t;
@@ -500,6 +501,8 @@ private:
   int64_t m_ttlAudioFrames;
   int64_t m_duration;  
   
+  AVRational m_timebase;
+  
   int m_nThumbPosition;
   
   wxStaticText* m_pstInfo;
@@ -510,6 +513,9 @@ private:
   void HandleLoadVideo( wxCommandEvent& event );  // need to recode (this is where it actually starts)
   void LoadVideo( void );
   
+  void HandleStats( wxCommandEvent& event );
+  void HandleSeek( wxCommandEvent& event );
+  void HandlePlay( wxCommandEvent& event );
   void HandlePause( wxCommandEvent& event );
   void HandleResume( wxCommandEvent& event );
   void HandleStop( wxCommandEvent& event );
@@ -565,7 +571,7 @@ TreeItemVideo::~TreeItemVideo( void ) {
 }
 
   void TreeItemVideo::SetSelected( CommonGuiElements& elements ) {
-    std::cout << "setting " << this->m_id.GetID() << std::endl;
+    //std::cout << "setting " << this->m_id.GetID() << std::endl;
     TreeItemVisualCommon::SetSelected( elements );
     m_pstInfo = elements.pstInfo;
     if ( 0 != elements.pSlider ) {
@@ -581,7 +587,7 @@ TreeItemVideo::~TreeItemVideo( void ) {
       else {
         if ( 0 < m_duration ) {
           elements.pSlider->SetMin( 1 );
-          elements.pSlider->SetMax( m_duration );
+          elements.pSlider->SetMax( m_duration / m_timebase.den );
           elements.pSlider->Enable( true );
         }
       }
@@ -596,7 +602,7 @@ TreeItemVideo::~TreeItemVideo( void ) {
   }
   
   void TreeItemVideo::RemoveSelected( CommonGuiElements& elements ) {
-    std::cout << "removing " << this->m_id.GetID() << std::endl;
+    //std::cout << "removing " << this->m_id.GetID() << std::endl;
     if ( 0 != m_pstInfo ) {
       m_pstInfo->SetLabel( "" );
       m_pstInfo = 0;
@@ -616,15 +622,18 @@ TreeItemVideo::~TreeItemVideo( void ) {
   
   
 void TreeItemVideo::HandleScrollThumbTrack( wxScrollEvent& event ) {
-  std::cout << "ThumbTrack " << event.GetPosition() << std::endl;
+  //std::cout << "ThumbTrack " << event.GetPosition() << std::endl;
+  m_nThumbPosition = event.GetPosition();
 }
 
 void TreeItemVideo::HandleScrollLineChange( wxScrollEvent& event ) {
   std::cout << "LineChange " << event.GetPosition() << std::endl;
+  m_nThumbPosition = event.GetPosition();
 }
 
 void TreeItemVideo::HandleScrollThumbRelease( wxScrollEvent& event ) {
   std::cout << "ThumbRelease " << event.GetPosition() << std::endl;
+  m_nThumbPosition = event.GetPosition();
 }
 
 void TreeItemVideo::ShowContextMenu( void ) {
@@ -643,8 +652,17 @@ void TreeItemVideo::ShowContextMenu( void ) {
   pMenu->Append( MIVideoResume, "Resume" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVideo::HandleResume, this, MIVideoResume );
   
+  pMenu->Append( MIVideoSeek, "Seek" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVideo::HandleSeek, this, MIVideoSeek );
+  
+  pMenu->Append( MIVideoPlay, "Play" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVideo::HandlePlay, this, MIVideoPlay );
+  
   pMenu->Append( MIVideoStop, "Stop" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVideo::HandleStop, this, MIVideoStop );
+  
+  pMenu->Append( MIVideoStats, "Stats" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVideo::HandleStats, this, MIVideoStats );
   
   pMenu->Append( MIDelete, "Delete" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVisualCommon::HandleDelete, this, MIDelete );
@@ -656,8 +674,34 @@ void TreeItemVideo::HandleLoadVideo( wxCommandEvent& event ) {
   LoadVideo();
 }
 
+void TreeItemVideo::HandleStats( wxCommandEvent& event ) {
+  m_player.EmitStats();
+}
+
+void TreeItemVideo::HandleSeek( wxCommandEvent& event ) {
+  if ( 0 != m_nThumbPosition ) {
+    if ( 0 < m_ttlVideoFrames ) {
+      std::cout << "seeking by frame " << m_nThumbPosition << std::endl;
+      m_player.SeekByFrame( m_nThumbPosition );
+    }
+    else {
+      if ( 0 < m_duration ) {
+        int64_t seek = (int64_t)m_nThumbPosition * (int64_t)m_timebase.den;
+        std::cout << "seeking by time " << m_nThumbPosition << "*" << m_timebase.den << "=" << seek << std::endl;
+        m_player.SeekByTime( seek );
+      }
+    }
+  }
+}
+
 void TreeItemVideo::HandlePause( wxCommandEvent& event ) {
   std::cout << "pause not done" << std::endl;
+}
+
+void TreeItemVideo::HandlePlay( wxCommandEvent& event ) {
+  // need to test that the file is open
+  std::cout << "play start" << std::endl;
+  m_player.Play();
 }
 
 void TreeItemVideo::HandleResume( wxCommandEvent& event ) {
@@ -690,8 +734,9 @@ void TreeItemVideo::LoadVideo( void ) {
       m_ttlAudioFrames = m_player.GetTotalAudioFrames();
       m_ttlVideoFrames = m_player.GetTotalVideoFrames();
       m_duration = m_player.GetDuration();
+      m_timebase = m_player.GetTimeBase();
       TreeItemImageCommon::Enable( fr.num, fr.den );
-      m_player.Play();
+      //m_player.Play();
     }
     
     // handle async termination of stream

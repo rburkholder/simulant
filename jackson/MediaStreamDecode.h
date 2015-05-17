@@ -60,6 +60,8 @@ public:
   AVRational GetAudioFrameRate( void ) const { return m_pFormatContext->streams[m_ixBestAudioStream]->avg_frame_rate; }
   AVRational GetVideoFrameRate( void ) const { return m_pFormatContext->streams[m_ixBestVideoStream]->avg_frame_rate; }
   
+  AVRational GetTimeBase( void ) const {return m_pFormatContext->streams[m_ixBestVideoStream]->time_base; }
+  
   int64_t GetTotalVideoFrames( void ) const { return m_fi.ttlVideoFrames; }
   int64_t GetTotalAudioFrames( void ) const { return m_fi.ttlAudioFrames; }
   
@@ -69,7 +71,8 @@ public:
   void EmitStats( void );
   void Play( void );
   void Rewind( void );
-  //void Seek( ... );
+  void SeekByFrame( int64_t );
+  void SeekByTime( int64_t );
   void Stop( void );
   void Pause( void );
   void Resume( void );
@@ -99,6 +102,8 @@ private:
     EOpen, 
     EPlayRequest, 
     EPlaying, 
+    ESeekRequest,
+    ESeeking,
     EPauseRequest, 
     EPaused, 
     EResumeRequest, 

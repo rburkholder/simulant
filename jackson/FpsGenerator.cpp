@@ -199,7 +199,7 @@ void FpsGenerator::Thread( void ) {
     if ( tpNext <= tpNow ) { //stutter step, not processing fast enough
       //boost::chrono::duration<int64_t, boost::micro> diff( tpNow - tpNext );
       //std::cout << "FpsGenerator stutter step " << tpNext << ", " << tpNow << std::endl;
-      std::cout << "FpsGenerator stutter step " << ( tpNow - tpNext ) << std::endl;
+//      std::cout << "FpsGenerator stutter step " << ( tpNow - tpNext ) << std::endl;
       //tpNext = tpNow + duration;
       // making the assumption we can catch up
     }
