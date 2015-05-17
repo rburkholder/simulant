@@ -587,7 +587,7 @@ TreeItemVideo::~TreeItemVideo( void ) {
       else {
         if ( 0 < m_duration ) {
           elements.pSlider->SetMin( 1 );
-          elements.pSlider->SetMax( m_duration / m_timebase.den );
+          elements.pSlider->SetMax( ( m_duration * m_timebase.num ) / m_timebase.den );
           elements.pSlider->Enable( true );
         }
       }
@@ -643,14 +643,14 @@ void TreeItemVideo::ShowContextMenu( void ) {
   pMenu->Append( MISelectVideo, "Load Video" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVideo::HandleLoadVideo, this, MISelectVideo );
 
-  pMenu->Append( MIReset, "Reset" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVisualCommon::HandleReset, this, MIReset );
+//  pMenu->Append( MIReset, "Reset" );
+//  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVisualCommon::HandleReset, this, MIReset );
   
-  pMenu->Append( MIVideoPause, "Pause" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVideo::HandlePause, this, MIVideoPause );
+//  pMenu->Append( MIVideoPause, "Pause" );
+//  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVideo::HandlePause, this, MIVideoPause );
   
-  pMenu->Append( MIVideoResume, "Resume" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVideo::HandleResume, this, MIVideoResume );
+//  pMenu->Append( MIVideoResume, "Resume" );
+//  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVideo::HandleResume, this, MIVideoResume );
   
   pMenu->Append( MIVideoSeek, "Seek" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVideo::HandleSeek, this, MIVideoSeek );
@@ -686,8 +686,13 @@ void TreeItemVideo::HandleSeek( wxCommandEvent& event ) {
     }
     else {
       if ( 0 < m_duration ) {
-        int64_t seek = (int64_t)m_nThumbPosition * (int64_t)m_timebase.den;
-        std::cout << "seeking by time " << m_nThumbPosition << "*" << m_timebase.den << "=" << seek << std::endl;
+        int64_t seek = (int64_t)m_nThumbPosition * (int64_t)m_timebase.den / (int64_t)m_timebase.num;
+        std::cout 
+          << "seeking by time " 
+          << m_nThumbPosition << "*" 
+          << m_timebase.den << "/"
+          << m_timebase.num 
+          << "=" << seek << std::endl;
         m_player.SeekByTime( seek );
       }
     }
@@ -819,9 +824,15 @@ void TreeItemVideo::ShowImage( void ) {
     m_lpRawImage.pop_front();
 
     if ( 0 != m_pstInfo ) {
-      std::string sNum;
-      sNum = boost::lexical_cast<std::string>( pRawImage->GetImageNumber() );
-      m_pstInfo->SetLabel( sNum );
+      std::string s;
+      s += "frame " + boost::lexical_cast<std::string>( pRawImage->nVideoFrame );
+      if ( AV_NOPTS_VALUE != pRawImage->pkt_dts ) {
+        s+= " dts " + boost::lexical_cast<std::string>( pRawImage->pkt_dts );
+      }
+      if ( AV_NOPTS_VALUE != pRawImage->pkt_pts ) {
+        s+= " pts " + boost::lexical_cast<std::string>( pRawImage->pkt_pts );
+      }
+      m_pstInfo->SetLabel( s );
     }
 
   }

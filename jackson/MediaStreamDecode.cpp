@@ -46,7 +46,7 @@ MediaStreamDecode::MediaStreamDecode( )
     m_threadsWorkers.create_thread( boost::phoenix::bind( &boost::asio::io_service::run, &m_Srvc ) );
   }
   
-  av_log_set_level(AV_LOG_DEBUG);  //AV_LOG_VERBOSE AV_LOG_INFO AV_LOG_WARNING AV_LOG_ERROR AV_LOG_FATAL
+  //av_log_set_level(AV_LOG_DEBUG);  //AV_LOG_VERBOSE AV_LOG_INFO AV_LOG_WARNING AV_LOG_ERROR AV_LOG_FATAL
   
 }
 
@@ -463,7 +463,11 @@ void MediaStreamDecode::ProcessVideoFrame( AVCodecContext* pContext, AVFrame* pF
   assert( 0 != pRGB );
   
   RawImage::pRawImage_t pRawImage;
-  pRawImage.reset( new RawImage( RawImage::FormatBGRA, nBytes, srcX, srcY, m_fi.nVideoFrame ) );
+  pRawImage.reset( new RawImage( RawImage::FormatBGRA, srcX, srcY, nBytes ) );
+  
+  pRawImage->nVideoFrame = m_fi.nVideoFrame;
+  pRawImage->pkt_pts = m_fi.pkt_pts;
+  pRawImage->pkt_dts = m_fi.pkt_dts;
   
   //uint8_t* buf  = (uint8_t*)av_malloc( nBytes * sizeof( uint8_t ) );  // *** todo:  keep from call to call, be aware of frame size changes in test material
   avpicture_fill( ( AVPicture*)pRGB, pRawImage->GetBuffer(), FMT, srcX, srcY );  // effectively assigns buf ptr to pRGB entry 0, linesize is # bytes in line

@@ -2,9 +2,21 @@
 
 in vec2 vUV;
 
-layout (location=0) out vec3 vFragColor;
+//layout (location=0) out vec3 vFragColor;
+layout (location=0) out vec4 vFragColor;
 uniform sampler2D textureMap;
 
 void main(void) {
-  vFragColor = texture(textureMap, vUV).rgb;
+//  vFragColor = texture(textureMap, vUV).rgb;
+//  vec4 tmp1;
+//  vec3 tmp2 = texture(textureMap, vUV).rgb;
+//  if ( ( 0.01 > tmp2.r ) && ( 0.01 > tmp2.g ) && ( 0.01 > tmp2.b ) ) {
+//    tmp1 = vec4( 0.0, 0.0, 0.0, 0.0 );
+//  }
+//  else {
+//    tmp1 = vec4(texture(textureMap, vUV).rgb, 1.0);
+//  }
+  // use uniform to fade in / fade out
+  vFragColor = vec4(texture(textureMap, vUV).rgb, 1.0 ); // the 1.0 is opacity and could be adjusted for fade-in / fade-out
+//  vFragColor = tmp1;
 }

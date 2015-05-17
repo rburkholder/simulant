@@ -294,6 +294,12 @@ void SETexture::Init( void ) {
   m_idVapTextureCoords = glGetAttribLocation(m_idProgram, "vTextureCoords");
   glVertexAttribPointer(m_idVapTextureCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
   glDisableVertexAttribArray(m_idVapTextureCoords);
+  
+  // http://gamedev.stackexchange.com/questions/13794/how-to-render-a-texture-partly-transparent
+  // http://stackoverflow.com/questions/721705/how-do-i-set-the-opacity-of-a-vertex-in-opengl
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  //glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
   AddTexture();
   

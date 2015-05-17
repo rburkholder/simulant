@@ -28,14 +28,6 @@ public:
     return new EventImage( *this ); 
   };
 
-  int64_t nAudioFrame; // current audio frame number
-  int64_t ttlAudioFrames;
-  int64_t nVideoFrame; // current video frame number, 1 ... n
-  int64_t ttlVideoFrames;
-  int64_t pts;
-  int64_t pkt_pts;  // 1001, 2002, 3003, ... 
-  int64_t pkt_dts;
-  
 protected:  
 private:
 

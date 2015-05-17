@@ -3,5 +3,5 @@
 layout (location=0) out vec3 vFragColor;
 
 void main(void) {
-  vFragColor = vec3(1.0,1.0,1.0);
+  vFragColor = vec4(1.0,1.0,1.0,1.0);
 }
