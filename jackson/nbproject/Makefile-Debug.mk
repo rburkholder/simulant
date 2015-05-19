@@ -61,6 +61,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/SceneElement.o \
 	${OBJECTDIR}/SceneManager.o \
 	${OBJECTDIR}/ShaderManager.o \
+	${OBJECTDIR}/TimeLine.o \
 	${OBJECTDIR}/TreeDisplayManager.o \
 	${OBJECTDIR}/tex1.o \
 	${OBJECTDIR}/tex2.o \
@@ -220,6 +221,11 @@ ${OBJECTDIR}/ShaderManager.o: ShaderManager.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/ShaderManager.o ShaderManager.cpp
+
+${OBJECTDIR}/TimeLine.o: TimeLine.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/TimeLine.o TimeLine.cpp
 
 ${OBJECTDIR}/TreeDisplayManager.o: TreeDisplayManager.cpp 
 	${MKDIR} -p ${OBJECTDIR}
