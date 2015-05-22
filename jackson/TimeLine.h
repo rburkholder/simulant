@@ -102,8 +102,13 @@ public:
   typedef typename KeyFrame<Value>::pKeyFrame_t pKeyFrame_t;
   
   void Insert( Position, pKeyFrame_t );
+  //void Delete( Position );  // maybe need a delete
+  //void Move( Position, Position );  // maybe need a move)
   
-  Value Interpolate( Position, Value );
+  //Value Interpolate( Position, Value );
+  Value Interpolate( Position );
+  
+  // void Iterate( function f );  // provide position and keyframe&
   
 protected:
 private:
@@ -111,10 +116,21 @@ private:
   typedef std::map<Position,pKeyFrame_t> mapKeyFrame_t;
   
   mapKeyFrame_t m_mapKeyFrame;
+  
+  // interpolation state keeping  to prevent repetitive map lookups
+  Position m_pos1;
+  Position m_deltaPos;
+  Value m_val1;
+  Value m_deltaVal;
+  // keep two iterators to reduce the number of lookups.
+  // invalidate iterators when map changes
+  typename mapKeyFrame_t::const_iterator m_iterBegin;
+  typename mapKeyFrame_t::const_iterator m_iterEnd;
 };
 
 template <typename Position, typename Value>
 TimeLine<Position,Value>::TimeLine( void ) {
+  m_iterBegin = m_iterEnd = m_mapKeyFrame.end();
 }
 
 template <typename Position, typename Value>
@@ -129,10 +145,12 @@ void TimeLine<Position,Value>::Insert(Position position, pKeyFrame_t pKeyFrame )
     throw std::runtime_error( "position already exists" );
   }
   m_mapKeyFrame.insert( mapKeyFrame_t::value_type( position, pKeyFrame ) );
+  m_iterBegin = m_iterEnd = m_mapKeyFrame.end();  // invalidate iterators
 }
 
 template <typename Position, typename Value>
-Value TimeLine<Position,Value>::Interpolate(Position position, Value value ) {
+Value TimeLine<Position,Value>::Interpolate(Position position ) {
+  Value value;
   if ( 0 == m_mapKeyFrame.size() ) {
     throw std::runtime_error( "no keyframes available for interpolation" );
   }
@@ -146,9 +164,38 @@ Value TimeLine<Position,Value>::Interpolate(Position position, Value value ) {
     return  m_mapKeyFrame.begin()->second->GetValue();
   }
   else {
-    // keep two iterators to reduce the number of lookups.
-    // invalidate iterators when map changes
+    bool bReaquireEndpoints( false );
+    if ( m_mapKeyFrame.end() == m_iterBegin ) { // iterators are not valid, so init everything
+      bReaquireEndpoints = true;
+    }
+    else { // check iterators still have something valid
+      if ( ( position <  m_pos1 ) || ( ( m_pos1 + m_deltaPos ) < position ) ) {
+        bReaquireEndpoints = true;
+      }
+    }
+    if ( bReaquireEndpoints ) {
+      m_iterBegin = m_mapKeyFrame.lower_bound( position );
+      m_iterEnd = m_iterBegin;
+      if ( m_iterBegin->first == position ) {
+//        value = m_iterBegin->second->GetValue();  // re-arrange in order to use this optimization
+      }
+      else {
+        assert( m_iterBegin != m_mapKeyFrame.begin() );
+        --m_iterBegin;
+      }
+      m_pos1 = m_iterBegin->first;
+      m_val1 = m_iterBegin->second->GetValue();
+      m_deltaPos = m_iterEnd->first - m_pos1;
+      m_deltaVal = m_iterEnd->second->GetValue() - m_val1;
+      bReaquireEndpoints = false;
+    }
+    // perform the interpolation
+    if ( 0 == m_deltaPos ) { // optimize degenerate case
+      value = m_val1;
+    }
+    else { // interpolate over the range
+      value = m_val1 + ( ( m_deltaVal ) * ( position - m_pos1 ) / ( m_deltaPos ) );
+    }
   }
+  return value;
 }
-
-
