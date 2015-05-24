@@ -15,6 +15,7 @@
 #include <wx/wx.h>
 #include <wx/treectrl.h>
 
+#include "Audio.h"
 #include "PhysicalDisplay.h"
 
 #define SYMBOL_TREEDISPLAYMANAGER_STYLE wxTR_HAS_BUTTONS | wxTR_SINGLE
@@ -60,6 +61,8 @@ public:
   void Add( const wxTreeItemId& id, pTreeItem_t pTreeItem );
   void Delete( wxTreeItemId id );
   
+  void Add( Audio* pAudio );
+  
   void SetStaticTextInfo( wxStaticText* pstInfo );
   void SetSlider( wxSlider* pSlider );
 
@@ -75,6 +78,8 @@ private:
   
   typedef std::map<void*,pTreeItem_t> mapDecoder_t;  // void* is from wxTreeItemId
   mapDecoder_t m_mapDecoder;
+  
+  //Audio* m_pAudio;  // kept in AppProjection
   
   CommonGuiElements m_guiElements;
   

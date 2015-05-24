@@ -18,11 +18,11 @@
 // has multiple keyframes
 // interpolates between keyframes
 // uses ticks? to count
-// if keyframes are skipped, then current value is used
+// if keyframes are skipped, then current value needs to be used somehow
 // each keyframe maintains a value specific to that step
 // even better, a timeline is one or more keyframes... maintains consistency
 // will therefore need some form of positionaless keyframe when only a single keyframe present, reflecting zero size timeline
-// or keyframes can exist outside of a timeline, and a time line must always have one more keyframes
+// or keyframes can exist outside of a timeline, and a time line must always have one or more keyframes
 
 template <typename Value>
 class KeyFrame {
@@ -102,10 +102,9 @@ public:
   typedef typename KeyFrame<Value>::pKeyFrame_t pKeyFrame_t;
   
   void Insert( Position, pKeyFrame_t );
-  //void Delete( Position );  // maybe need a delete
+  void Delete( Position );
   //void Move( Position, Position );  // maybe need a move)
   
-  //Value Interpolate( Position, Value );
   Value Interpolate( Position );
   
   // void Iterate( function f );  // provide position and keyframe&
@@ -117,7 +116,7 @@ private:
   
   mapKeyFrame_t m_mapKeyFrame;
   
-  // interpolation state keeping  to prevent repetitive map lookups
+  // interpolation state to prevent repetitive map lookups
   Position m_pos1;
   Position m_deltaPos;
   Value m_val1;
@@ -145,6 +144,16 @@ void TimeLine<Position,Value>::Insert(Position position, pKeyFrame_t pKeyFrame )
     throw std::runtime_error( "position already exists" );
   }
   m_mapKeyFrame.insert( mapKeyFrame_t::value_type( position, pKeyFrame ) );
+  m_iterBegin = m_iterEnd = m_mapKeyFrame.end();  // invalidate iterators
+}
+
+template <typename Position, typename Value>
+void TimeLine<Position,Value>::Delete( Position position ) {
+  typename mapKeyFrame_t::const_iterator iter = m_mapKeyFrame.find( position );
+  if ( m_mapKeyFrame.end() == iter ) {
+    throw std::runtime_error( "position doesn't exist" );
+  }
+  m_mapKeyFrame.erase( iter );
   m_iterBegin = m_iterEnd = m_mapKeyFrame.end();  // invalidate iterators
 }
 

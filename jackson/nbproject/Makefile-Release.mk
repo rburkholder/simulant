@@ -37,6 +37,8 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/AppProjection.o \
 	${OBJECTDIR}/AspectRatio.o \
+	${OBJECTDIR}/Audio.o \
+	${OBJECTDIR}/AudioQueue.o \
 	${OBJECTDIR}/CanvasBase.o \
 	${OBJECTDIR}/CanvasOpenGL.o \
 	${OBJECTDIR}/Cue.o \
@@ -101,6 +103,16 @@ ${OBJECTDIR}/AspectRatio.o: AspectRatio.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AspectRatio.o AspectRatio.cpp
+
+${OBJECTDIR}/Audio.o: Audio.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Audio.o Audio.cpp
+
+${OBJECTDIR}/AudioQueue.o: AudioQueue.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AudioQueue.o AudioQueue.cpp
 
 ${OBJECTDIR}/CanvasBase.o: CanvasBase.cpp 
 	${MKDIR} -p ${OBJECTDIR}

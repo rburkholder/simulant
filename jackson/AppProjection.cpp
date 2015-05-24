@@ -66,13 +66,6 @@ bool AppProjection::OnInit( ) {
   // serialize the following for session to session persistence
   m_pFrameMain->Move( wxPoint( 1950, 150 ) );
   
-  // WX_GL_CORE_PROFILE limits to older 3.x version
-//  int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_CORE_PROFILE, WX_GL_DEPTH_SIZE, 16, 0 };
-//  int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };
-//  m_pTut1 = new tut1( m_vScreenFrame[1]->GetFrame(), argsCanvas );
-//  m_pTut1->SetSize( 400, 400 );
-//  m_pTut1->Move( 100, 100 );
-  
   // templates for windows requiring them
 //  wxApp::Bind( EVENT_IMAGE, &AppProjection::HandleEventImage, this );
 //  wxApp::Bind( wxEVT_MOTION, &AppProjection::HandleMouseMoved, this );
@@ -88,8 +81,7 @@ bool AppProjection::OnInit( ) {
   //wxApp::Bind( wxEVT_LEAVE_WINDOW, &AppProjection::HandleLeaveWindow, this );  // window specific, not in app
   //wxApp::Bind( wxEVT_SIZE, &AppProjection::HandleMouseMoved, this );  // window specific, not in app
   
-//  m_pSurfaceSources->Bind( wxEVT_TOGGLEBUTTON, &AppProjection::HandleToggleEditMode, this, panelSurfaceSources::ID_BTN_EDITMODE );
-//  m_pSurfaceSources->Bind( wxEVT_BUTTON, &AppProjection::HandleUndo, this, panelSurfaceSources::ID_BTN_UNDO );
+  m_pSurfaceSources->Add( &audio );
   
   return true;
 }

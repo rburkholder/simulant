@@ -6,6 +6,8 @@
                    projectFiles="true">
       <itemPath>AppProjection.h</itemPath>
       <itemPath>AspectRatio.h</itemPath>
+      <itemPath>Audio.h</itemPath>
+      <itemPath>AudioQueue.h</itemPath>
       <itemPath>CanvasBase.h</itemPath>
       <itemPath>CanvasOpenGL.h</itemPath>
       <itemPath>Cue.h</itemPath>
@@ -53,6 +55,8 @@
                    projectFiles="true">
       <itemPath>AppProjection.cpp</itemPath>
       <itemPath>AspectRatio.cpp</itemPath>
+      <itemPath>Audio.cpp</itemPath>
+      <itemPath>AudioQueue.cpp</itemPath>
       <itemPath>CanvasBase.cpp</itemPath>
       <itemPath>CanvasOpenGL.cpp</itemPath>
       <itemPath>Cue.cpp</itemPath>
@@ -137,6 +141,7 @@
             <linkerLibLibItem>SOIL</linkerLibLibItem>
             <linkerLibLibItem>boost_filesystem</linkerLibLibItem>
             <linkerLibLibItem>bz2</linkerLibLibItem>
+            <linkerLibLibItem>rtaudio</linkerLibLibItem>
           </linkerLibItems>
           <commandLine>`/usr/local/bin/wx-config --libs`</commandLine>
         </linkerTool>
@@ -148,6 +153,14 @@
       <item path="AspectRatio.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="AspectRatio.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Audio.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Audio.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AudioQueue.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="AudioQueue.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="CanvasBase.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -336,6 +349,14 @@
       <item path="AspectRatio.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="AspectRatio.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Audio.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Audio.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AudioQueue.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="AudioQueue.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="CanvasBase.cpp" ex="false" tool="1" flavor2="0">
       </item>

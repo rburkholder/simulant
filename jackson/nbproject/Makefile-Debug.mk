@@ -37,6 +37,8 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/AppProjection.o \
 	${OBJECTDIR}/AspectRatio.o \
+	${OBJECTDIR}/Audio.o \
+	${OBJECTDIR}/AudioQueue.o \
 	${OBJECTDIR}/CanvasBase.o \
 	${OBJECTDIR}/CanvasOpenGL.o \
 	${OBJECTDIR}/Cue.o \
@@ -82,7 +84,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-lavdevice -lavfilter -lavformat -lavcodec -lavresample -lavutil -lswscale -lz -lpthread -lpng -lboost_system -lboost_thread -lboost_chrono -lGL -lwx_gtk3u_gl-3.1 -lGLU -lSOIL -lboost_filesystem -lbz2
+LDLIBSOPTIONS=-lavdevice -lavfilter -lavformat -lavcodec -lavresample -lavutil -lswscale -lz -lpthread -lpng -lboost_system -lboost_thread -lboost_chrono -lGL -lwx_gtk3u_gl-3.1 -lGLU -lSOIL -lboost_filesystem -lbz2 -lrtaudio
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -101,6 +103,16 @@ ${OBJECTDIR}/AspectRatio.o: AspectRatio.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AspectRatio.o AspectRatio.cpp
+
+${OBJECTDIR}/Audio.o: Audio.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Audio.o Audio.cpp
+
+${OBJECTDIR}/AudioQueue.o: AudioQueue.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AudioQueue.o AudioQueue.cpp
 
 ${OBJECTDIR}/CanvasBase.o: CanvasBase.cpp 
 	${MKDIR} -p ${OBJECTDIR}

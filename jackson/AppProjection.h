@@ -9,6 +9,8 @@
 
 #include <wx/wx.h>
 
+#include "Audio.h"
+
 #include "FrameMain.h"
 
 class AppProjection : public wxApp {
@@ -21,6 +23,8 @@ private:
   
   FrameMain *m_pFrameMain;
   PanelSurfaceSources* m_pSurfaceSources;
+  
+  Audio audio;
   
   virtual bool OnInit( );
   virtual void OnClose( wxCloseEvent& event );

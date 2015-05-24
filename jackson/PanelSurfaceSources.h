@@ -51,6 +51,8 @@ public:
   
   void Append( pPhysicalDisplay_t pPhysicalDisplay );
   
+  void Add( Audio* pAudio ) { m_treeDisplays->Add( pAudio ); }
+  
   // when range is 0, should disable the control
   //void SetScrollMin( int min ) { assert( 0 != m_sliderHorizontal ); m_sliderHorizontal->SetMin( min ); }  // defaults to 0..100
   //void SetScrollMax( int max ) { assert( 0 != m_sliderHorizontal ); m_sliderHorizontal->SetMax( max ); }  // defaults to 0..100

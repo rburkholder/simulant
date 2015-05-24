@@ -35,7 +35,9 @@ extern "C" {
 //}
 
 MediaStreamDecode::MediaStreamDecode( )
-: m_pFormatContext( 0 ), m_ixBestVideoStream( 0 ), m_ixBestAudioStream( 0 ),
+: m_pFormatContext( 0 ), 
+  m_ixBestVideoStream( 0 ), m_ixBestAudioStream( 0 ),
+  m_bBestAudioStreamFound( false ), m_bBestVideoStreamFound( false ),
   m_bProcessStreamWait( false ), m_stateStream( EClosed ),
   m_stateThreadRequest( ThreadRequestFilled ), m_stateThread( ThreadStateStopped )
 {
@@ -154,11 +156,13 @@ bool MediaStreamDecode::Open( const std::string& sFile ) {
         if ( 0 > m_ixBestVideoStream ) {
           if ( AVERROR_STREAM_NOT_FOUND == m_ixBestVideoStream ) std::cout << "no best video stream found" << std::endl;
           if ( AVERROR_DECODER_NOT_FOUND == m_ixBestVideoStream ) std::cout << "no decoder found for best video stream found" << std::endl;
-          m_stateStream = EError;
+          //m_stateStream = EError;
         }
         else {
+          m_bBestVideoStreamFound = true;
           m_fi.ttlVideoFrames = m_pFormatContext->streams[m_ixBestVideoStream]->nb_frames;
           m_fi.duration = m_pFormatContext->duration;
+          //m_pFormatContext->
         }
 
         AVCodec* pBestCodecForAudio( 0 );  // should be able to discard this, may need to match addresses 
@@ -169,6 +173,7 @@ bool MediaStreamDecode::Open( const std::string& sFile ) {
           //m_stateStream = EError;  // ignore audio for now
         }
         else {
+          m_bBestAudioStreamFound = true;
           m_fi.ttlAudioFrames = m_pFormatContext->streams[m_ixBestAudioStream]->nb_frames;
         }
         
@@ -244,6 +249,10 @@ void MediaStreamDecode::EmitStats( void ) {
     if ( 0 != m_vStreamInfo[ix].pCodecContext ) {
       std::cout << "refcounted frames " << m_vStreamInfo[ix].pCodecContext->refcounted_frames << std::endl;
     }
+    
+    std::cout << "sample rate: " << m_vStreamInfo[ ix ].pCodecContext->sample_rate << std::endl;
+    std::cout << "channels: " << m_vStreamInfo[ ix ].pCodecContext->channels << std::endl;
+    std::cout << "format: " << m_vStreamInfo[ ix ].pCodecContext->sample_fmt << std::endl; // AV_SAMPLE_FMT_S16P
     
     // AVCodecContext::frame_number
   }
@@ -395,10 +404,17 @@ void MediaStreamDecode::ProcessStream( size_t ixAudio, size_t ixVideo ) {  // ba
         if ( 0 > status ) {
           std::cout << "audio decode error: " << status << std::endl;
         }
-        else {
+        else { 
           // emit the audio
-          m_ts.decoded = boost::chrono::high_resolution_clock::now();
-          m_fi.nAudioFrame = m_vStreamInfo[ixAudio].pCodecContext->frame_number;
+          assert( AV_SAMPLE_FMT_S16P == m_vStreamInfo[ ixAudio ].pCodecContext->sample_fmt );
+          m_signalAudioReady( &pFrame->buf, m_vStreamInfo[ ixAudio ].pCodecContext->channels, pFrame->nb_samples );
+          //m_ts.decoded = boost::chrono::high_resolution_clock::now();
+          //m_fi.nAudioFrame = m_vStreamInfo[ixAudio].pCodecContext->frame_number;
+          //std::cout << "#audio samples in frame: " << pFrame->nb_samples << std::endl;
+          //std::cout << "line size: " << pFrame->linesize << std::endl;  // single plane for planar
+          //std::cout << "sample rate: " << m_vStreamInfo[ ix ].pCodecContext->sample_rate << std::endl;
+          //std::cout << "channels: " << m_vStreamInfo[ ix ].pCodecContext->channels << std::endl;
+          //std::cout << "format: " << m_vStreamInfo[ ix ].pCodecContext->sample_fmt << std::endl; // AV_SAMPLE_FMT_S16P    mp3 decode format
         }
       }
       if ( ixVideo == packet.stream_index ) {

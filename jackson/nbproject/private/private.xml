@@ -26,19 +26,19 @@
         <group name="simulant">
             <file>file:/home/rpb/projects/simulant/jackson/AspectRatio.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/oglGrid.shfrag</file>
-            <file>file:/home/rpb/projects/simulant/jackson/FpsGenerator.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/TreeDisplayManager.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/FpsGenerator.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/tex2.h</file>
-            <file>file:/home/rpb/projects/simulant/jackson/TreeDisplayManager.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/FrameProjection.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/TreeDisplayManager.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/tex1.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/tex2.shfrag</file>
             <file>file:/home/rpb/projects/simulant/jackson/AppProjection.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/Cue.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/FrameMain.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/SETexture.h</file>
-            <file>file:/home/rpb/projects/simulant/jackson/FpsGenerator.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/RawImage.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/FpsGenerator.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/AspectRatio.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/RawImage.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/TimeLine.cpp</file>
@@ -56,8 +56,8 @@
             <file>file:/home/rpb/projects/simulant/jackson/CueList.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/EventGenerateFrame.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/CanvasOpenGL.cpp</file>
-            <file>file:/home/rpb/projects/simulant/jackson/SEGrid.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/TimeLine.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/SEGrid.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/AppProjection.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/EventImage.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/SceneManager.cpp</file>

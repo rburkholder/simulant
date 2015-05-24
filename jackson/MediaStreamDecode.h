@@ -35,13 +35,17 @@ public:
     int64_t pts;
     int64_t pkt_pts;  // 1001, 2002, 3003, ... 
     int64_t pkt_dts;
+    int sample_rate;
+    int channels;
     FrameInfo(): nAudioFrame( 0 ), ttlAudioFrames( 0 ), nVideoFrame( 0 ), ttlVideoFrames( 0 ), pts( 0 ), pkt_pts( 0 ), pkt_dts( 0 ) {}
   };
   
   typedef RawImage::pRawImage_t pRawImage_t;
-  //typedef boost::signals2::signal<void (pRawImage_t, const structTimeSteps&, const FrameInfo&)> signalImageReady_t;
   typedef boost::signals2::signal<void (pRawImage_t, const structTimeSteps&)> signalImageReady_t;
   typedef signalImageReady_t::slot_type slotImageReady_t;
+  
+  typedef boost::signals2::signal<void (void* buffers, int nChannels, int nSamples)> signalAudioReady_t;
+  typedef signalAudioReady_t::slot_type slotAudioReady_t;
   
   typedef boost::signals2::signal<void ()> signalDecodeDone_t;
   typedef signalDecodeDone_t::slot_type slotDecodeDone_t;
@@ -53,12 +57,21 @@ public:
     return m_signalImageReady.connect( slot );
   }
   
+  boost::signals2::connection ConnectAudioReady( const slotAudioReady_t& slot ) {
+    return m_signalAudioReady.connect( slot );
+  }
+  
   boost::signals2::connection ConnectDecodeDone( const slotDecodeDone_t& slot ) {
     return m_signaDecodeDone.connect( slot );
   }
   
-  AVRational GetAudioFrameRate( void ) const { return m_pFormatContext->streams[m_ixBestAudioStream]->avg_frame_rate; }
+  bool GetBestVideoStreamFound( void ) { return m_bBestVideoStreamFound; }
+  bool GetBestAudioStreamFound( void ) { return m_bBestAudioStreamFound; }
+  
   AVRational GetVideoFrameRate( void ) const { return m_pFormatContext->streams[m_ixBestVideoStream]->avg_frame_rate; }
+  AVRational GetAudioFrameRate( void ) const { return m_pFormatContext->streams[m_ixBestAudioStream]->avg_frame_rate; }
+  
+  int GetAudioSampleRate( void ) const { return m_pFormatContext->streams[m_ixBestAudioStream]->codec->sample_rate; }
   
   AVRational GetTimeBase( void ) const {return m_pFormatContext->streams[m_ixBestVideoStream]->time_base; }
   
@@ -133,7 +146,11 @@ private:
   ThreadState m_stateThread;
   
   signalImageReady_t m_signalImageReady;
+  signalAudioReady_t m_signalAudioReady;
   signalDecodeDone_t m_signaDecodeDone;
+
+  bool m_bBestAudioStreamFound;
+  bool m_bBestVideoStreamFound;
   
   int m_ixBestAudioStream;
   int m_ixBestVideoStream;
@@ -143,6 +160,6 @@ private:
   void ProcessStream( size_t ixAudio, size_t ixVideo );  // background thread
   void ProcessVideoFrame( AVCodecContext* pContext, AVFrame* pFrame, structTimeSteps perf );
   void HandleFrameTransformToImage( AVFrame* pRgb, uint8_t* buf, structTimeSteps perf, int srcX, int srcY );
-  
+
 };
 

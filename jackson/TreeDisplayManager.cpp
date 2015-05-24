@@ -45,6 +45,9 @@
 #include "RawImage.h"
 #include "EventImage.h"
 
+#include "Audio.h"
+#include "AudioQueue.h"
+
 #include "Outline.h"
 
 #include "SceneElement.h"
@@ -55,6 +58,8 @@
 #include "TreeDisplayManager.h"
 
 IMPLEMENT_DYNAMIC_CLASS( TreeDisplayManager, wxTreeCtrl )
+
+Audio* pAudio;  // kept in AppProjection
 
 class TreeItemBase {
 public:
@@ -501,6 +506,9 @@ private:
   int64_t m_ttlAudioFrames;
   int64_t m_duration;  
   
+  Audio::pAudioQueue_t m_pAudioQueueLeft;
+  Audio::pAudioQueue_t m_pAudioQueueRight;
+  
   AVRational m_timebase;
   
   int m_nThumbPosition;
@@ -509,6 +517,7 @@ private:
   
   boost::signals2::connection m_connectionFrameTrigger;
   boost::signals2::connection m_connectionImageReady;
+  boost::signals2::connection m_connectionAudioReady;
   
   void HandleLoadVideo( wxCommandEvent& event );  // need to recode (this is where it actually starts)
   void LoadVideo( void );
@@ -520,8 +529,8 @@ private:
   void HandleResume( wxCommandEvent& event );
   void HandleStop( wxCommandEvent& event );
   
-  //void HandleImage( RawImage::pRawImage_t, const structTimeSteps&, const MediaStreamDecode::FrameInfo& );
   void HandleImage( RawImage::pRawImage_t, const structTimeSteps& );
+  void HandleAudio( void* buffers, int nChannels, int nSamples );
   void HandleEventImage( EventImage& );
   void ShowImage( void );  // show next image from vector
   
@@ -548,10 +557,16 @@ TreeItemVideo::TreeItemVideo(
   // **** will need to set a specific instance id so that multiple frames can be run
   wxApp::GetInstance()->Bind( EVENT_IMAGE, &TreeItemVideo::HandleEventImage, this );
   
+  m_pAudioQueueLeft.reset( new AudioQueue<int16_t> );
+  pAudio->Attach( 0, m_pAudioQueueLeft );
+  m_pAudioQueueRight.reset( new AudioQueue<int16_t> );
+  pAudio->Attach( 0, m_pAudioQueueRight );
+  
   namespace args = boost::phoenix::arg_names;
   m_connectionFrameTrigger = TreeItemImageCommon::ConnectFrameTrigger( boost::phoenix::bind( &TreeItemVideo::ShowImage, this ) );
   //m_connectionImageReady = m_player.ConnectImageReady( boost::phoenix::bind( &TreeItemVideo::HandleImage, this, args::arg1, args::arg2, args::arg3 ) );
   m_connectionImageReady = m_player.ConnectImageReady( boost::phoenix::bind( &TreeItemVideo::HandleImage, this, args::arg1, args::arg2 ) );
+  m_connectionAudioReady = m_player.ConnectAudioReady( boost::phoenix::bind( &TreeItemVideo::HandleAudio, this, args::arg1, args::arg2, args::arg3 ) );
   
   ResetTransformMatrix();
   
@@ -563,6 +578,7 @@ TreeItemVideo::TreeItemVideo(
 
 TreeItemVideo::~TreeItemVideo( void ) {
   
+  m_connectionAudioReady.disconnect();
   m_connectionImageReady.disconnect();
   m_connectionFrameTrigger.disconnect();
   
@@ -740,6 +756,10 @@ void TreeItemVideo::LoadVideo( void ) {
       m_ttlVideoFrames = m_player.GetTotalVideoFrames();
       m_duration = m_player.GetDuration();
       m_timebase = m_player.GetTimeBase();
+      if ( m_player.GetBestAudioStreamFound() ) {
+        assert( 44100 == m_player.GetAudioSampleRate() );  // need to be a bit more flexible
+      }
+      
       TreeItemImageCommon::Enable( fr.num, fr.den );
       //m_player.Play();
     }
@@ -752,12 +772,19 @@ void TreeItemVideo::LoadVideo( void ) {
   }
 }
 
-//void TreeItemVideo::HandleImage( RawImage::pRawImage_t pRawImage, const structTimeSteps& ts, const MediaStreamDecode::FrameInfo& info ) {
 void TreeItemVideo::HandleImage( RawImage::pRawImage_t pRawImage, const structTimeSteps& ts ) {
   EventImage* p( new EventImage( EVENT_IMAGE, -1, pRawImage, GetTreeItemId(), ts ) );
-  //p->nAudioFrame = info.nAudioFrame;
   //p->nVideoFrame = info.nVideoFrame;
   wxApp::GetInstance()->QueueEvent( p );
+}
+
+void TreeItemVideo::HandleAudio( void* buffers, int nChannels, int nSamples ) {
+  assert( 2 == nChannels );
+  const int16_t** pSamples( reinterpret_cast<const int16_t**>( buffers ) );
+  boost::strict_lock<AudioQueue<int16_t> > guardLeft( *m_pAudioQueueLeft );
+  m_pAudioQueueLeft->AddSamples( nSamples, pSamples[0], guardLeft );
+  boost::strict_lock<AudioQueue<int16_t> > guardRight( *m_pAudioQueueRight );
+  m_pAudioQueueRight->AddSamples( nSamples, pSamples[1], guardRight );
 }
 
 void TreeItemVideo::HandleEventImage( EventImage& event ) {
@@ -1209,6 +1236,7 @@ void TreeDisplayManager::Delete( wxTreeItemId id ) {
 }
 
 void TreeDisplayManager::Init() {
+  ::pAudio = 0;
 }
 
 void TreeDisplayManager::CreateControls() {    
@@ -1273,4 +1301,8 @@ wxBitmap TreeDisplayManager::GetBitmapResource( const wxString& name ) {
 wxIcon TreeDisplayManager::GetIconResource( const wxString& name ) {
   wxUnusedVar(name);
   return wxNullIcon;
+}
+
+void TreeDisplayManager::Add( Audio* pAudio_ ) { 
+  pAudio = pAudio_; // global variable
 }
