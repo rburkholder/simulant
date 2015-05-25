@@ -248,11 +248,48 @@ void MediaStreamDecode::EmitStats( void ) {
     std::cout << "info strm " << ix << " type " << mt << std::endl;
     if ( 0 != m_vStreamInfo[ix].pCodecContext ) {
       std::cout << "refcounted frames " << m_vStreamInfo[ix].pCodecContext->refcounted_frames << std::endl;
+      std::cout << "sample format" << m_vStreamInfo[ ix ].pCodecContext->sample_fmt << " ";
+      switch ( m_vStreamInfo[ ix ].pCodecContext->sample_fmt ) {
+        case AV_SAMPLE_FMT_NONE:
+          std::cout << "AV_SAMPLE_FMT_NONE";
+          break;
+        case AV_SAMPLE_FMT_U8:
+          std::cout << "AV_SAMPLE_FMT_U8";
+          break;
+        case AV_SAMPLE_FMT_S16:
+          std::cout << "AV_SAMPLE_FMT_S16";
+          break;
+        case AV_SAMPLE_FMT_S32:
+          std::cout << "AV_SAMPLE_FMT_S32";
+          break;
+        case AV_SAMPLE_FMT_FLT:
+          std::cout << "AV_SAMPLE_FMT_FLT";
+          break;
+        case AV_SAMPLE_FMT_DBL:
+          std::cout << "AV_SAMPLE_FMT_DBL";
+          break;
+        case AV_SAMPLE_FMT_U8P:
+          std::cout << "AV_SAMPLE_FMT_U8P";
+          break;
+        case AV_SAMPLE_FMT_S16P:
+          std::cout << "AV_SAMPLE_FMT_S16P";
+          break;
+        case AV_SAMPLE_FMT_S32P:
+          std::cout << "AV_SAMPLE_FMT_S32P";
+          break;
+        case AV_SAMPLE_FMT_FLTP:
+          std::cout << "AV_SAMPLE_FMT_FLTP";
+          break;
+        case AV_SAMPLE_FMT_DBLP:
+          std::cout << "AV_SAMPLE_FMT_DBLP";
+          break;
+      }
+      std::cout << std::endl;
+      std::cout << "sample rate: " << m_vStreamInfo[ ix ].pCodecContext->sample_rate << std::endl;
+      std::cout << "channels: " << m_vStreamInfo[ ix ].pCodecContext->channels << std::endl;
+      std::cout << "format: " << m_vStreamInfo[ ix ].pCodecContext->sample_fmt << std::endl; // AV_SAMPLE_FMT_S16P
     }
     
-    std::cout << "sample rate: " << m_vStreamInfo[ ix ].pCodecContext->sample_rate << std::endl;
-    std::cout << "channels: " << m_vStreamInfo[ ix ].pCodecContext->channels << std::endl;
-    std::cout << "format: " << m_vStreamInfo[ ix ].pCodecContext->sample_fmt << std::endl; // AV_SAMPLE_FMT_S16P
     
     // AVCodecContext::frame_number
   }

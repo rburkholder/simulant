@@ -29,6 +29,7 @@
 #include <wx/rawbmp.h>
 
 #include <wx/filedlg.h>
+#include <wx/textdlg.h>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
@@ -81,15 +82,62 @@ private:
 
 // ================
 
+class TreeItemGroup: public TreeItemBase {
+public:
+  // deals with organizing groups of branches, eg:  master - act - scene
+  TreeItemGroup( TreeDisplayManager* pTree_, wxTreeItemId id_ ): TreeItemBase( pTree_, id_ ) {
+  }
+  virtual ~TreeItemGroup( void ) {};
+  virtual void ShowContextMenu( void ) {
+    wxMenu* pMenu = new wxMenu();
+    pMenu->Append( MIAddSubGroup, "&Add Sub Group" );
+    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemGroup::HandleAddSubGroup, this, MIAddSubGroup );
+    pMenu->Append( MIRename, "&Rename" );
+    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemGroup::HandleRename, this, MIRename );
+    m_pTree->PopupMenu( pMenu );
+  }
+protected:
+private:
+  enum {
+    ID_Null = wxID_HIGHEST,
+    MIAddSubGroup, MIRename
+  };
+  void HandleAddSubGroup( wxCommandEvent& event );
+  void HandleRename( wxCommandEvent& event );
+};
+
+void TreeItemGroup::HandleAddSubGroup( wxCommandEvent& event ) { 
+  
+  wxTreeItemId id = m_pTree->AppendItem( m_id, "Sub Group" );
+  m_pTree->EnsureVisible( id );
+  
+  TreeItemGroup* pGroup = new TreeItemGroup( m_pTree, id );
+  pTreeItem_t pTreeItem( pGroup );
+  m_pTree->Add( id, pTreeItem );
+  
+}
+
+void TreeItemGroup::HandleRename( wxCommandEvent& event ) { 
+  std::cout << "Group Rename" << std::endl;  
+  wxTextEntryDialog* p = new wxTextEntryDialog( m_pTree, "Change Text:", "Rename Group", m_pTree->GetItemText( m_id ) );
+  if ( wxID_OK == p->ShowModal() ) {
+    m_pTree->SetItemText( m_id, p->GetValue() );
+  }
+}
+
+// ================
+
 class TreeItemRoot: public TreeItemBase {
 public:
   // deals with constructing display surfaces
   TreeItemRoot( TreeDisplayManager* pTree_, wxTreeItemId id_ ): TreeItemBase( pTree_, id_ ) {
-  };
+  }
   virtual ~TreeItemRoot( void ) {}
   virtual void ShowContextMenu( void ) {
     //wxMenu* pMenu = new wxMenu( "Surfaces");
     wxMenu* pMenu = new wxMenu();
+    pMenu->Append( MIAddGroup, "&Add Group" );
+    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemRoot::HandleAddGroup, this, MIAddGroup );
     pMenu->Append( MIAddScreenFrame, "&Add Screen Frame" );
     pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemRoot::HandleAddScreenFrame, this, MIAddScreenFrame );
     m_pTree->PopupMenu( pMenu );
@@ -98,12 +146,24 @@ protected:
 private:
   enum {
     ID_Null = wxID_HIGHEST,
-    MIAddScreenFrame
+    MIAddScreenFrame, MIAddGroup
   };
   void HandleAddScreenFrame( wxCommandEvent& event ) {  // for remote displays, will use wizard dialog
-    std::cout << "Add Remote Screen Frame" << std::endl;  
+    std::cout << "Add Remote Screen Frame" << std::endl; 
   }
+  void HandleAddGroup( wxCommandEvent& event );
 };
+
+void TreeItemRoot::HandleAddGroup( wxCommandEvent& event ) {
+  
+  wxTreeItemId id = m_pTree->AppendItem( m_id, "Group" );
+  m_pTree->EnsureVisible( id );
+  
+  TreeItemGroup* pGroup = new TreeItemGroup( m_pTree, id );
+  pTreeItem_t pTreeItem( pGroup );
+  m_pTree->Add( id, pTreeItem );
+  
+}
 
 // ================
 
@@ -586,56 +646,56 @@ TreeItemVideo::~TreeItemVideo( void ) {
   
 }
 
-  void TreeItemVideo::SetSelected( CommonGuiElements& elements ) {
-    //std::cout << "setting " << this->m_id.GetID() << std::endl;
-    TreeItemVisualCommon::SetSelected( elements );
-    m_pstInfo = elements.pstInfo;
-    if ( 0 != elements.pSlider ) {
-      elements.pSlider->Bind( wxEVT_SCROLL_THUMBTRACK, &TreeItemVideo::HandleScrollThumbTrack, this );
-      elements.pSlider->Bind( wxEVT_SCROLL_LINEUP, &TreeItemVideo::HandleScrollLineChange, this );
-      elements.pSlider->Bind( wxEVT_SCROLL_LINEDOWN, &TreeItemVideo::HandleScrollLineChange, this );
-      elements.pSlider->Bind( wxEVT_SCROLL_THUMBRELEASE, &TreeItemVideo::HandleScrollThumbRelease, this );
-      if ( 0 < m_ttlVideoFrames ) {
+void TreeItemVideo::SetSelected( CommonGuiElements& elements ) {
+  //std::cout << "setting " << this->m_id.GetID() << std::endl;
+  TreeItemVisualCommon::SetSelected( elements );
+  m_pstInfo = elements.pstInfo;
+  if ( 0 != elements.pSlider ) {
+    elements.pSlider->Bind( wxEVT_SCROLL_THUMBTRACK, &TreeItemVideo::HandleScrollThumbTrack, this );
+    elements.pSlider->Bind( wxEVT_SCROLL_LINEUP, &TreeItemVideo::HandleScrollLineChange, this );
+    elements.pSlider->Bind( wxEVT_SCROLL_LINEDOWN, &TreeItemVideo::HandleScrollLineChange, this );
+    elements.pSlider->Bind( wxEVT_SCROLL_THUMBRELEASE, &TreeItemVideo::HandleScrollThumbRelease, this );
+    if ( 0 < m_ttlVideoFrames ) {
+      elements.pSlider->SetMin( 1 );
+      elements.pSlider->SetMax( m_ttlVideoFrames );
+      elements.pSlider->Enable( true );
+    }
+    else {
+      if ( 0 < m_duration ) {
         elements.pSlider->SetMin( 1 );
-        elements.pSlider->SetMax( m_ttlVideoFrames );
+        elements.pSlider->SetMax( ( m_duration * m_timebase.num ) / m_timebase.den );
         elements.pSlider->Enable( true );
       }
-      else {
-        if ( 0 < m_duration ) {
-          elements.pSlider->SetMin( 1 );
-          elements.pSlider->SetMax( ( m_duration * m_timebase.num ) / m_timebase.den );
-          elements.pSlider->Enable( true );
-        }
-      }
-      if ( 0 == m_nThumbPosition ) {
-        elements.pSlider->SetValue( 1 );
-      }
-      else {
-        elements.pSlider->SetValue( m_nThumbPosition );
-      }
+    }
+    if ( 0 == m_nThumbPosition ) {
+      elements.pSlider->SetValue( 1 );
+    }
+    else {
+      elements.pSlider->SetValue( m_nThumbPosition );
+    }
 
-    }
   }
+}
   
-  void TreeItemVideo::RemoveSelected( CommonGuiElements& elements ) {
-    //std::cout << "removing " << this->m_id.GetID() << std::endl;
-    if ( 0 != m_pstInfo ) {
-      m_pstInfo->SetLabel( "" );
-      m_pstInfo = 0;
-    }
-    if ( 0 != elements.pSlider ) {
-      m_nThumbPosition = elements.pSlider->GetValue();
-      elements.pSlider->Enable( false );
-      elements.pSlider->SetMin( 0 );
-      elements.pSlider->SetMax( 100 );
-      elements.pSlider->Unbind( wxEVT_SCROLL_THUMBTRACK, &TreeItemVideo::HandleScrollThumbTrack, this );
-      elements.pSlider->Unbind( wxEVT_SCROLL_LINEUP, &TreeItemVideo::HandleScrollLineChange, this );
-      elements.pSlider->Unbind( wxEVT_SCROLL_LINEDOWN, &TreeItemVideo::HandleScrollLineChange, this );
-      elements.pSlider->Unbind( wxEVT_SCROLL_THUMBRELEASE, &TreeItemVideo::HandleScrollThumbRelease, this );
-    }
-    TreeItemVisualCommon::RemoveSelected( elements );
+void TreeItemVideo::RemoveSelected( CommonGuiElements& elements ) {
+  //std::cout << "removing " << this->m_id.GetID() << std::endl;
+  if ( 0 != m_pstInfo ) {
+    m_pstInfo->SetLabel( "" );
+    m_pstInfo = 0;
   }
-  
+  if ( 0 != elements.pSlider ) {
+    m_nThumbPosition = elements.pSlider->GetValue();
+    elements.pSlider->Enable( false );
+    elements.pSlider->SetMin( 0 );
+    elements.pSlider->SetMax( 100 );
+    elements.pSlider->Unbind( wxEVT_SCROLL_THUMBTRACK, &TreeItemVideo::HandleScrollThumbTrack, this );
+    elements.pSlider->Unbind( wxEVT_SCROLL_LINEUP, &TreeItemVideo::HandleScrollLineChange, this );
+    elements.pSlider->Unbind( wxEVT_SCROLL_LINEDOWN, &TreeItemVideo::HandleScrollLineChange, this );
+    elements.pSlider->Unbind( wxEVT_SCROLL_THUMBRELEASE, &TreeItemVideo::HandleScrollThumbRelease, this );
+  }
+  TreeItemVisualCommon::RemoveSelected( elements );
+}
+
   
 void TreeItemVideo::HandleScrollThumbTrack( wxScrollEvent& event ) {
   //std::cout << "ThumbTrack " << event.GetPosition() << std::endl;
@@ -1199,7 +1259,6 @@ void TreeDisplayManager::Append( pPhysicalDisplay_t pPhysicalDisplay ) {
   
   pTreeItem_t pTreeItem( new TreeItemPhysicalDisplay( this, id, pPhysicalDisplay ) );
   Add( id, pTreeItem );
-  //m_mapDecoder.insert( mapDecoder_pair_t( id.GetID(), pTreeItem ) );
 }
 
 void TreeDisplayManager::Add( const wxTreeItemId& id, pTreeItem_t pTreeItem ) {
@@ -1207,7 +1266,6 @@ void TreeDisplayManager::Add( const wxTreeItemId& id, pTreeItem_t pTreeItem ) {
 }
 
 void TreeDisplayManager::Delete( wxTreeItemId id ) {
-  //wxTreeItemId id( pTreeItem->GetTreeItemId() );
   if ( 0 == GetChildrenCount( id ) ) {
     
     // need to detect that it is deleting itself, and that it is currently selected
