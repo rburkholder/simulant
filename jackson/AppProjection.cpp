@@ -2,10 +2,15 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <fstream>
 #include <vector>
 
 #include <boost/phoenix/core.hpp>
 #include <boost/phoenix/bind/bind_member_function.hpp>
+#include <boost/phoenix/core/argument.hpp>
+
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 
 #include <wx/wx.h>
 #include <wx/display.h>
@@ -26,6 +31,10 @@ bool AppProjection::OnInit( ) {
   
   m_pFrameMain = new FrameMain( (wxFrame *)NULL, -1, wxT( "Projection Demo" ), wxPoint( 10, 10 ), wxSize( 500, 250 ) );
   m_pFrameMain->Bind( wxEVT_CLOSE_WINDOW, &AppProjection::OnClose, this );  // start close of windows and controls
+
+  namespace args = boost::phoenix::arg_names;
+  m_MenuActionLoad = m_pFrameMain->m_MenuItemLoad.connect( boost::phoenix::bind( &AppProjection::HandleLoad, this ) );
+  m_MenuActionSave = m_pFrameMain->m_MenuItemSave.connect( boost::phoenix::bind( &AppProjection::HandleSave, this ) );
 
   FrameMain::vpMenuItems_t vMenuItems;
   typedef FrameMain::structMenuItem mi;  // vxWidgets takes ownership of the objects
@@ -86,6 +95,22 @@ bool AppProjection::OnInit( ) {
   return true;
 }
 
+void AppProjection::HandleSave( void ) {
+  std::cout << "Saving ..." << std::endl;
+  std::ofstream ofs( "jackson.show" );
+  boost::archive::text_oarchive oa(ofs);
+  m_pSurfaceSources->Save( oa );
+  std::cout << "  done." << std::endl;
+}
+
+void AppProjection::HandleLoad( void ) {
+  std::cout << "Saving ..." << std::endl;
+  std::ifstream ifs( "jackson.show" );
+  boost::archive::text_iarchive ia(ifs);
+  m_pSurfaceSources->Load( ia );
+  std::cout << "  done." << std::endl;
+}
+
 void AppProjection::MediaFileStats( void ) {
   
   wxFileDialog dialogOpenFile( 
@@ -125,6 +150,8 @@ void AppProjection::HandleKey( wxKeyEvent& event ) {
 }
 
 void AppProjection::OnClose( wxCloseEvent& event ) {
+  m_MenuActionLoad.disconnect();
+  m_MenuActionSave.disconnect();
   // stuff to do on window close
   std::cout << "OnClose" << std::endl;
   // need to put this elsewhere so queues and gui can finish off?

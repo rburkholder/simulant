@@ -88,12 +88,12 @@ Audio::Audio( void ): m_nActiveChannels( 4 ) {
   options.flags = RTAUDIO_NONINTERLEAVED;  // so can lock/process/unlock channels individually
   //options.flags = 0;  // default to interleaved
   try {
-    std::cout << "opening audio" << std::endl;
+    std::cout << "Audio Opening" << std::endl;
     m_audio.openStream( &parameters, 0, RTAUDIO_SINT16, sampleRate, &bufferFrames, &HandleSampleRequest, this, &options );
-    std::cout << "opened audio" << std::endl;
+    std::cout << "Audio Opened" << std::endl;
   }
   catch ( RtAudioError& e ) {
-    std::cout << "error on audio open:  " << e.getMessage() << std::endl;
+    std::cout << "Audio Error on Open:  " << e.getMessage() << std::endl;
   }
   
   //m_vcm.resize( m_nActiveChannels );
@@ -104,7 +104,7 @@ Audio::Audio( void ): m_nActiveChannels( 4 ) {
 }
 
 Audio::~Audio( ) {
-  std::cout << "closed audio" << std::endl;
+  std::cout << "Audio Closed" << std::endl;
   m_audio.closeStream();
 }
 

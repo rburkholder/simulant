@@ -38,7 +38,6 @@
 class FrameMain: public wxFrame {
 public:
 
-  //typedef FastDelegate0<> OnActionHandler_t;
   typedef boost::signals2::signal<void ()> MenuItemSignal_t;  // signal definition
   typedef MenuItemSignal_t::slot_type MenuItemAction_t;       // slot definition
 
@@ -56,6 +55,9 @@ public:
   };
 
   typedef std::vector<structMenuItem*> vpMenuItems_t;
+  
+  MenuItemSignal_t m_MenuItemLoad;  // encapsulate so can hide menu item when no event attached
+  MenuItemSignal_t m_MenuItemSave;  // encapsulate so can hide menu item when no event attached
 
   FrameMain(void);
   FrameMain( 
@@ -90,7 +92,7 @@ private:
 //  enum { ID_Null=wxID_HIGHEST, ID_FRAMEGENERIC, ID_MENUEXIT, ID_STATUSBAR, ID_PANELMAIN,
 //    ID_MENUACTION1, ID_MENUACTION2, ID_MENUACTION3, ID_MENUACTION4, ID_MENUACTION5, ID_DYNAMIC_MENU_ACTIONS
 //  };
-  enum { ID_Null=wxID_HIGHEST, ID_FRAMEGENERIC, ID_MENUEXIT, ID_STATUSBAR, ID_PANELMAIN,
+  enum { ID_Null=wxID_HIGHEST, ID_FRAMEGENERIC, ID_MENUEXIT, ID_STATUSBAR, ID_PANELMAIN, ID_MENULOAD, ID_MENUSAVE,
     ID_DYNAMIC_MENU_ACTIONS  // this should be last item in enumeration
   };
 
@@ -103,6 +105,8 @@ private:
   void Init();
   void CreateControls();
 
+  void OnMenuLoadClick( wxCommandEvent& event );
+  void OnMenuSaveClick( wxCommandEvent& event );
   void OnMenuExitClick( wxCommandEvent& event );
   void OnDynamicActionClick( wxCommandEvent& event );
   void OnClose( wxCloseEvent& event );

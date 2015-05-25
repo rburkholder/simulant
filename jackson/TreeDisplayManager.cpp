@@ -22,6 +22,8 @@
 #include <boost/signals2.hpp>
 #include <boost/chrono/chrono_io.hpp>
 
+#include <boost/serialization/base_object.hpp>
+
 #include <wx/menu.h>
 #include <wx/image.h>
 
@@ -63,6 +65,7 @@ IMPLEMENT_DYNAMIC_CLASS( TreeDisplayManager, wxTreeCtrl )
 Audio* pAudio;  // kept in AppProjection
 
 class TreeItemBase {
+  friend class boost::serialization::access;
 public:
   
   typedef boost::shared_ptr<TreeItemBase> pTreeItem_t;
@@ -74,15 +77,85 @@ public:
   virtual void RemoveSelected( CommonGuiElements& ) {}
   virtual void DeletingChild( wxTreeItemId id ) {};
   wxTreeItemId GetTreeItemId( void ) { return m_id; }
+  
+  void HandleRename( wxCommandEvent& event );
+  
 protected:
+  typedef std::map<void*,pTreeItem_t> mapMembers_t;  // void* from wxTreeItemId, tracks owned items for serialization
   wxTreeItemId m_id;  // identifier of this part of the tree control
   TreeDisplayManager* m_pTree;  // used for assigning the popup, plus other base class functions, eg for Bind, etc
+  mapMembers_t m_mapMembers;
+
+  wxTreeItemId AppendSubItem( const std::string& sLabel );
+  void AppendSubItem( wxTreeItemId id, TreeItemBase* p );
+  
+  void AddMember( wxTreeItemId id, pTreeItem_t p ); // stuff to be serialized
+  void DeleteMember( wxTreeItemId id ); // stuff to be serialized
+  
 private:
+  
+  void Rename( const wxString& sPrompt, const wxString& sDefault );
+  void Rename( const wxString& sPrompt = "Change Text:" );
+  
+  template<typename Archive>
+  void save( Archive& ar, const unsigned int version ) const {
+    std::string sLabel( m_pTree->GetItemText( m_id ) );
+    ar & sLabel;
+  }
+  
+  template<typename Archive>
+  void load( Archive& ar, const unsigned int version ) {
+    std::string sLabel;
+    ar & sLabel;
+    m_pTree->SetItemText( m_id, sLabel );
+  }
+  
+  BOOST_SERIALIZATION_SPLIT_MEMBER()
+  
 };
+
+void TreeItemBase::AddMember( wxTreeItemId id, pTreeItem_t pTreeItem ) {
+  m_mapMembers.insert( mapMembers_t::value_type( id.GetID(), pTreeItem ) );
+}
+
+void TreeItemBase::DeleteMember( wxTreeItemId id ) {
+  mapMembers_t::const_iterator iter = m_mapMembers.find( id.GetID() );
+  if ( m_mapMembers.end() != iter ) {
+    m_mapMembers.erase( iter );
+  }
+  else assert( 0 );
+}
+
+void TreeItemBase::HandleRename( wxCommandEvent& event ) { 
+  Rename();
+}
+
+void TreeItemBase::Rename( const wxString& sPrompt ) { 
+  Rename( sPrompt, m_pTree->GetItemText( m_id ) );
+}
+
+void TreeItemBase::Rename( const wxString& sPrompt, const wxString& sDefault ) { 
+  wxTextEntryDialog* p = new wxTextEntryDialog( m_pTree, sPrompt, sPrompt, sDefault );
+  if ( wxID_OK == p->ShowModal() ) {
+    m_pTree->SetItemText( m_id, p->GetValue() );
+  }
+}
+
+wxTreeItemId TreeItemBase::AppendSubItem( const std::string& sLabel ) {
+  wxTreeItemId id = m_pTree->AppendItem( m_id, "Sub Group" );
+  m_pTree->EnsureVisible( id );
+  return id;
+}
+
+void TreeItemBase::AppendSubItem( wxTreeItemId id, TreeItemBase* p ) {
+  pTreeItem_t pTreeItem( p );
+  m_pTree->Add( id, pTreeItem );
+}
 
 // ================
 
 class TreeItemGroup: public TreeItemBase {
+  friend class boost::serialization::access;
 public:
   // deals with organizing groups of branches, eg:  master - act - scene
   TreeItemGroup( TreeDisplayManager* pTree_, wxTreeItemId id_ ): TreeItemBase( pTree_, id_ ) {
@@ -93,7 +166,7 @@ public:
     pMenu->Append( MIAddSubGroup, "&Add Sub Group" );
     pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemGroup::HandleAddSubGroup, this, MIAddSubGroup );
     pMenu->Append( MIRename, "&Rename" );
-    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemGroup::HandleRename, this, MIRename );
+    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemBase::HandleRename, this, MIRename );
     m_pTree->PopupMenu( pMenu );
   }
 protected:
@@ -103,31 +176,30 @@ private:
     MIAddSubGroup, MIRename
   };
   void HandleAddSubGroup( wxCommandEvent& event );
-  void HandleRename( wxCommandEvent& event );
+  
+  template<typename Archive>
+  void save( Archive& ar, const unsigned int version ) const {
+    ar & boost::serialization::base_object<TreeItemBase>(*this);
+  }
+  
+  template<typename Archive>
+  void load( Archive& ar, const unsigned int version ) {
+    ar & boost::serialization::base_object<TreeItemBase>(*this);
+  }
+  
+  BOOST_SERIALIZATION_SPLIT_MEMBER()
+  
 };
 
 void TreeItemGroup::HandleAddSubGroup( wxCommandEvent& event ) { 
-  
-  wxTreeItemId id = m_pTree->AppendItem( m_id, "Sub Group" );
-  m_pTree->EnsureVisible( id );
-  
-  TreeItemGroup* pGroup = new TreeItemGroup( m_pTree, id );
-  pTreeItem_t pTreeItem( pGroup );
-  m_pTree->Add( id, pTreeItem );
-  
-}
-
-void TreeItemGroup::HandleRename( wxCommandEvent& event ) { 
-  std::cout << "Group Rename" << std::endl;  
-  wxTextEntryDialog* p = new wxTextEntryDialog( m_pTree, "Change Text:", "Rename Group", m_pTree->GetItemText( m_id ) );
-  if ( wxID_OK == p->ShowModal() ) {
-    m_pTree->SetItemText( m_id, p->GetValue() );
-  }
+  wxTreeItemId id = TreeItemBase::AppendSubItem( "Sub Group" );
+  TreeItemBase::AppendSubItem( id, new TreeItemGroup( m_pTree, id ) );
 }
 
 // ================
 
 class TreeItemRoot: public TreeItemBase {
+  friend class boost::serialization::access;
 public:
   // deals with constructing display surfaces
   TreeItemRoot( TreeDisplayManager* pTree_, wxTreeItemId id_ ): TreeItemBase( pTree_, id_ ) {
@@ -149,9 +221,22 @@ private:
     MIAddScreenFrame, MIAddGroup
   };
   void HandleAddScreenFrame( wxCommandEvent& event ) {  // for remote displays, will use wizard dialog
-    std::cout << "Add Remote Screen Frame" << std::endl; 
+    std::cout << "Add Remote Screen Frame (un-implemented)" << std::endl; 
   }
   void HandleAddGroup( wxCommandEvent& event );
+  
+  template<typename Archive>
+  void save( Archive& ar, const unsigned int version ) const {
+    ar & boost::serialization::base_object<TreeItemBase>(*this);
+  }
+  
+  template<typename Archive>
+  void load( Archive& ar, const unsigned int version ) {
+    ar & boost::serialization::base_object<TreeItemBase>(*this);
+  }
+  
+  BOOST_SERIALIZATION_SPLIT_MEMBER()
+  
 };
 
 void TreeItemRoot::HandleAddGroup( wxCommandEvent& event ) {
@@ -1257,12 +1342,12 @@ void TreeDisplayManager::Append( pPhysicalDisplay_t pPhysicalDisplay ) {
   wxTreeItemId id = wxTreeCtrl::AppendItem( idRoot, "Frame " + sId );
   EnsureVisible( id );
   
-  pTreeItem_t pTreeItem( new TreeItemPhysicalDisplay( this, id, pPhysicalDisplay ) );
-  Add( id, pTreeItem );
+  pTreeItemBase_t pTreeItemBase( new TreeItemPhysicalDisplay( this, id, pPhysicalDisplay ) );
+  Add( id, pTreeItemBase );
 }
 
-void TreeDisplayManager::Add( const wxTreeItemId& id, pTreeItem_t pTreeItem ) {
-  m_mapDecoder.insert( mapDecoder_t::value_type( id.GetID(), pTreeItem ) );
+void TreeDisplayManager::Add( const wxTreeItemId& id, pTreeItemBase_t pTreeItemBase ) {
+  m_mapDecoder.insert( mapDecoder_t::value_type( id.GetID(), pTreeItemBase ) );
 }
 
 void TreeDisplayManager::Delete( wxTreeItemId id ) {
@@ -1307,10 +1392,9 @@ void TreeDisplayManager::CreateControls() {
   wxTreeCtrl::Bind( wxEVT_TREE_ITEM_ACTIVATED, &TreeDisplayManager::HandleItemActivated, this );
   wxTreeCtrl::Bind( wxEVT_TREE_DELETE_ITEM, &TreeDisplayManager::HandleItemDeleted, this );
   
-  
   wxTreeItemId id = wxTreeCtrl::AddRoot( "Projections" );
-  pTreeItem_t pTreeItem( new TreeItemRoot( this, id ) );
-  m_mapDecoder.insert( mapDecoder_t::value_type( id.GetID(), pTreeItem ) );
+  m_pTreeItemRoot.reset( new TreeItemRoot( this, id ) );
+  m_mapDecoder.insert( mapDecoder_t::value_type( id.GetID(), m_pTreeItemRoot ) );
   
 }
 
@@ -1327,7 +1411,7 @@ void TreeDisplayManager::HandleContextMenu( wxTreeEvent& event ) {
 }
 
 void TreeDisplayManager::HandleSelectionChanged( wxTreeEvent& event ) {
-  std::cout << "HandleSelectionChanged " << event.GetItem().GetID() << std::endl;
+//  std::cout << "HandleSelectionChanged " << event.GetItem().GetID() << std::endl;
   m_idOld = event.GetItem();
   m_mapDecoder[ m_idOld.GetID() ]->SetSelected( m_guiElements );
   
@@ -1348,7 +1432,7 @@ void TreeDisplayManager::HandleItemActivated( wxTreeEvent& event ) {
 }
 
 void TreeDisplayManager::HandleItemDeleted( wxTreeEvent& event ) {
-  std::cout << "HandleItemDeleted" << std::endl;
+  //std::cout << "HandleItemDeleted" << std::endl;
 }
 
 wxBitmap TreeDisplayManager::GetBitmapResource( const wxString& name ) {
@@ -1364,3 +1448,12 @@ wxIcon TreeDisplayManager::GetIconResource( const wxString& name ) {
 void TreeDisplayManager::Add( Audio* pAudio_ ) { 
   pAudio = pAudio_; // global variable
 }
+
+void TreeDisplayManager::Save( boost::archive::text_oarchive& oa ) {
+  oa & *( m_pTreeItemRoot.get() );
+}
+
+void TreeDisplayManager::Load( boost::archive::text_iarchive& ia ) {
+  ia & *( m_pTreeItemRoot.get() );
+}
+  

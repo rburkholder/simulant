@@ -52,15 +52,29 @@ void FrameMain::CreateControls( void ) {
     itemFrame1->SetMenuBar(m_menuBar);
 
     wxMenu* itemMenuFile = new wxMenu;
+    
+    itemMenuFile->Append(ID_MENULOAD, _("Load"), wxEmptyString, wxITEM_NORMAL);
+    itemMenuFile->Append(ID_MENUSAVE, _("Save"), wxEmptyString, wxITEM_NORMAL);
     itemMenuFile->Append(ID_MENUEXIT, _("Exit"), wxEmptyString, wxITEM_NORMAL);
-    m_menuBar->Append(itemMenuFile, _("File"));
 
+    m_menuBar->Append(itemMenuFile, _("File"));
+    
     m_statusBar = new wxStatusBar( itemFrame1, ID_STATUSBAR, wxST_SIZEGRIP|wxNO_BORDER );
     m_statusBar->SetFieldsCount(2);
     itemFrame1->SetStatusBar(m_statusBar);
    
+    Bind( wxEVT_COMMAND_MENU_SELECTED, &FrameMain::OnMenuLoadClick, this, ID_MENULOAD );
+    Bind( wxEVT_COMMAND_MENU_SELECTED, &FrameMain::OnMenuSaveClick, this, ID_MENUSAVE );
     Bind( wxEVT_COMMAND_MENU_SELECTED, &FrameMain::OnMenuExitClick, this, ID_MENUEXIT );
     Bind( wxEVT_CLOSE_WINDOW, &FrameMain::OnClose, this );
+}
+
+void FrameMain::OnMenuLoadClick( wxCommandEvent& event ) {
+  m_MenuItemLoad();
+}
+
+void FrameMain::OnMenuSaveClick( wxCommandEvent& event ) {
+  m_MenuItemSave();
 }
 
 void FrameMain::OnMenuExitClick( wxCommandEvent& event ) {

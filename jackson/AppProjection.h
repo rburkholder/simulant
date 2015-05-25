@@ -19,6 +19,9 @@ public:
 protected:
 private:
   
+  boost::signals2::connection m_MenuActionSave;
+  boost::signals2::connection m_MenuActionLoad;
+  
   wxString m_sMediaDirectory;
   
   FrameMain *m_pFrameMain;
@@ -29,6 +32,9 @@ private:
   virtual bool OnInit( );
   virtual void OnClose( wxCloseEvent& event );
   virtual int OnExit( void );
+  
+  void HandleSave( void );
+  void HandleLoad( void );
   
   //void HandleMouseMoved( wxMouseEvent& event ) { event.Skip(); } // EVT_MOTION
   //void HandleMouseWheel( wxMouseEvent& event ) { event.Skip(); } // EVT_MOUSEWHEEL

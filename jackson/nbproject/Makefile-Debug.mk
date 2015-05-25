@@ -84,7 +84,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-lavdevice -lavfilter -lavformat -lavcodec -lavresample -lavutil -lswscale -lz -lpthread -lpng -lboost_system -lboost_thread -lboost_chrono -lGL -lwx_gtk3u_gl-3.1 -lGLU -lSOIL -lboost_filesystem -lbz2 -lrtaudio
+LDLIBSOPTIONS=-lavdevice -lavfilter -lavformat -lavcodec -lavresample -lavutil -lswscale -lz -lpthread -lpng -lboost_system -lboost_thread -lboost_chrono -lGL -lwx_gtk3u_gl-3.1 -lGLU -lSOIL -lboost_filesystem -lbz2 -lrtaudio -lboost_serialization
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}

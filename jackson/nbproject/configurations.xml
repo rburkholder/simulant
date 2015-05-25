@@ -142,6 +142,7 @@
             <linkerLibLibItem>boost_filesystem</linkerLibLibItem>
             <linkerLibLibItem>bz2</linkerLibLibItem>
             <linkerLibLibItem>rtaudio</linkerLibLibItem>
+            <linkerLibLibItem>boost_serialization</linkerLibLibItem>
           </linkerLibItems>
           <commandLine>`/usr/local/bin/wx-config --libs`</commandLine>
         </linkerTool>

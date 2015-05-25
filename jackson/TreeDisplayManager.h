@@ -12,6 +12,9 @@
 
 #include <boost/shared_ptr.hpp>
 
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+
 #include <wx/wx.h>
 #include <wx/treectrl.h>
 
@@ -34,10 +37,11 @@ struct CommonGuiElements {
 
 class TreeDisplayManager: public wxTreeCtrl {
   DECLARE_DYNAMIC_CLASS( TreeDisplayManager )
+  friend class boost::serialization::access;
 public:
   
   typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
-  typedef boost::shared_ptr<TreeItemBase> pTreeItem_t;
+  typedef boost::shared_ptr<TreeItemBase> pTreeItemBase_t;
   
   TreeDisplayManager();
   TreeDisplayManager( 
@@ -58,7 +62,7 @@ public:
   
   void Append( pPhysicalDisplay_t pPhysicalDisplay );
   
-  void Add( const wxTreeItemId& id, pTreeItem_t pTreeItem );
+  void Add( const wxTreeItemId& id, pTreeItemBase_t pTreeItemBase );
   void Delete( wxTreeItemId id );
   
   void Add( Audio* pAudio );
@@ -66,6 +70,9 @@ public:
   void SetStaticTextInfo( wxStaticText* pstInfo );
   void SetSlider( wxSlider* pSlider );
 
+  void Save( boost::archive::text_oarchive& oa);
+  void Load( boost::archive::text_iarchive& ia);
+  
 protected:
 private:
   
@@ -76,10 +83,10 @@ private:
   
   wxTreeItemId m_idOld;
   
-  typedef std::map<void*,pTreeItem_t> mapDecoder_t;  // void* is from wxTreeItemId
-  mapDecoder_t m_mapDecoder;
+  pTreeItemBase_t m_pTreeItemRoot; // root item tracked here for serialization root
   
-  //Audio* m_pAudio;  // kept in AppProjection
+  typedef std::map<void*,pTreeItemBase_t> mapDecoder_t;  // void* is from wxTreeItemId
+  mapDecoder_t m_mapDecoder;
   
   CommonGuiElements m_guiElements;
   

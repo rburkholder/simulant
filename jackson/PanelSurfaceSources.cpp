@@ -58,6 +58,14 @@ void PanelSurfaceSources::Append( pPhysicalDisplay_t pPhysicalDisplay ) {
   m_treeDisplays->Append( pPhysicalDisplay );
 }
 
+void PanelSurfaceSources::Save( boost::archive::text_oarchive& oa) {
+  m_treeDisplays->Save( oa );
+}
+
+void PanelSurfaceSources::Load( boost::archive::text_iarchive& ia) {
+  m_treeDisplays->Load( ia );
+}
+
 void PanelSurfaceSources::CreateControls() {    
   
   // notice that the relative scale factor is important:  0 no scale, 1 scales with window size change

@@ -9,6 +9,9 @@
 
 #include <boost/signals2.hpp>
 
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+
 #include <wx/wx.h>
 #include <wx/panel.h>
 #include <wx/tglbtn.h>
@@ -52,6 +55,9 @@ public:
   void Append( pPhysicalDisplay_t pPhysicalDisplay );
   
   void Add( Audio* pAudio ) { m_treeDisplays->Add( pAudio ); }
+  
+  void Save( boost::archive::text_oarchive& oa);
+  void Load( boost::archive::text_iarchive& ia);
   
   // when range is 0, should disable the control
   //void SetScrollMin( int min ) { assert( 0 != m_sliderHorizontal ); m_sliderHorizontal->SetMin( min ); }  // defaults to 0..100
