@@ -104,11 +104,16 @@ void AppProjection::HandleSave( void ) {
 }
 
 void AppProjection::HandleLoad( void ) {
-  std::cout << "Saving ..." << std::endl;
+  try {
+  std::cout << "Loading ..." << std::endl;
   std::ifstream ifs( "jackson.show" );
   boost::archive::text_iarchive ia(ifs);
   m_pSurfaceSources->Load( ia );
   std::cout << "  done." << std::endl;
+  }
+  catch(...) {
+    std::cout << "load exception" << std::endl;
+  }
 }
 
 void AppProjection::MediaFileStats( void ) {

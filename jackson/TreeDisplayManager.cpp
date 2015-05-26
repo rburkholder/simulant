@@ -23,6 +23,8 @@
 #include <boost/chrono/chrono_io.hpp>
 
 #include <boost/serialization/base_object.hpp>
+#include <boost/serialization/split_member.hpp>
+#include <boost/serialization/string.hpp>
 
 #include <wx/menu.h>
 #include <wx/image.h>
@@ -39,7 +41,6 @@
 #include <wx/event.h>
 
 #include "common.h"
-//#include "DecodeH264.h"
 #include "MediaStreamDecode.h"
 
 //#include "tut1.h"
@@ -68,7 +69,7 @@ class TreeItemBase {
   friend class boost::serialization::access;
 public:
   
-  typedef boost::shared_ptr<TreeItemBase> pTreeItem_t;
+  typedef boost::shared_ptr<TreeItemBase> pTreeItemBase_t;
   
   TreeItemBase( TreeDisplayManager* pTree_, wxTreeItemId id_ ): m_pTree( pTree_ ), m_id( id_ ) {}
   virtual ~TreeItemBase( void ) {}
@@ -80,22 +81,25 @@ public:
   
   void HandleRename( wxCommandEvent& event );
   
-protected:
-  typedef std::map<void*,pTreeItem_t> mapMembers_t;  // void* from wxTreeItemId, tracks owned items for serialization
-  wxTreeItemId m_id;  // identifier of this part of the tree control
-  TreeDisplayManager* m_pTree;  // used for assigning the popup, plus other base class functions, eg for Bind, etc
-  mapMembers_t m_mapMembers;
-
-  wxTreeItemId AppendSubItem( const std::string& sLabel );
-  void AppendSubItem( wxTreeItemId id, TreeItemBase* p );
-  
-  void AddMember( wxTreeItemId id, pTreeItem_t p ); // stuff to be serialized
-  void DeleteMember( wxTreeItemId id ); // stuff to be serialized
-  
-private:
-  
   void Rename( const wxString& sPrompt, const wxString& sDefault );
   void Rename( const wxString& sPrompt = "Change Text:" );
+  
+protected:
+  
+  wxTreeItemId m_id;  // identifier of this part of the tree control
+  TreeDisplayManager* m_pTree;  // used for assigning the popup, plus other base class functions, eg for Bind, etc
+  
+  //typedef std::map<void*,pTreeItemBase_t> mapMembers_t;  // void* from wxTreeItemId, tracks owned items for serialization
+  //mapMembers_t m_mapMembers;  // members will be different for each object
+
+  wxTreeItemId AppendSubItem( const std::string& sLabel ); // add the visual menu item
+  pTreeItemBase_t  AppendSubItem( wxTreeItemId id, TreeItemBase* p );  // add the associated real object
+  
+  // convenience member functions for derived classes
+  //void AddMember( mapMembers_t&, wxTreeItemId id, pTreeItemBase_t p ); // stuff to be serialized
+  //void DeleteMember( mapMembers_t&, wxTreeItemId id ); // stuff to be serialized
+  
+private:
   
   template<typename Archive>
   void save( Archive& ar, const unsigned int version ) const {
@@ -114,17 +118,7 @@ private:
   
 };
 
-void TreeItemBase::AddMember( wxTreeItemId id, pTreeItem_t pTreeItem ) {
-  m_mapMembers.insert( mapMembers_t::value_type( id.GetID(), pTreeItem ) );
-}
-
-void TreeItemBase::DeleteMember( wxTreeItemId id ) {
-  mapMembers_t::const_iterator iter = m_mapMembers.find( id.GetID() );
-  if ( m_mapMembers.end() != iter ) {
-    m_mapMembers.erase( iter );
-  }
-  else assert( 0 );
-}
+BOOST_SERIALIZATION_ASSUME_ABSTRACT(TreeItemBase)
 
 void TreeItemBase::HandleRename( wxCommandEvent& event ) { 
   Rename();
@@ -147,9 +141,10 @@ wxTreeItemId TreeItemBase::AppendSubItem( const std::string& sLabel ) {
   return id;
 }
 
-void TreeItemBase::AppendSubItem( wxTreeItemId id, TreeItemBase* p ) {
-  pTreeItem_t pTreeItem( p );
-  m_pTree->Add( id, pTreeItem );
+TreeItemBase::pTreeItemBase_t TreeItemBase::AppendSubItem( wxTreeItemId id, TreeItemBase* p ) {
+  pTreeItemBase_t pTreeItemBase( p );
+  m_pTree->Add( id, pTreeItemBase );
+  return pTreeItemBase;
 }
 
 // ================
@@ -164,45 +159,84 @@ public:
   virtual void ShowContextMenu( void ) {
     wxMenu* pMenu = new wxMenu();
     pMenu->Append( MIAddSubGroup, "&Add Sub Group" );
-    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemGroup::HandleAddSubGroup, this, MIAddSubGroup );
+    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemGroup::HandleAddGroup, this, MIAddSubGroup );
     pMenu->Append( MIRename, "&Rename" );
     pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemBase::HandleRename, this, MIRename );
     m_pTree->PopupMenu( pMenu );
   }
 protected:
+  TreeItemGroup* AddGroup( void );
 private:
   enum {
     ID_Null = wxID_HIGHEST,
     MIAddSubGroup, MIRename
   };
-  void HandleAddSubGroup( wxCommandEvent& event );
+  
+  typedef std::map<void*,TreeItemGroup*> mapMembers_t;  // void* from wxTreeItemId, tracks owned items for serialization
+  mapMembers_t m_mapGroups;
+    
+  void HandleAddGroup( wxCommandEvent& event );
+  
+  void AddMember( mapMembers_t&, wxTreeItemId id, TreeItemGroup* p ); // stuff to be serialized
+  void DeleteMember( mapMembers_t&, wxTreeItemId id ); // stuff to be serialized
   
   template<typename Archive>
   void save( Archive& ar, const unsigned int version ) const {
-    ar & boost::serialization::base_object<TreeItemBase>(*this);
+    ar & boost::serialization::base_object<const TreeItemBase>(*this);
+    mapMembers_t::size_type n = m_mapGroups.size();
+    ar & n;
+    for ( mapMembers_t::const_iterator iter = m_mapGroups.begin(); iter != m_mapGroups.end(); ++iter ) {
+      ar & *(iter->second);
+    }
   }
   
   template<typename Archive>
   void load( Archive& ar, const unsigned int version ) {
     ar & boost::serialization::base_object<TreeItemBase>(*this);
+    mapMembers_t::size_type n;
+    ar & n;
+    for ( mapMembers_t::size_type ix = 0; ix < n; ++ix ) {
+      TreeItemGroup* p = AddGroup();
+      ar & *p;
+    }
   }
   
   BOOST_SERIALIZATION_SPLIT_MEMBER()
   
 };
 
-void TreeItemGroup::HandleAddSubGroup( wxCommandEvent& event ) { 
+void TreeItemGroup::HandleAddGroup( wxCommandEvent& event ) { 
+  TreeItemGroup* p = AddGroup();
+  p->Rename();
+}
+
+TreeItemGroup* TreeItemGroup::AddGroup( void ) { 
   wxTreeItemId id = TreeItemBase::AppendSubItem( "Sub Group" );
-  TreeItemBase::AppendSubItem( id, new TreeItemGroup( m_pTree, id ) );
+  TreeItemGroup* p = new TreeItemGroup( m_pTree, id );
+  pTreeItemBase_t pTreeItemBase = TreeItemBase::AppendSubItem( id, p );
+  AddMember( m_mapGroups, id, p );
+  return p;
+}
+
+void TreeItemGroup::AddMember( mapMembers_t& map, wxTreeItemId id, TreeItemGroup* pTreeItemGroup ) {
+  map.insert( mapMembers_t::value_type( id.GetID(), pTreeItemGroup ) );
+}
+
+void TreeItemGroup::DeleteMember( mapMembers_t& map, wxTreeItemId id ) {
+  mapMembers_t::const_iterator iter = map.find( id.GetID() );
+  if ( map.end() != iter ) {
+    map.erase( iter );
+  }
+  else assert( 0 );
 }
 
 // ================
 
-class TreeItemRoot: public TreeItemBase {
+class TreeItemRoot: public TreeItemGroup {
   friend class boost::serialization::access;
 public:
   // deals with constructing display surfaces
-  TreeItemRoot( TreeDisplayManager* pTree_, wxTreeItemId id_ ): TreeItemBase( pTree_, id_ ) {
+  TreeItemRoot( TreeDisplayManager* pTree_, wxTreeItemId id_ ): TreeItemGroup( pTree_, id_ ) {
   }
   virtual ~TreeItemRoot( void ) {}
   virtual void ShowContextMenu( void ) {
@@ -220,6 +254,7 @@ private:
     ID_Null = wxID_HIGHEST,
     MIAddScreenFrame, MIAddGroup
   };
+  
   void HandleAddScreenFrame( wxCommandEvent& event ) {  // for remote displays, will use wizard dialog
     std::cout << "Add Remote Screen Frame (un-implemented)" << std::endl; 
   }
@@ -227,12 +262,12 @@ private:
   
   template<typename Archive>
   void save( Archive& ar, const unsigned int version ) const {
-    ar & boost::serialization::base_object<TreeItemBase>(*this);
+    ar & boost::serialization::base_object<const TreeItemGroup>(*this);
   }
   
   template<typename Archive>
   void load( Archive& ar, const unsigned int version ) {
-    ar & boost::serialization::base_object<TreeItemBase>(*this);
+    ar & boost::serialization::base_object<TreeItemGroup>(*this);
   }
   
   BOOST_SERIALIZATION_SPLIT_MEMBER()
@@ -240,14 +275,8 @@ private:
 };
 
 void TreeItemRoot::HandleAddGroup( wxCommandEvent& event ) {
-  
-  wxTreeItemId id = m_pTree->AppendItem( m_id, "Group" );
-  m_pTree->EnsureVisible( id );
-  
-  TreeItemGroup* pGroup = new TreeItemGroup( m_pTree, id );
-  pTreeItem_t pTreeItem( pGroup );
-  m_pTree->Add( id, pTreeItem );
-  
+  TreeItemGroup* pGroup = TreeItemGroup::AddGroup();
+  pGroup->Rename();
 }
 
 // ================
@@ -1159,8 +1188,8 @@ void TreeItemPlaceHolder::HandleAddGrid( wxCommandEvent& event ) {
   m_pTree->EnsureVisible( id );
   
   TreeItemGrid* pGrid = new TreeItemGrid( m_pTree, id, m_pPhysicalDisplay, m_pSceneManager );
-  pTreeItem_t pTreeItem( pGrid );
-  m_pTree->Add( id, pTreeItem );
+  pTreeItemBase_t pTreeItemBase( pGrid );
+  m_pTree->Add( id, pTreeItemBase );
   
   pSceneElementInfo_t pInfo( new SceneElementInfo );
   m_mapSceneElementInfo.insert( mapSceneElementInfo_t::value_type( id, pInfo ) );
@@ -1177,8 +1206,8 @@ void TreeItemPlaceHolder::HandleAddPicture( wxCommandEvent& event ) {
   m_pTree->EnsureVisible( id );
   
   TreeItemImage* pImage = new TreeItemImage( m_pTree, id, m_pPhysicalDisplay, m_pSceneManager );
-  pTreeItem_t pTreeItem( pImage );
-  m_pTree->Add( id, pTreeItem );
+  pTreeItemBase_t pTreeItemBase( pImage );
+  m_pTree->Add( id, pTreeItemBase );
   
   pSceneElementInfo_t pInfo( new SceneElementInfo );
   m_mapSceneElementInfo.insert( mapSceneElementInfo_t::value_type( id, pInfo ) );
@@ -1195,8 +1224,8 @@ void TreeItemPlaceHolder::HandleAddVideo( wxCommandEvent& event ) {
   m_pTree->EnsureVisible( id );
   
   TreeItemVideo* pVideo = new TreeItemVideo( m_pTree, id, m_pPhysicalDisplay, m_pSceneManager );
-  pTreeItem_t pTreeItem( pVideo );
-  m_pTree->Add( id, pTreeItem );
+  pTreeItemBase_t pTreeItemBase( pVideo );
+  m_pTree->Add( id, pTreeItemBase );
   
   pSceneElementInfo_t pInfo( new SceneElementInfo );
   m_mapSceneElementInfo.insert( mapSceneElementInfo_t::value_type( id, pInfo ) );
@@ -1291,8 +1320,8 @@ void TreeItemPhysicalDisplay::HandleAddPlaceHolder( wxCommandEvent& event ) {
   
   pOutline_t pOutline( new Outline( wxRect( 300, 300, 600, 600 ), true, false ) );  // instead, use some ratio of the main window
 
-  pTreeItem_t pTreeItem( new TreeItemPlaceHolder( m_pTree, id, m_pPhysicalDisplay, pOutline, m_pSceneManager ) );
-  m_pTree->Add( id, pTreeItem );
+  pTreeItemBase_t pTreeItemBase( new TreeItemPlaceHolder( m_pTree, id, m_pPhysicalDisplay, pOutline, m_pSceneManager ) );
+  m_pTree->Add( id, pTreeItemBase );
 }
 
 void TreeItemPhysicalDisplay::ShowContextMenu( void ) {
@@ -1450,10 +1479,14 @@ void TreeDisplayManager::Add( Audio* pAudio_ ) {
 }
 
 void TreeDisplayManager::Save( boost::archive::text_oarchive& oa ) {
-  oa & *( m_pTreeItemRoot.get() );
+  TreeItemBase* pBase = m_pTreeItemRoot.get();
+  TreeItemRoot* p = dynamic_cast<TreeItemRoot*>( pBase );
+  oa << *p;
 }
 
 void TreeDisplayManager::Load( boost::archive::text_iarchive& ia ) {
-  ia & *( m_pTreeItemRoot.get() );
+  TreeItemBase* pBase = m_pTreeItemRoot.get();
+  TreeItemRoot* p = dynamic_cast<TreeItemRoot*>( pBase );
+  ia >> *p;
 }
   
