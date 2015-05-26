@@ -281,6 +281,82 @@ void TreeItemRoot::HandleAddGroup( wxCommandEvent& event ) {
 
 // ================
 
+class TreeItemMusic: public TreeItemBase {
+  friend class boost::serialization::access;
+public:
+  
+  typedef TreeDisplayManager::pPhysicalDisplay_t pPhysicalDisplay_t;
+  
+  TreeItemMusic( TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay ): TreeItemBase( pTree_, id_ ) {
+  }
+  virtual ~TreeItemMusic( void ) {}
+  
+  virtual void ShowContextMenu( void ) {
+    wxMenu* pMenu = new wxMenu();
+    pMenu->Append( MILoadMusic, "&Load Music" );
+    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemRoot::HandleLoadMusic, this, MILoadMusic );
+    m_pTree->PopupMenu( pMenu );
+  }
+protected:
+private:
+  enum {
+    ID_Null = wxID_HIGHEST,
+    MILoadMusic
+  };
+  
+  wxString m_sMusicDirectory;
+  
+  pPhysicalDisplay_t m_pPhysicalDisplay;
+  
+  void HandleLoadMusic( wxCommandEvent& event );
+  void LoadMusic( void );
+  
+  template<typename Archive>
+  void save( Archive& ar, const unsigned int version ) const {
+    ar & boost::serialization::base_object<const TreeItemBase>(*this);
+  }
+  
+  template<typename Archive>
+  void load( Archive& ar, const unsigned int version ) {
+    ar & boost::serialization::base_object<TreeItemBase>(*this);
+  }
+  
+  BOOST_SERIALIZATION_SPLIT_MEMBER()
+  
+};
+
+TreeItemMusic::TreeItemMusic( TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay )
+: TreeItemBase( pTree_, id_ ), m_pPhysicalDisplay( pPhysicalDisplay )
+{
+  m_sMusicDirectory = wxT( "~/Music/");
+}
+
+
+void TreeItemMusic::HandleLoadMusic( wxCommandEvent& event ) {
+  LoadMusic();
+}
+
+void TreeItemMusic::LoadMusic( void ) {
+  
+  std::cout << "LoadMusic" << std::endl;  
+  wxFileDialog dialogOpenFile( 
+    m_pPhysicalDisplay->GetFrame(), wxT("Select Music" ), m_sMusicDirectory, "", 
+    //"Video Files (*.ts)|*.ts", 
+    //"Video Files (*.h264)|*.h264", 
+    "",
+    //_(" Files ") + wxImage::GetImageExtWildcard(),
+    wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_CHANGE_DIR );
+  if (dialogOpenFile.ShowModal() == wxID_OK) {
+    m_sMusicDirectory = dialogOpenFile.GetDirectory();
+    
+    std::string sPath( dialogOpenFile.GetPath() );
+    //std::cout << "chose " << sPath << std::endl;
+  }
+    
+}
+
+// ================
+
 class TreeItemVisualCommon: public TreeItemBase, public InteractiveTransform {
 public:
   
