@@ -214,10 +214,10 @@ private:
   Audio::pAudioQueue_t m_pAudioQueueRight;
   
   // just want to keep the stream for now (may turn into a class) :
-  //typedef std::vector<int16_t> vSamples_t;
-  //vSamples_t m_vSamplesLeft;
-  //vSamples_t m_vSamplesRight;
-  WaveformView* m_pwfvFrontLeft;
+  typedef std::vector<int16_t> vSamples_t;
+  vSamples_t m_vSamplesLeft;
+  vSamples_t m_vSamplesRight;
+  WaveformView* m_pwfvFrontLeft;  // make this more generic later, maybe stereo vs mono as well
   WaveformView* m_pwfvFrontRight;
   
   boost::signals2::connection m_connectionAudioReady;
@@ -254,7 +254,7 @@ private:
 };
 
 TreeItemMusic::TreeItemMusic( TreeDisplayManager* pTree_, wxTreeItemId id_ )
-: TreeItemBase( pTree_, id_ )
+: TreeItemBase( pTree_, id_ ), m_pwfvFrontLeft( 0 ), m_pwfvFrontRight( 0 )
 {
   m_sMusicDirectory = "~/Music/";
 
@@ -285,9 +285,19 @@ void TreeItemMusic::SetSelected( CommonGuiElements& elements ) {
   // may be reverse the approach and display our own waveform in the case of multichannel overlaps
   m_pwfvFrontLeft = elements.channels.GetChannel( AudioChannels::MonoFrontLeft );
   m_pwfvFrontRight = elements.channels.GetChannel( AudioChannels::MonoFrontRight );
+  m_pwfvFrontLeft->SetSamples( &m_vSamplesLeft );
+  m_pwfvFrontLeft->Refresh();
+  m_pwfvFrontRight->SetSamples( &m_vSamplesRight );
+  m_pwfvFrontRight->Refresh();
 }
 
 void TreeItemMusic::RemoveSelected( CommonGuiElements& elements ) {
+  m_pwfvFrontLeft->SetSamples( 0 );
+  m_pwfvFrontLeft->Refresh();
+  m_pwfvFrontLeft = 0;
+  m_pwfvFrontRight->SetSamples( 0 );
+  m_pwfvFrontRight->Refresh();
+  m_pwfvFrontRight = 0;
   
 }
 
@@ -367,7 +377,6 @@ void TreeItemMusic::BrowseForMusic( void ) {
 }
 
 void TreeItemMusic::SelectMusic( void ) {
-  m_pTree->get
   m_vSamplesLeft.clear();
   m_vSamplesRight.clear();
   m_player.Close();
@@ -401,6 +410,8 @@ void TreeItemMusic::HandleAudioForBuffer( void* buffers, int nChannels, int nSam
 
 void TreeItemMusic::HandleDecodeComplete( void ) {
   std::cout << "Audio Decode Complete: " << m_vSamplesLeft.size() << ", " << m_vSamplesRight.size() << " samples" << std::endl;
+  if ( 0 != m_pwfvFrontLeft ) m_pwfvFrontLeft->Refresh();
+  if ( 0 != m_pwfvFrontRight ) m_pwfvFrontRight->Refresh();
 }
 
 // ================

@@ -9,7 +9,7 @@
 
 #include <vector>
 
-#include <boost/thread/mutex.hpp>
+//#include <boost/thread/mutex.hpp>
 
 #include <wx/panel.h>
 
@@ -18,6 +18,9 @@
 #define SYMBOL_CONTROLWAVEFORMVIEW_IDNAME ID_CONTROLWAVEFORMVIEW
 #define SYMBOL_CONTROLWAVEFORMVIEW_SIZE wxSize(100, 20)
 #define SYMBOL_CONTROLWAVEFORMVIEW_POSITION wxDefaultPosition
+
+// may turn this into a template to handle various sample types, or settle on one or two samples types and specialize
+// possibly int32_t and float or double (for better precision)
 
 class WaveformView: public wxPanel {
   DECLARE_DYNAMIC_CLASS( WaveformView )
@@ -41,9 +44,11 @@ public:
           long style = SYMBOL_CONTROLWAVEFORMVIEW_STYLE );
   virtual ~WaveformView( );
   
-  void Clear( void );
-  void AppendSamples( int nSamples, int16_t* );
-  vSamples_t::size_type GetSampleCount( void ) { return m_vSamples.size(); }
+//  void Clear( void );
+//  void AppendSamples( int nSamples, int16_t* );
+//  vSamples_t::size_type GetSampleCount( void ) { return m_vSamples.size(); }
+  
+  void SetSamples( vSamples_t* );
   
 protected:
 private:
@@ -53,9 +58,9 @@ private:
     ID_CONTROLWAVEFORMVIEW
   };
   
-  boost::mutex m_mutexSamples;
+//  boost::mutex m_mutexSamples;
   
-  vSamples_t m_vSamples;
+  vSamples_t* m_pvSamples;
   
   void HandlePaint( wxPaintEvent& );
   
