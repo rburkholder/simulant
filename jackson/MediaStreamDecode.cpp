@@ -444,8 +444,9 @@ void MediaStreamDecode::ProcessStream( size_t ixAudio, size_t ixVideo ) {  // ba
         else { 
           if ( 0 != gotFrame ) {
             // emit the audio
-            assert( AV_SAMPLE_FMT_S16P == m_vStreamInfo[ ixAudio ].pCodecContext->sample_fmt );
-            m_signalAudioReady( &pFrame->data, m_vStreamInfo[ ixAudio ].pCodecContext->channels, pFrame->nb_samples );
+            //assert( AV_SAMPLE_FMT_S16P == m_vStreamInfo[ ixAudio ].pCodecContext->sample_fmt );
+            AVSampleFormat format( m_vStreamInfo[ ixAudio ].pCodecContext->sample_fmt );
+            m_signalAudioReady(  format, &pFrame->data, m_vStreamInfo[ ixAudio ].pCodecContext->channels, pFrame->nb_samples );
             //m_ts.decoded = boost::chrono::high_resolution_clock::now();
             //m_fi.nAudioFrame = m_vStreamInfo[ixAudio].pCodecContext->frame_number;
             //std::cout << "#audio samples in frame: " << pFrame->nb_samples << std::endl;

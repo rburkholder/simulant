@@ -44,7 +44,7 @@ public:
   typedef boost::signals2::signal<void (pRawImage_t, const structTimeSteps&)> signalImageReady_t;
   typedef signalImageReady_t::slot_type slotImageReady_t;
   
-  typedef boost::signals2::signal<void (void* buffers, int nChannels, int nSamples)> signalAudioReady_t;
+  typedef boost::signals2::signal<void (AVSampleFormat, void* buffers, int nChannels, int nSamples)> signalAudioReady_t;
   typedef signalAudioReady_t::slot_type slotAudioReady_t;
   
   typedef boost::signals2::signal<void ()> signalDecodeDone_t;

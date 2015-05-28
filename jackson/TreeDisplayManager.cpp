@@ -225,8 +225,8 @@ private:
   
   void HandleLoadMusic( wxCommandEvent& event );
   
-  void HandleAudioForPlay( void* buffers, int nChannels, int nSamples );
-  void HandleAudioForBuffer( void* buffers, int nChannels, int nSamples );
+  void HandleAudioForPlay( AVSampleFormat format, void* buffers, int nChannels, int nSamples );
+  void HandleAudioForBuffer( AVSampleFormat format, void* buffers, int nChannels, int nSamples );
   
   void HandleDecodeComplete( void );
     
@@ -268,7 +268,7 @@ TreeItemMusic::TreeItemMusic( TreeDisplayManager* pTree_, wxTreeItemId id_ )
   //m_connectionFrameTrigger = TreeItemImageCommon::ConnectFrameTrigger( boost::phoenix::bind( &TreeItemVideo::ShowImage, this ) );
   //m_connectionImageReady = m_player.ConnectImageReady( boost::phoenix::bind( &TreeItemVideo::HandleImage, this, args::arg1, args::arg2, args::arg3 ) );
   //m_connectionImageReady = m_player.ConnectImageReady( boost::phoenix::bind( &TreeItemVideo::HandleImage, this, args::arg1, args::arg2 ) );
-  m_connectionAudioReady = m_player.ConnectAudioReady( boost::phoenix::bind( &TreeItemMusic::HandleAudioForBuffer, this, args::arg1, args::arg2, args::arg3 ) );
+  m_connectionAudioReady = m_player.ConnectAudioReady( boost::phoenix::bind( &TreeItemMusic::HandleAudioForBuffer, this, args::arg1, args::arg2, args::arg3, args::arg4 ) );
   m_connectionDecodeComplete = m_player.ConnectDecodeDone( boost::phoenix::bind( &TreeItemMusic::HandleDecodeComplete, this ) );
   
 }
@@ -388,9 +388,10 @@ void TreeItemMusic::SelectMusic( void ) {
   }
 }
 
-void TreeItemMusic::HandleAudioForPlay( void* buffers, int nChannels, int nSamples ) {
+void TreeItemMusic::HandleAudioForPlay( AVSampleFormat format, void* buffers, int nChannels, int nSamples ) {
   //std::cout << "TreeItemMusic::HandleAudio" << std::endl;
   assert( 2 == nChannels );
+  assert( AV_SAMPLE_FMT_S16P == format );
   const int16_t** pSamples( reinterpret_cast<const int16_t**>( buffers ) );
   boost::strict_lock<AudioQueue<int16_t> > guardLeft( *m_pAudioQueueLeft );
   m_pAudioQueueLeft->AddSamples( nSamples, pSamples[0], guardLeft );
@@ -398,14 +399,34 @@ void TreeItemMusic::HandleAudioForPlay( void* buffers, int nChannels, int nSampl
   m_pAudioQueueRight->AddSamples( nSamples, pSamples[1], guardRight );
 }
 
-void TreeItemMusic::HandleAudioForBuffer( void* buffers, int nChannels, int nSamples ) {
-  //std::cout << "TreeItemMusic::HandleAudio" << std::endl;
+void TreeItemMusic::HandleAudioForBuffer( AVSampleFormat format, void* buffers, int nChannels, int nSamples ) {
   assert( 2 == nChannels );
-  const int16_t** pSamples( reinterpret_cast<const int16_t**>( buffers ) );
-  for ( int ix = 0; ix < nSamples; ++ix ) {
-    m_vSamplesLeft.push_back( pSamples[0][ix] );
-    m_vSamplesRight.push_back( pSamples[1][ix] );
+  switch ( format ) {
+    case AV_SAMPLE_FMT_S16P:
+    {
+      const int16_t** pSamples( reinterpret_cast<const int16_t**>( buffers ) );
+      const int16_t* pLeft = pSamples[0];
+      const int16_t* pRight = pSamples[1];
+      for ( int ix = 0; ix < nSamples; ++ix ) {
+        m_vSamplesLeft.push_back( *pLeft );  ++pLeft;
+        m_vSamplesRight.push_back( *pRight );  ++pRight;
+      }
+    }
+      break;
+    case AV_SAMPLE_FMT_S16:
+    {
+      const int16_t** pSamples( reinterpret_cast<const int16_t**>( buffers ) );
+      const int16_t* p = pSamples[0];
+      for ( int ix = 0; ix < nSamples; ++ix ) {
+        m_vSamplesLeft.push_back( *p ); ++p;
+        m_vSamplesRight.push_back( *p ); ++p;
+      }
+    }
+      break;
+    default:
+      assert( 0 );
   }
+  
 }
 
 void TreeItemMusic::HandleDecodeComplete( void ) {
@@ -1011,7 +1032,7 @@ private:
   void HandleStop( wxCommandEvent& event );
   
   void HandleImage( RawImage::pRawImage_t, const structTimeSteps& );
-  void HandleAudio( void* buffers, int nChannels, int nSamples );
+  void HandleAudio( AVSampleFormat format, void* buffers, int nChannels, int nSamples );
   void HandleEventImage( EventImage& );
   void ShowImage( void );  // show next image from vector
   
@@ -1046,7 +1067,7 @@ TreeItemVideo::TreeItemVideo(
   namespace args = boost::phoenix::arg_names;
   m_connectionFrameTrigger = TreeItemImageCommon::ConnectFrameTrigger( boost::phoenix::bind( &TreeItemVideo::ShowImage, this ) );
   m_connectionImageReady = m_player.ConnectImageReady( boost::phoenix::bind( &TreeItemVideo::HandleImage, this, args::arg1, args::arg2 ) );
-  m_connectionAudioReady = m_player.ConnectAudioReady( boost::phoenix::bind( &TreeItemVideo::HandleAudio, this, args::arg1, args::arg2, args::arg3 ) );
+  m_connectionAudioReady = m_player.ConnectAudioReady( boost::phoenix::bind( &TreeItemVideo::HandleAudio, this, args::arg1, args::arg2, args::arg3, args::arg4 ) );
   
   ResetTransformMatrix();
   
@@ -1258,8 +1279,9 @@ void TreeItemVideo::HandleImage( RawImage::pRawImage_t pRawImage, const structTi
   wxApp::GetInstance()->QueueEvent( p );
 }
 
-void TreeItemVideo::HandleAudio( void* buffers, int nChannels, int nSamples ) {
+void TreeItemVideo::HandleAudio( AVSampleFormat format, void* buffers, int nChannels, int nSamples ) {
   assert( 2 == nChannels );
+  assert( AV_SAMPLE_FMT_S16P == format ); // TreeItemMusic for better decoder, maybe share buffering process
   const int16_t** pSamples( reinterpret_cast<const int16_t**>( buffers ) );
   boost::strict_lock<AudioQueue<int16_t> > guardLeft( *m_pAudioQueueLeft );
   m_pAudioQueueLeft->AddSamples( nSamples, pSamples[0], guardLeft );
