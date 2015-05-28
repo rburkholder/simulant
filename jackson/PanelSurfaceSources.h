@@ -16,7 +16,6 @@
 #include <wx/panel.h>
 #include <wx/tglbtn.h>
 #include <wx/slider.h>
-//#include <wx/treectrl.h>
 
 #include "TreeDisplayManager.h"
 

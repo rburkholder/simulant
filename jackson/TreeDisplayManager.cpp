@@ -7,7 +7,8 @@
 
 #include <map>
 #include <vector>
-#include <list>
+//#include <list>
+#include <algorithm> 
 
 #include <boost/shared_ptr.hpp>
 #include <boost/lexical_cast.hpp>
@@ -24,7 +25,6 @@
 
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/split_member.hpp>
-#include <boost/serialization/string.hpp>
 
 #include <wx/menu.h>
 #include <wx/image.h>
@@ -89,20 +89,30 @@ protected:
   wxTreeItemId m_id;  // identifier of this part of the tree control
   TreeDisplayManager* m_pTree;  // used for assigning the popup, plus other base class functions, eg for Bind, etc
   
-  //typedef std::map<void*,pTreeItemBase_t> mapMembers_t;  // void* from wxTreeItemId, tracks owned items for serialization
-  //mapMembers_t m_mapMembers;  // members will be different for each object
+  typedef std::map<void*,pTreeItemBase_t> mapMembers_t;  // void* from wxTreeItemId, tracks owned items for access
+  mapMembers_t m_mapMembers; 
+  
+  struct member_t {
+    unsigned int m_type;
+    void* m_void;
+    pTreeItemBase_t m_pTreeItemBase;
+    member_t( unsigned int type, void* void_, pTreeItemBase_t p ): m_type( type ), m_void( void_ ), m_pTreeItemBase( p ) {};
+  };
+  typedef std::vector<member_t> vMembers_t; // tracks ordered list for serialization
+  vMembers_t m_vMembers;
 
   wxTreeItemId AppendSubItem( const std::string& sLabel ); // add the visual menu item
   pTreeItemBase_t  AppendSubItem( wxTreeItemId id, TreeItemBase* p );  // add the associated real object
   
   // convenience member functions for derived classes
-  //void AddMember( mapMembers_t&, wxTreeItemId id, pTreeItemBase_t p ); // stuff to be serialized
-  //void DeleteMember( mapMembers_t&, wxTreeItemId id ); // stuff to be serialized
+  void AddMember( unsigned int type, wxTreeItemId id, pTreeItemBase_t p ); // stuff to be serialized
+  void DeleteMember( wxTreeItemId id ); // stuff not to be serialized
   
 private:
   
   template<typename Archive>
   void save( Archive& ar, const unsigned int version ) const {
+    std::cout << "TreeItemBase " << m_pTree->GetItemText( m_id ) << std::endl;
     std::string sLabel( m_pTree->GetItemText( m_id ) );
     ar & sLabel;
   }
@@ -118,7 +128,30 @@ private:
   
 };
 
-BOOST_SERIALIZATION_ASSUME_ABSTRACT(TreeItemBase)
+void TreeItemBase::AddMember( unsigned int type, wxTreeItemId id, pTreeItemBase_t p ) {
+  assert( 0 != id.GetID() );
+  assert( 0 != p.get() );
+  m_vMembers.push_back( member_t( type, id.GetID(), p ) );
+  m_mapMembers.insert( mapMembers_t::value_type( id.GetID(), p ) );
+}
+
+void TreeItemBase::DeleteMember( wxTreeItemId id ) {
+  
+  struct matchId {
+    bool operator()( const TreeItemBase::member_t& member ) const { return member.m_void == m_v; }
+    matchId( void* v ): m_v( v ) {};
+    void* m_v;
+  };
+  
+  mapMembers_t::const_iterator iterMap = m_mapMembers.find( id.GetID() );
+  if ( m_mapMembers.end() != iterMap ) {
+    m_mapMembers.erase( iterMap );
+  }
+  else assert( 0 );
+  vMembers_t::iterator iterVec = std::find_if( m_vMembers.begin(), m_vMembers.end(), matchId( id.GetID() ) );
+  assert( m_vMembers.end() != iterVec );
+  m_vMembers.erase( iterVec );
+}
 
 void TreeItemBase::HandleRename( wxCommandEvent& event ) { 
   Rename();
@@ -136,7 +169,7 @@ void TreeItemBase::Rename( const wxString& sPrompt, const wxString& sDefault ) {
 }
 
 wxTreeItemId TreeItemBase::AppendSubItem( const std::string& sLabel ) {
-  wxTreeItemId id = m_pTree->AppendItem( m_id, "Sub Group" );
+  wxTreeItemId id = m_pTree->AppendItem( m_id, sLabel );
   m_pTree->EnsureVisible( id );
   return id;
 }
@@ -149,55 +182,258 @@ TreeItemBase::pTreeItemBase_t TreeItemBase::AppendSubItem( wxTreeItemId id, Tree
 
 // ================
 
-class TreeItemGroup: public TreeItemBase {
+class TreeItemMusic: public TreeItemBase {
   friend class boost::serialization::access;
 public:
-  // deals with organizing groups of branches, eg:  master - act - scene
-  TreeItemGroup( TreeDisplayManager* pTree_, wxTreeItemId id_ ): TreeItemBase( pTree_, id_ ) {
-  }
-  virtual ~TreeItemGroup( void ) {};
-  virtual void ShowContextMenu( void ) {
-    wxMenu* pMenu = new wxMenu();
-    pMenu->Append( MIAddSubGroup, "&Add Sub Group" );
-    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemGroup::HandleAddGroup, this, MIAddSubGroup );
-    pMenu->Append( MIRename, "&Rename" );
-    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemBase::HandleRename, this, MIRename );
-    m_pTree->PopupMenu( pMenu );
-  }
+  
+  TreeItemMusic( TreeDisplayManager* pTree_, wxTreeItemId id_ );
+  virtual ~TreeItemMusic( void );
+  
+  virtual void ShowContextMenu( void );
+  
+  void BrowseForMusic( void );
+  void LoadMusic( void );
+
 protected:
-  TreeItemGroup* AddGroup( void );
 private:
   enum {
     ID_Null = wxID_HIGHEST,
-    MIAddSubGroup, MIRename
+    MILoadMusic, MIMusicSeek, MIMusicPlay, MIMusicStop, MIMusicStats, 
+    MIDelete
   };
   
-  typedef std::map<void*,TreeItemGroup*> mapMembers_t;  // void* from wxTreeItemId, tracks owned items for serialization
-  mapMembers_t m_mapGroups;
-    
-  void HandleAddGroup( wxCommandEvent& event );
+  std::string m_sMusicDirectory;
+  std::string m_sFilePath;
   
-  void AddMember( mapMembers_t&, wxTreeItemId id, TreeItemGroup* p ); // stuff to be serialized
-  void DeleteMember( mapMembers_t&, wxTreeItemId id ); // stuff to be serialized
+  MediaStreamDecode m_player;
+  
+  Audio::pAudioQueue_t m_pAudioQueueLeft;
+  Audio::pAudioQueue_t m_pAudioQueueRight;
+  
+  boost::signals2::connection m_connectionAudioReady;
+  
+  void HandleLoadMusic( wxCommandEvent& event );
+  void HandleAudio( void* buffers, int nChannels, int nSamples );
+  
+  void HandleStats( wxCommandEvent& event );
+  void HandleSeek( wxCommandEvent& event );
+  void HandlePlay( wxCommandEvent& event );
+  void HandleStop( wxCommandEvent& event );
   
   template<typename Archive>
   void save( Archive& ar, const unsigned int version ) const {
     ar & boost::serialization::base_object<const TreeItemBase>(*this);
-    mapMembers_t::size_type n = m_mapGroups.size();
-    ar & n;
-    for ( mapMembers_t::const_iterator iter = m_mapGroups.begin(); iter != m_mapGroups.end(); ++iter ) {
-      ar & *(iter->second);
+    ar & m_sMusicDirectory;
+    ar & m_sFilePath;
+  }
+  
+  template<typename Archive>
+  void load( Archive& ar, const unsigned int version ) {
+    ar & boost::serialization::base_object<TreeItemBase>(*this);
+    ar & m_sMusicDirectory;
+    ar & m_sFilePath;  // will this work with an empty string?
+  }
+  
+  BOOST_SERIALIZATION_SPLIT_MEMBER()
+  
+};
+
+TreeItemMusic::TreeItemMusic( TreeDisplayManager* pTree_, wxTreeItemId id_ )
+: TreeItemBase( pTree_, id_ )
+{
+  m_sMusicDirectory = "~/Music/";
+
+  m_pAudioQueueLeft.reset( new AudioQueue<int16_t> );
+  pAudio->Attach( 0, m_pAudioQueueLeft );
+  m_pAudioQueueRight.reset( new AudioQueue<int16_t> );
+  pAudio->Attach( 0, m_pAudioQueueRight );
+  
+  namespace args = boost::phoenix::arg_names;
+  //m_connectionFrameTrigger = TreeItemImageCommon::ConnectFrameTrigger( boost::phoenix::bind( &TreeItemVideo::ShowImage, this ) );
+  //m_connectionImageReady = m_player.ConnectImageReady( boost::phoenix::bind( &TreeItemVideo::HandleImage, this, args::arg1, args::arg2, args::arg3 ) );
+  //m_connectionImageReady = m_player.ConnectImageReady( boost::phoenix::bind( &TreeItemVideo::HandleImage, this, args::arg1, args::arg2 ) );
+  m_connectionAudioReady = m_player.ConnectAudioReady( boost::phoenix::bind( &TreeItemMusic::HandleAudio, this, args::arg1, args::arg2, args::arg3 ) );
+  
+  //BrowseForMusic();  // change this once scripted,  or may use different class instead
+  
+}
+
+TreeItemMusic::~TreeItemMusic( void ) {
+  m_connectionAudioReady.disconnect();
+  //m_connectionImageReady.disconnect();
+  //m_connectionFrameTrigger.disconnect();
+}
+
+void TreeItemMusic::ShowContextMenu( void ) {
+  
+  wxMenu* pMenu = new wxMenu();
+
+  pMenu->Append( MILoadMusic, "Load Music" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleLoadMusic, this, MILoadMusic );
+
+//  pMenu->Append( MIReset, "Reset" );
+//  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVisualCommon::HandleReset, this, MIReset );
+  
+//  pMenu->Append( MIVideoPause, "Pause" );
+//  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVideo::HandlePause, this, MIVideoPause );
+  
+//  pMenu->Append( MIVideoResume, "Resume" );
+//  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVideo::HandleResume, this, MIVideoResume );
+  
+  //pMenu->Append( MIMusicSeek, "Seek" );
+  //pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleSeek, this, MIMusicSeek );
+  
+  pMenu->Append( MIMusicStats, "Stats" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleStats, this, MIMusicStats );
+  
+  pMenu->Append( MIMusicPlay, "Play" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandlePlay, this, MIMusicPlay );
+  
+  pMenu->Append( MIMusicStop, "Stop" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleStop, this, MIMusicStop );
+  
+  //pMenu->Append( MIDelete, "Delete" );
+  //pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleDelete, this, MIDelete );
+  
+  m_pTree->PopupMenu( pMenu );
+}
+
+void TreeItemMusic::HandleStats( wxCommandEvent& event ) {
+  m_player.EmitStats();
+}
+
+void TreeItemMusic::HandlePlay( wxCommandEvent& event ) {
+  // need to test that the file is open
+  //std::cout << "play start" << std::endl;
+  m_player.Play();
+}
+
+void TreeItemMusic::HandleStop( wxCommandEvent& event ) {
+  m_player.Stop();  // should actually coordinate through local state machine
+}
+
+void TreeItemMusic::HandleLoadMusic( wxCommandEvent& event ) {
+  BrowseForMusic();
+}
+
+void TreeItemMusic::BrowseForMusic( void ) {
+  
+  std::cout << "LoadMusic" << std::endl;  
+  wxFileDialog dialogOpenFile( 
+    m_pTree->GetParent(),
+    //m_pPhysicalDisplay->GetFrame(), 
+    wxT("Select Music" ), m_sMusicDirectory, "", 
+    //"Video Files (*.ts)|*.ts", 
+    //"Video Files (*.h264)|*.h264", 
+    "",
+    //_(" Files ") + wxImage::GetImageExtWildcard(),
+    wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_CHANGE_DIR );
+  if (dialogOpenFile.ShowModal() == wxID_OK) {
+    m_sMusicDirectory = dialogOpenFile.GetDirectory();
+    
+    m_sFilePath = dialogOpenFile.GetPath();
+    //std::cout << "chose " << sPath << std::endl;
+    
+    LoadMusic();
+    
+  }
+}
+
+void TreeItemMusic::LoadMusic( void ) {
+  m_player.Close();
+  if ( m_player.Open( m_sFilePath ) ) {  // means it needs to be closed manually or automatically
+    if ( m_player.GetBestAudioStreamFound() ) {
+      assert( 44100 == m_player.GetAudioSampleRate() );  // need to be a bit more flexible
+    }
+    //m_player.Play();  // get the stream
+  }
+}
+
+void TreeItemMusic::HandleAudio( void* buffers, int nChannels, int nSamples ) {
+  assert( 2 == nChannels );
+  const int16_t** pSamples( reinterpret_cast<const int16_t**>( buffers ) );
+  boost::strict_lock<AudioQueue<int16_t> > guardLeft( *m_pAudioQueueLeft );
+  m_pAudioQueueLeft->AddSamples( nSamples, pSamples[0], guardLeft );
+  boost::strict_lock<AudioQueue<int16_t> > guardRight( *m_pAudioQueueRight );
+  m_pAudioQueueRight->AddSamples( nSamples, pSamples[1], guardRight );
+}
+
+// ================
+
+class TreeItemGroup: public TreeItemBase {
+  friend class boost::serialization::access;
+public:
+  
+  // deals with organizing groups of branches, eg:  master - act - scene
+  TreeItemGroup( TreeDisplayManager* pTree_, wxTreeItemId id_ ): TreeItemBase( pTree_, id_ ) {}
+  virtual ~TreeItemGroup( void ) {};
+  
+  virtual void ShowContextMenu( void );
+  
+protected:
+  TreeItemGroup* AddGroup( void );  // for TreeItemRoot
+private:
+  
+  enum {
+    ID_Null = wxID_HIGHEST,
+    MIAddSubGroup, MIRename, MIAddMusic
+  };
+  
+  enum {
+    IdGroup = 201, IdMusic
+  };
+  
+  void HandleAddGroup( wxCommandEvent& event );
+  void HandleAddMusic( wxCommandEvent& event );
+  TreeItemMusic* AddMusic( void );
+  
+  template<typename Archive>
+  void save( Archive& ar, const unsigned int version ) const {
+    ar << boost::serialization::base_object<const TreeItemBase>(*this);
+    const vMembers_t::size_type n = m_vMembers.size();
+    ar << n;
+    for ( vMembers_t::const_iterator iter = m_vMembers.begin(); iter != m_vMembers.end(); ++iter ) {
+      ar << ( iter->m_type );
+      switch ( iter->m_type ) {
+        case IdGroup:
+        {
+          const TreeItemGroup* pGroup = dynamic_cast<TreeItemGroup*>( iter->m_pTreeItemBase.get() );
+          ar & *pGroup;
+        }
+          break;
+        case IdMusic:
+        {
+          const TreeItemMusic* pMusic = dynamic_cast<TreeItemMusic*>( iter->m_pTreeItemBase.get() );
+          ar & *pMusic;
+        }
+          break;
+      }
     }
   }
   
   template<typename Archive>
   void load( Archive& ar, const unsigned int version ) {
     ar & boost::serialization::base_object<TreeItemBase>(*this);
-    mapMembers_t::size_type n;
+    vMembers_t::size_type n;
     ar & n;
-    for ( mapMembers_t::size_type ix = 0; ix < n; ++ix ) {
-      TreeItemGroup* p = AddGroup();
-      ar & *p;
+    for ( vMembers_t::size_type ix = 0; ix < n; ++ix ) {
+      unsigned int type;
+      ar & type;
+      switch ( type ) {
+        case IdGroup:
+        {
+          TreeItemGroup* pGroup = AddGroup();
+          ar & *pGroup;
+        }
+          break;
+        case IdMusic:
+        {
+          TreeItemMusic* pMusic = AddMusic();
+          pMusic->LoadMusic();
+          ar & *pMusic;
+        }
+          break;
+      }
     }
   }
   
@@ -205,29 +441,43 @@ private:
   
 };
 
+void TreeItemGroup::ShowContextMenu( void ) {
+  wxMenu* pMenu = new wxMenu();
+  pMenu->Append( MIAddSubGroup, "&Add Sub Group" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemGroup::HandleAddGroup, this, MIAddSubGroup );
+  pMenu->Append( MIAddMusic, "&Music" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemGroup::HandleAddMusic, this, MIAddMusic );
+  pMenu->Append( MIRename, "&Rename" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemBase::HandleRename, this, MIRename );
+  m_pTree->PopupMenu( pMenu );
+}
+  
 void TreeItemGroup::HandleAddGroup( wxCommandEvent& event ) { 
   TreeItemGroup* p = AddGroup();
   p->Rename();
 }
 
 TreeItemGroup* TreeItemGroup::AddGroup( void ) { 
-  wxTreeItemId id = TreeItemBase::AppendSubItem( "Sub Group" );
+  wxTreeItemId id = TreeItemBase::AppendSubItem( "New Group" );
   TreeItemGroup* p = new TreeItemGroup( m_pTree, id );
   pTreeItemBase_t pTreeItemBase = TreeItemBase::AppendSubItem( id, p );
-  AddMember( m_mapGroups, id, p );
+  TreeItemBase::AddMember( IdGroup, id, pTreeItemBase );
   return p;
 }
 
-void TreeItemGroup::AddMember( mapMembers_t& map, wxTreeItemId id, TreeItemGroup* pTreeItemGroup ) {
-  map.insert( mapMembers_t::value_type( id.GetID(), pTreeItemGroup ) );
+void TreeItemGroup::HandleAddMusic( wxCommandEvent& event ) {
+  TreeItemMusic* p = AddMusic();
+  p->Rename();
 }
 
-void TreeItemGroup::DeleteMember( mapMembers_t& map, wxTreeItemId id ) {
-  mapMembers_t::const_iterator iter = map.find( id.GetID() );
-  if ( map.end() != iter ) {
-    map.erase( iter );
-  }
-  else assert( 0 );
+TreeItemMusic* TreeItemGroup::AddMusic( void ) { 
+  wxTreeItemId id = TreeItemBase::AppendSubItem( "Music" );  // put the file name here instead
+  TreeItemMusic* p = new TreeItemMusic( m_pTree, id );
+  assert( 0 != p );
+  pTreeItemBase_t pTreeItemBase = TreeItemBase::AppendSubItem( id, p );
+  assert( 0 != pTreeItemBase.get() );
+  TreeItemBase::AddMember( IdMusic, id, pTreeItemBase );
+  return p;
 }
 
 // ================
@@ -235,19 +485,12 @@ void TreeItemGroup::DeleteMember( mapMembers_t& map, wxTreeItemId id ) {
 class TreeItemRoot: public TreeItemGroup {
   friend class boost::serialization::access;
 public:
-  // deals with constructing display surfaces
-  TreeItemRoot( TreeDisplayManager* pTree_, wxTreeItemId id_ ): TreeItemGroup( pTree_, id_ ) {
-  }
+  
+  TreeItemRoot( TreeDisplayManager* pTree_, wxTreeItemId id_ ): TreeItemGroup( pTree_, id_ ) {}
   virtual ~TreeItemRoot( void ) {}
-  virtual void ShowContextMenu( void ) {
-    //wxMenu* pMenu = new wxMenu( "Surfaces");
-    wxMenu* pMenu = new wxMenu();
-    pMenu->Append( MIAddGroup, "&Add Group" );
-    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemRoot::HandleAddGroup, this, MIAddGroup );
-    pMenu->Append( MIAddScreenFrame, "&Add Screen Frame" );
-    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemRoot::HandleAddScreenFrame, this, MIAddScreenFrame );
-    m_pTree->PopupMenu( pMenu );
-  }
+  
+  virtual void ShowContextMenu( void );
+  
 protected:
 private:
   enum {
@@ -274,85 +517,19 @@ private:
   
 };
 
+void TreeItemRoot::ShowContextMenu( void ) {
+  //wxMenu* pMenu = new wxMenu( "Surfaces");
+  wxMenu* pMenu = new wxMenu();
+  pMenu->Append( MIAddGroup, "&Add Group" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemRoot::HandleAddGroup, this, MIAddGroup );
+  pMenu->Append( MIAddScreenFrame, "&Add Screen Frame" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemRoot::HandleAddScreenFrame, this, MIAddScreenFrame );
+  m_pTree->PopupMenu( pMenu );
+}
+
 void TreeItemRoot::HandleAddGroup( wxCommandEvent& event ) {
   TreeItemGroup* pGroup = TreeItemGroup::AddGroup();
   pGroup->Rename();
-}
-
-// ================
-
-class TreeItemMusic: public TreeItemBase {
-  friend class boost::serialization::access;
-public:
-  
-  typedef TreeDisplayManager::pPhysicalDisplay_t pPhysicalDisplay_t;
-  
-  TreeItemMusic( TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay ): TreeItemBase( pTree_, id_ ) {
-  }
-  virtual ~TreeItemMusic( void ) {}
-  
-  virtual void ShowContextMenu( void ) {
-    wxMenu* pMenu = new wxMenu();
-    pMenu->Append( MILoadMusic, "&Load Music" );
-    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemRoot::HandleLoadMusic, this, MILoadMusic );
-    m_pTree->PopupMenu( pMenu );
-  }
-protected:
-private:
-  enum {
-    ID_Null = wxID_HIGHEST,
-    MILoadMusic
-  };
-  
-  wxString m_sMusicDirectory;
-  
-  pPhysicalDisplay_t m_pPhysicalDisplay;
-  
-  void HandleLoadMusic( wxCommandEvent& event );
-  void LoadMusic( void );
-  
-  template<typename Archive>
-  void save( Archive& ar, const unsigned int version ) const {
-    ar & boost::serialization::base_object<const TreeItemBase>(*this);
-  }
-  
-  template<typename Archive>
-  void load( Archive& ar, const unsigned int version ) {
-    ar & boost::serialization::base_object<TreeItemBase>(*this);
-  }
-  
-  BOOST_SERIALIZATION_SPLIT_MEMBER()
-  
-};
-
-TreeItemMusic::TreeItemMusic( TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay )
-: TreeItemBase( pTree_, id_ ), m_pPhysicalDisplay( pPhysicalDisplay )
-{
-  m_sMusicDirectory = wxT( "~/Music/");
-}
-
-
-void TreeItemMusic::HandleLoadMusic( wxCommandEvent& event ) {
-  LoadMusic();
-}
-
-void TreeItemMusic::LoadMusic( void ) {
-  
-  std::cout << "LoadMusic" << std::endl;  
-  wxFileDialog dialogOpenFile( 
-    m_pPhysicalDisplay->GetFrame(), wxT("Select Music" ), m_sMusicDirectory, "", 
-    //"Video Files (*.ts)|*.ts", 
-    //"Video Files (*.h264)|*.h264", 
-    "",
-    //_(" Files ") + wxImage::GetImageExtWildcard(),
-    wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_CHANGE_DIR );
-  if (dialogOpenFile.ShowModal() == wxID_OK) {
-    m_sMusicDirectory = dialogOpenFile.GetDirectory();
-    
-    std::string sPath( dialogOpenFile.GetPath() );
-    //std::cout << "chose " << sPath << std::endl;
-  }
-    
 }
 
 // ================
@@ -1556,13 +1733,13 @@ void TreeDisplayManager::Add( Audio* pAudio_ ) {
 
 void TreeDisplayManager::Save( boost::archive::text_oarchive& oa ) {
   TreeItemBase* pBase = m_pTreeItemRoot.get();
-  TreeItemRoot* p = dynamic_cast<TreeItemRoot*>( pBase );
-  oa << *p;
+  const TreeItemRoot* p = dynamic_cast<TreeItemRoot*>( pBase );
+  oa & *p;
 }
 
 void TreeDisplayManager::Load( boost::archive::text_iarchive& ia ) {
   TreeItemBase* pBase = m_pTreeItemRoot.get();
   TreeItemRoot* p = dynamic_cast<TreeItemRoot*>( pBase );
-  ia >> *p;
+  ia & *p;
 }
   

@@ -22,7 +22,8 @@ private:
   boost::signals2::connection m_MenuActionSave;
   boost::signals2::connection m_MenuActionLoad;
   
-  wxString m_sMediaDirectory;
+  std::string m_sMediaDirectory;
+  std::string m_sWorkingDirectory;
   
   FrameMain *m_pFrameMain;
   PanelSurfaceSources* m_pSurfaceSources;
