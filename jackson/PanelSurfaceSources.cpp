@@ -9,6 +9,9 @@
 // Licence:     
 /////////////////////////////////////////////////////////////////////////////
 
+//#include <boost/phoenix/bind/bind_member_function.hpp>
+//#include <boost/phoenix/core/argument.hpp>
+
 #include <wx/splitter.h>
 
 #include "DndSourceButton.h"
@@ -58,15 +61,15 @@ void PanelSurfaceSources::Init() {
   m_pWaveFormBackLeft = 0;
   m_pWaveFormBackRight = 0;
   
-  m_BtnEvent = BtnPlay;
+  m_BtnEvent = BtnEvent::BtnPlay;
 }
 
 void PanelSurfaceSources::HandlePlay( wxCommandEvent& event ) {
   m_btnPlay->Enable( false );
-  m_btnPause->Enable( true );
+  m_btnPause->Enable( false );  // no ability to pause yet
   m_btnStop->Enable( true );
   m_btnAbort->Enable( true );
-  m_signalBtnEvent( BtnPlay );
+  m_signalBtnEvent( BtnEvent::BtnPlay );
 }
 
 void PanelSurfaceSources::HandlePause( wxCommandEvent& event ) {
@@ -74,7 +77,7 @@ void PanelSurfaceSources::HandlePause( wxCommandEvent& event ) {
   m_btnPause->Enable( false );
   m_btnStop->Enable( true );
   m_btnAbort->Enable( true );
-  m_signalBtnEvent( BtnPause );
+  m_signalBtnEvent( BtnEvent::BtnPause );
 }
 
 void PanelSurfaceSources::HandleStop( wxCommandEvent& event ) {
@@ -82,7 +85,7 @@ void PanelSurfaceSources::HandleStop( wxCommandEvent& event ) {
   m_btnPause->Enable( false );
   m_btnStop->Enable( false );
   m_btnAbort->Enable( false );
-  m_signalBtnEvent( BtnStop );
+  m_signalBtnEvent( BtnEvent::BtnStop );
 }
 
 void PanelSurfaceSources::HandleAbort( wxCommandEvent& event ) {
@@ -90,7 +93,7 @@ void PanelSurfaceSources::HandleAbort( wxCommandEvent& event ) {
   m_btnPause->Enable( false );
   m_btnStop->Enable( false );
   m_btnAbort->Enable( false );
-  m_signalBtnEvent( BtnAbort );
+  m_signalBtnEvent( BtnEvent::BtnAbort );
 }
 
 void PanelSurfaceSources::ResetButtons( void ) {
@@ -211,7 +214,9 @@ void PanelSurfaceSources::CreateControls() {
   m_treeDisplays->SetStaticTextInfo( m_stInfo );
   m_treeDisplays->SetSlider( m_sliderHorizontal );
   m_treeDisplays->SetWaveformViewersFront( m_pWaveFormFrontLeft, m_pWaveFormFrontRight );
-
+  
+  m_treeDisplays->SetButtonEvent( &m_signalBtnEvent );
+  
   Bind( wxEVT_TOGGLEBUTTON, &PanelSurfaceSources::HandleToggleEditMode, this, ID_BTN_EDITMODE );
   Bind( wxEVT_BUTTON, &PanelSurfaceSources::HandleUndo, this, ID_BTN_UNDO );
   Bind( wxEVT_BUTTON, &PanelSurfaceSources::HandlePlay, this, ID_BTN_PLAY );

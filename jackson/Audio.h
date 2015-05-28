@@ -105,6 +105,10 @@ public:
   void Attach( unsigned int n, pAudioQueue_t pAudioQueue );
   void Detach( unsigned int n, pAudioQueue_t pAudioQueue );
   
+  void Play( void ) { m_audio.startStream(); }
+  void Abort( void ) { m_audio.abortStream(); }
+  void Stop( void ) { m_audio.stopStream(); }
+  
 protected:
 private:
   

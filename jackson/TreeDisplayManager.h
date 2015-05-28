@@ -67,6 +67,11 @@ class TreeDisplayManager: public wxTreeCtrl {
   friend class boost::serialization::access;
 public:
   
+  enum BtnEvent{ BtnPlay, BtnPause, BtnStop, BtnAbort };
+  
+  typedef boost::signals2::signal<void (BtnEvent)> signalBtnEvent_t;
+  typedef signalBtnEvent_t::slot_type slotBtnEvent_t;
+  
   typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
   typedef boost::shared_ptr<TreeItemBase> pTreeItemBase_t;
   
@@ -98,6 +103,11 @@ public:
   void SetSlider( wxSlider* pSlider );
   void SetWaveformViewersFront( WaveformView* pfl, WaveformView* pfr );
   void SetWaveformViewersRear( WaveformView* prl, WaveformView* prr );
+  void SetButtonEvent( signalBtnEvent_t* signal ) { m_psignalBtnEvent = signal; }
+  
+  boost::signals2::connection ConnectSignalBtnEvent( const slotBtnEvent_t& slot ) {
+    return m_psignalBtnEvent->connect( slot );
+  }
 
   void Save( boost::archive::text_oarchive& oa);
   void Load( boost::archive::text_iarchive& ia);
@@ -109,6 +119,8 @@ private:
     ID_Null = wxID_HIGHEST,
     ID_TREEDISPLAYMANAGER
   };
+
+  signalBtnEvent_t* m_psignalBtnEvent;
   
   wxTreeItemId m_idOld;
   
@@ -127,6 +139,8 @@ private:
   void HandleSelectionChanging( wxTreeEvent& event );
   void HandleItemActivated( wxTreeEvent& event );
   void HandleItemDeleted( wxTreeEvent& event );
+  
+  void HandleBtnEvent( BtnEvent );
   
   void RemoveSelectOld( void );
 

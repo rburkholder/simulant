@@ -31,17 +31,14 @@ class PanelSurfaceSources: public wxPanel {
   DECLARE_DYNAMIC_CLASS( PanelSurfaceSources )
 public:
   
-  enum BtnEvent{ BtnPlay, BtnPause, BtnStop, BtnAbort };
+  typedef TreeDisplayManager::BtnEvent BtnEvent;
   
   typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
   
   typedef boost::signals2::signal<void ()> signalSlider_t;
   typedef signalSlider_t::slot_type slotSlider_t;  
   
-  typedef boost::signals2::signal<void (BtnEvent)> signalBtnEvent_t;
-  typedef signalBtnEvent_t::slot_type slotBtnEvent_t;
-  
-  signalBtnEvent_t m_signalBtnEvent;
+  typedef TreeDisplayManager::signalBtnEvent_t signalBtnEvent_t;
   
   PanelSurfaceSources();
   PanelSurfaceSources( 
@@ -102,6 +99,7 @@ private:
   };
   
   BtnEvent m_BtnEvent;
+  signalBtnEvent_t m_signalBtnEvent;
   
   bool m_bInEditMode;
   
