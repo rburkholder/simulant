@@ -55,7 +55,7 @@ int Audio::HandleSampleRequest( void* pOutput, void* pInput, unsigned int nFrame
   //return 2; // abort 
 }
 
-Audio::Audio( void ): m_nActiveChannels( 4 ) {
+Audio::Audio( void ): m_nActiveChannels( 2 ) {
   
   unsigned int nDevices = m_audio.getDeviceCount();
   assert( 0 != nDevices );
@@ -84,14 +84,20 @@ Audio::Audio( void ): m_nActiveChannels( 4 ) {
   parameters.nChannels = m_nActiveChannels;
   
   unsigned int sampleRate = 44100;
-  unsigned int bufferFrames = 256; // 256 sample frames
+  unsigned int bufferSamples = 256; // 256 sample frames
   
   RtAudio::StreamOptions options;
-  options.flags = RTAUDIO_NONINTERLEAVED;  // so can lock/process/unlock channels individually
+  // so can lock/process/unlock channels individually
+  // but leads to frame sync issues if not all frames installed at the same time
+  // so maybe we need to run interleaved
+  // not unless the underlying takes care of that
+  // so to sync separate buffers will need to play with the stream start stop calls rather than let them run continuously
+  // or pause the stream while starting the buffers, use the pause rather then the abort,to let things run in the background
+  options.flags = RTAUDIO_NONINTERLEAVED;
   //options.flags = 0;  // default to interleaved
   try {
     std::cout << "Audio Opening" << std::endl;
-    m_audio.openStream( &parameters, 0, RTAUDIO_SINT16, sampleRate, &bufferFrames, &HandleSampleRequest, this, &options );
+    m_audio.openStream( &parameters, 0, RTAUDIO_SINT16, sampleRate, &bufferSamples, &HandleSampleRequest, this, &options );
     std::cout << "Audio Opened" << std::endl;
   }
   catch ( RtAudioError& e ) {
@@ -103,9 +109,12 @@ Audio::Audio( void ): m_nActiveChannels( 4 ) {
     pChannelMixer_t p( new ChannelMixer_t );
     m_vcm.push_back( p );
   }
+  
+  //m_audio.startStream(); // may need to change this to a global play/pause/stop/abort button
 }
 
 Audio::~Audio( ) {
+  //m_audio.abortStream(); // may need to change this to a global play/pause/stop/abort button
   std::cout << "Audio Closed" << std::endl;
   m_audio.closeStream();
 }

@@ -57,6 +57,47 @@ void PanelSurfaceSources::Init() {
   m_pWaveFormFrontRight = 0;
   m_pWaveFormBackLeft = 0;
   m_pWaveFormBackRight = 0;
+  
+  m_BtnEvent = BtnPlay;
+}
+
+void PanelSurfaceSources::HandlePlay( wxCommandEvent& event ) {
+  m_btnPlay->Enable( false );
+  m_btnPause->Enable( true );
+  m_btnStop->Enable( true );
+  m_btnAbort->Enable( true );
+  m_signalBtnEvent( BtnPlay );
+}
+
+void PanelSurfaceSources::HandlePause( wxCommandEvent& event ) {
+  m_btnPlay->Enable( true );
+  m_btnPause->Enable( false );
+  m_btnStop->Enable( true );
+  m_btnAbort->Enable( true );
+  m_signalBtnEvent( BtnPause );
+}
+
+void PanelSurfaceSources::HandleStop( wxCommandEvent& event ) {
+  m_btnPlay->Enable( true );
+  m_btnPause->Enable( false );
+  m_btnStop->Enable( false );
+  m_btnAbort->Enable( false );
+  m_signalBtnEvent( BtnStop );
+}
+
+void PanelSurfaceSources::HandleAbort( wxCommandEvent& event ) {
+  m_btnPlay->Enable( true );
+  m_btnPause->Enable( false );
+  m_btnStop->Enable( false );
+  m_btnAbort->Enable( false );
+  m_signalBtnEvent( BtnAbort );
+}
+
+void PanelSurfaceSources::ResetButtons( void ) {
+  m_btnPlay->Enable( true );
+  m_btnPause->Enable( false );
+  m_btnStop->Enable( false );
+  m_btnAbort->Enable( false );
 }
 
 void PanelSurfaceSources::Append( pPhysicalDisplay_t pPhysicalDisplay ) {
@@ -104,6 +145,23 @@ void PanelSurfaceSources::CreateControls() {
   
   m_stInfo = new wxStaticText( m_panelRight, ID_ST_FRAMECOUNTER, _("_"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
   itemBoxSizerPanelStatus->Add( m_stInfo, 0, wxGROW|wxALL, 2 );
+
+  wxBoxSizer* itemBoxSizerMediaButtons = new wxBoxSizer(wxHORIZONTAL);
+  itemBoxSizerPanelVertical->Add(itemBoxSizerMediaButtons, 0, wxALIGN_LEFT|wxALL, 5);
+  m_btnPlay = new wxButton( m_panelRight, ID_BTN_PLAY, _("Play"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT );
+  itemBoxSizerMediaButtons->Add(m_btnPlay, 0, wxALIGN_CENTER_VERTICAL|wxALL, 2);
+
+  m_btnPause = new wxButton( m_panelRight, ID_BTN_PAUSE, _("Pause"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT );
+  m_btnPause->Enable(false);
+  itemBoxSizerMediaButtons->Add(m_btnPause, 0, wxALIGN_CENTER_VERTICAL|wxALL, 2);
+
+  m_btnStop = new wxButton( m_panelRight, ID_BTN_STOP, _("Stop"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT );
+  m_btnStop->Enable(false);
+  itemBoxSizerMediaButtons->Add(m_btnStop, 0, wxALIGN_CENTER_VERTICAL|wxALL, 2);
+
+  m_btnAbort = new wxButton( m_panelRight, ID_BTN_ABORT, _("Abort"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT );
+  m_btnAbort->Enable(false);
+  itemBoxSizerMediaButtons->Add(m_btnAbort, 0, wxALIGN_CENTER_VERTICAL|wxALL, 2);
 
   wxBoxSizer* itemBoxSizerPanelButtonColumns = new wxBoxSizer( wxHORIZONTAL );
   itemBoxSizerPanelVertical->Add( itemBoxSizerPanelButtonColumns, 1, wxGROW|wxALL, 0 );
@@ -156,6 +214,10 @@ void PanelSurfaceSources::CreateControls() {
 
   Bind( wxEVT_TOGGLEBUTTON, &PanelSurfaceSources::HandleToggleEditMode, this, ID_BTN_EDITMODE );
   Bind( wxEVT_BUTTON, &PanelSurfaceSources::HandleUndo, this, ID_BTN_UNDO );
+  Bind( wxEVT_BUTTON, &PanelSurfaceSources::HandlePlay, this, ID_BTN_PLAY );
+  Bind( wxEVT_BUTTON, &PanelSurfaceSources::HandlePause, this, ID_BTN_PAUSE );
+  Bind( wxEVT_BUTTON, &PanelSurfaceSources::HandleStop, this, ID_BTN_STOP );
+  Bind( wxEVT_BUTTON, &PanelSurfaceSources::HandleAbort, this, ID_BTN_ABORT );
   //Bind( wxEVT_SCROLL_THUMBTRACK, &PanelSurfaceSources::HandleScrollThumbTrack, this, ID_SLIDER_HORIZONTAL );
   //Bind( wxEVT_SCROLL_LINEUP, &PanelSurfaceSources::HandleScrollLineChange, this, ID_SLIDER_HORIZONTAL );
   //Bind( wxEVT_SCROLL_LINEDOWN, &PanelSurfaceSources::HandleScrollLineChange, this, ID_SLIDER_HORIZONTAL );

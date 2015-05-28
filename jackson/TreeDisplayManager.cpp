@@ -200,7 +200,7 @@ protected:
 private:
   enum {
     ID_Null = wxID_HIGHEST,
-    MISelectMusic, MIMusicSeek, MIMusicLoadBuffer, MIMusicStop, MIMusicStats, 
+    MISelectMusic, MIMusicSeek, MIMusicLoadBuffer, MIMusicStop, MIMusicStats, MIMusicPlayBuffer,
     MIDelete
   };
   
@@ -209,11 +209,9 @@ private:
   
   MediaStreamDecode m_player;
   
-  // used for playing music, but ...
   Audio::pAudioQueue_t m_pAudioQueueLeft;
   Audio::pAudioQueue_t m_pAudioQueueRight;
   
-  // just want to keep the stream for now (may turn into a class) :
   typedef std::vector<int16_t> vSamples_t;
   vSamples_t m_vSamplesLeft;
   vSamples_t m_vSamplesRight;
@@ -223,7 +221,7 @@ private:
   boost::signals2::connection m_connectionAudioReady;
   boost::signals2::connection m_connectionDecodeComplete;
   
-  void HandleLoadMusic( wxCommandEvent& event );
+  void HandleSelectMusic( wxCommandEvent& event );
   
   void HandleAudioForPlay( AVSampleFormat format, void* buffers, int nChannels, int nSamples );
   void HandleAudioForBuffer( AVSampleFormat format, void* buffers, int nChannels, int nSamples );
@@ -232,7 +230,8 @@ private:
     
   void HandleStats( wxCommandEvent& event );
   void HandleSeek( wxCommandEvent& event );
-  void HandlePlay( wxCommandEvent& event );
+  void HandleLoadBuffer( wxCommandEvent& event );
+  void HandlePlayBuffer( wxCommandEvent& event );
   void HandleStop( wxCommandEvent& event );
   
   template<typename Archive>
@@ -258,26 +257,27 @@ TreeItemMusic::TreeItemMusic( TreeDisplayManager* pTree_, wxTreeItemId id_ )
 {
   m_sMusicDirectory = "~/Music/";
 
-  // not used at the moment
   m_pAudioQueueLeft.reset( new AudioQueue<int16_t> );
   pAudio->Attach( 0, m_pAudioQueueLeft );
   m_pAudioQueueRight.reset( new AudioQueue<int16_t> );
-  pAudio->Attach( 0, m_pAudioQueueRight );
+  pAudio->Attach( 1, m_pAudioQueueRight );
   
   namespace args = boost::phoenix::arg_names;
-  //m_connectionFrameTrigger = TreeItemImageCommon::ConnectFrameTrigger( boost::phoenix::bind( &TreeItemVideo::ShowImage, this ) );
-  //m_connectionImageReady = m_player.ConnectImageReady( boost::phoenix::bind( &TreeItemVideo::HandleImage, this, args::arg1, args::arg2, args::arg3 ) );
-  //m_connectionImageReady = m_player.ConnectImageReady( boost::phoenix::bind( &TreeItemVideo::HandleImage, this, args::arg1, args::arg2 ) );
   m_connectionAudioReady = m_player.ConnectAudioReady( boost::phoenix::bind( &TreeItemMusic::HandleAudioForBuffer, this, args::arg1, args::arg2, args::arg3, args::arg4 ) );
   m_connectionDecodeComplete = m_player.ConnectDecodeDone( boost::phoenix::bind( &TreeItemMusic::HandleDecodeComplete, this ) );
   
 }
 
 TreeItemMusic::~TreeItemMusic( void ) {
+  
+  pAudio->Detach( 0, m_pAudioQueueLeft );
+  m_pAudioQueueLeft.reset();
+  pAudio->Detach( 1, m_pAudioQueueRight );
+  m_pAudioQueueRight.reset();
+  
   m_connectionDecodeComplete.disconnect();
   m_connectionAudioReady.disconnect();
-  //m_connectionImageReady.disconnect();
-  //m_connectionFrameTrigger.disconnect();
+  
 }
 
 void TreeItemMusic::SetSelected( CommonGuiElements& elements ) {
@@ -306,7 +306,7 @@ void TreeItemMusic::ShowContextMenu( void ) {
   wxMenu* pMenu = new wxMenu();
 
   pMenu->Append( MISelectMusic, "Select Music" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleLoadMusic, this, MISelectMusic );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleSelectMusic, this, MISelectMusic );
 
 //  pMenu->Append( MIReset, "Reset" );
 //  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVisualCommon::HandleReset, this, MIReset );
@@ -324,7 +324,10 @@ void TreeItemMusic::ShowContextMenu( void ) {
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleStats, this, MIMusicStats );
   
   pMenu->Append( MIMusicLoadBuffer, "Load Buffer" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandlePlay, this, MIMusicLoadBuffer );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleLoadBuffer, this, MIMusicLoadBuffer );
+  
+  pMenu->Append( MIMusicPlayBuffer, "Play Buffer" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandlePlayBuffer, this, MIMusicPlayBuffer );
   
   //pMenu->Append( MIMusicStop, "Stop" );
   //pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleStop, this, MIMusicStop );
@@ -339,17 +342,22 @@ void TreeItemMusic::HandleStats( wxCommandEvent& event ) {
   m_player.EmitStats();
 }
 
-void TreeItemMusic::HandlePlay( wxCommandEvent& event ) {
+void TreeItemMusic::HandleLoadBuffer( wxCommandEvent& event ) {
   // need to test that the file is open
   //std::cout << "play start" << std::endl;
   m_player.Play();
+}
+
+void TreeItemMusic::HandlePlayBuffer( wxCommandEvent& event ) {
+  std::cout << "play buffer start" << std::endl;
+  // need to test that there is something in the buffer before playing
 }
 
 void TreeItemMusic::HandleStop( wxCommandEvent& event ) {
   m_player.Stop();  // should actually coordinate through local state machine
 }
 
-void TreeItemMusic::HandleLoadMusic( wxCommandEvent& event ) {
+void TreeItemMusic::HandleSelectMusic( wxCommandEvent& event ) {
   BrowseForMusic();
 }
 

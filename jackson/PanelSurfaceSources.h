@@ -31,10 +31,17 @@ class PanelSurfaceSources: public wxPanel {
   DECLARE_DYNAMIC_CLASS( PanelSurfaceSources )
 public:
   
+  enum BtnEvent{ BtnPlay, BtnPause, BtnStop, BtnAbort };
+  
   typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
   
   typedef boost::signals2::signal<void ()> signalSlider_t;
   typedef signalSlider_t::slot_type slotSlider_t;  
+  
+  typedef boost::signals2::signal<void (BtnEvent)> signalBtnEvent_t;
+  typedef signalBtnEvent_t::slot_type slotBtnEvent_t;
+  
+  signalBtnEvent_t m_signalBtnEvent;
   
   PanelSurfaceSources();
   PanelSurfaceSources( 
@@ -59,6 +66,8 @@ public:
   
   void Save( boost::archive::text_oarchive& oa);
   void Load( boost::archive::text_iarchive& ia);
+  
+  void ResetButtons( void );
   
   // when range is 0, should disable the control
   //void SetScrollMin( int min ) { assert( 0 != m_sliderHorizontal ); m_sliderHorizontal->SetMin( min ); }  // defaults to 0..100
@@ -88,8 +97,11 @@ private:
     ID_WFV_FRONTLEFT,
     ID_WFV_FRONTRIGHT,
     ID_WFV_BACKLEFT, 
-    ID_WFV_BACKRIGHT
+    ID_WFV_BACKRIGHT,
+    ID_BTN_PLAY, ID_BTN_PAUSE, ID_BTN_STOP, ID_BTN_ABORT
   };
+  
+  BtnEvent m_BtnEvent;
   
   bool m_bInEditMode;
   
@@ -99,6 +111,11 @@ private:
   wxButton* m_btnUndo;
   wxSlider* m_sliderHorizontal;
   wxStaticText* m_stInfo;
+  
+  wxButton* m_btnPlay;
+  wxButton* m_btnPause;
+  wxButton* m_btnStop;
+  wxButton* m_btnAbort;  
   
   WaveformView* m_pWaveFormFrontLeft;
   WaveformView* m_pWaveFormFrontRight;
@@ -112,6 +129,11 @@ private:
   void HandleScrollThumbTrack( wxScrollEvent& event );
   void HandleScrollLineChange( wxScrollEvent& event );
   void HandleScrollThumbRelease( wxScrollEvent& event );
+  
+  void HandlePlay( wxCommandEvent& event );
+  void HandlePause( wxCommandEvent& event );
+  void HandleStop( wxCommandEvent& event );
+  void HandleAbort( wxCommandEvent& event );
 
   void Init();
   void CreateControls();
