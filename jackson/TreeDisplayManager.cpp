@@ -112,7 +112,6 @@ private:
   
   template<typename Archive>
   void save( Archive& ar, const unsigned int version ) const {
-    std::cout << "TreeItemBase " << m_pTree->GetItemText( m_id ) << std::endl;
     std::string sLabel( m_pTree->GetItemText( m_id ) );
     ar & sLabel;
   }
@@ -207,14 +206,25 @@ private:
   
   MediaStreamDecode m_player;
   
+  // used for playing music, but ...
   Audio::pAudioQueue_t m_pAudioQueueLeft;
   Audio::pAudioQueue_t m_pAudioQueueRight;
   
+  // just want to keep the stream for now (may turn into a class) :
+  typedef std::vector<int16_t> vSamples_t;
+  vSamples_t m_vSamplesLeft;
+  vSamples_t m_vSamplesRight;
+  
   boost::signals2::connection m_connectionAudioReady;
+  boost::signals2::connection m_connectionDecodeComplete;
   
   void HandleLoadMusic( wxCommandEvent& event );
-  void HandleAudio( void* buffers, int nChannels, int nSamples );
   
+  void HandleAudioForPlay( void* buffers, int nChannels, int nSamples );
+  void HandleAudioForBuffer( void* buffers, int nChannels, int nSamples );
+  
+  void HandleDecodeComplete( void );
+    
   void HandleStats( wxCommandEvent& event );
   void HandleSeek( wxCommandEvent& event );
   void HandlePlay( wxCommandEvent& event );
@@ -243,6 +253,7 @@ TreeItemMusic::TreeItemMusic( TreeDisplayManager* pTree_, wxTreeItemId id_ )
 {
   m_sMusicDirectory = "~/Music/";
 
+  // not used at the moment
   m_pAudioQueueLeft.reset( new AudioQueue<int16_t> );
   pAudio->Attach( 0, m_pAudioQueueLeft );
   m_pAudioQueueRight.reset( new AudioQueue<int16_t> );
@@ -252,13 +263,13 @@ TreeItemMusic::TreeItemMusic( TreeDisplayManager* pTree_, wxTreeItemId id_ )
   //m_connectionFrameTrigger = TreeItemImageCommon::ConnectFrameTrigger( boost::phoenix::bind( &TreeItemVideo::ShowImage, this ) );
   //m_connectionImageReady = m_player.ConnectImageReady( boost::phoenix::bind( &TreeItemVideo::HandleImage, this, args::arg1, args::arg2, args::arg3 ) );
   //m_connectionImageReady = m_player.ConnectImageReady( boost::phoenix::bind( &TreeItemVideo::HandleImage, this, args::arg1, args::arg2 ) );
-  m_connectionAudioReady = m_player.ConnectAudioReady( boost::phoenix::bind( &TreeItemMusic::HandleAudio, this, args::arg1, args::arg2, args::arg3 ) );
-  
-  //BrowseForMusic();  // change this once scripted,  or may use different class instead
+  m_connectionAudioReady = m_player.ConnectAudioReady( boost::phoenix::bind( &TreeItemMusic::HandleAudioForBuffer, this, args::arg1, args::arg2, args::arg3 ) );
+  m_connectionDecodeComplete = m_player.ConnectDecodeDone( boost::phoenix::bind( &TreeItemMusic::HandleDecodeComplete, this ) );
   
 }
 
 TreeItemMusic::~TreeItemMusic( void ) {
+  m_connectionDecodeComplete.disconnect();
   m_connectionAudioReady.disconnect();
   //m_connectionImageReady.disconnect();
   //m_connectionFrameTrigger.disconnect();
@@ -340,16 +351,18 @@ void TreeItemMusic::BrowseForMusic( void ) {
 }
 
 void TreeItemMusic::LoadMusic( void ) {
+  m_vSamplesLeft.clear();
+  m_vSamplesRight.clear();
   m_player.Close();
   if ( m_player.Open( m_sFilePath ) ) {  // means it needs to be closed manually or automatically
     if ( m_player.GetBestAudioStreamFound() ) {
       assert( 44100 == m_player.GetAudioSampleRate() );  // need to be a bit more flexible
     }
-    //m_player.Play();  // get the stream
+    m_player.Play();  // get the stream into our local buffer, may have issue with premature closure
   }
 }
 
-void TreeItemMusic::HandleAudio( void* buffers, int nChannels, int nSamples ) {
+void TreeItemMusic::HandleAudioForPlay( void* buffers, int nChannels, int nSamples ) {
   //std::cout << "TreeItemMusic::HandleAudio" << std::endl;
   assert( 2 == nChannels );
   const int16_t** pSamples( reinterpret_cast<const int16_t**>( buffers ) );
@@ -357,6 +370,20 @@ void TreeItemMusic::HandleAudio( void* buffers, int nChannels, int nSamples ) {
   m_pAudioQueueLeft->AddSamples( nSamples, pSamples[0], guardLeft );
   boost::strict_lock<AudioQueue<int16_t> > guardRight( *m_pAudioQueueRight );
   m_pAudioQueueRight->AddSamples( nSamples, pSamples[1], guardRight );
+}
+
+void TreeItemMusic::HandleAudioForBuffer( void* buffers, int nChannels, int nSamples ) {
+  //std::cout << "TreeItemMusic::HandleAudio" << std::endl;
+  assert( 2 == nChannels );
+  const int16_t** pSamples( reinterpret_cast<const int16_t**>( buffers ) );
+  for ( int ix = 0; ix < nSamples; ++ix ) {
+    m_vSamplesLeft.push_back( pSamples[0][ix] );
+    m_vSamplesRight.push_back( pSamples[1][ix] );
+  }
+}
+
+void TreeItemMusic::HandleDecodeComplete( void ) {
+  std::cout << "Audio Decode Complete: " << m_vSamplesLeft.size() << ", " << m_vSamplesRight.size() << " samples" << std::endl;
 }
 
 // ================

@@ -9,11 +9,17 @@
 
 #include <wx/wx.h>
 
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/version.hpp>
+#include <boost/serialization/split_member.hpp>
+
 #include "Audio.h"
 
 #include "FrameMain.h"
 
 class AppProjection : public wxApp {
+  friend class boost::serialization::access;
 public:
 
 protected:
@@ -49,5 +55,32 @@ private:
   
   void MediaFileStats( void );
   
+  template<typename Archive>
+  void save( Archive& ar, const unsigned int version ) const {
+    if ( 0 < version ) {
+      wxRect rect( m_pFrameMain->GetRect() );
+      int x( rect.GetX() ), y( rect.GetY() ), width( rect.GetWidth() ), height( rect.GetHeight() );
+      ar & x;
+      ar & y;
+      ar & width;
+      ar & height;
+    }
+  }
+  
+  template<typename Archive>
+  void load( Archive& ar, const unsigned int version ) {
+    if ( 0 < version ) {
+      int x, y, width, height;
+      ar & x;
+      ar & y;
+      ar & width;
+      ar & height;
+      m_pFrameMain->SetSize( x, y, width, height );
+    }
+  }
+  
+  BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
+
+BOOST_CLASS_VERSION(AppProjection, 1)
 

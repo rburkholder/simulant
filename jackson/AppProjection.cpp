@@ -9,9 +9,6 @@
 #include <boost/phoenix/bind/bind_member_function.hpp>
 #include <boost/phoenix/core/argument.hpp>
 
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-
 #include <boost/filesystem/operations.hpp>
 
 #include <wx/wx.h>
@@ -103,6 +100,7 @@ void AppProjection::HandleSave( void ) {
   std::cout << "Saving ..." << std::endl;
   std::ofstream ofs( m_sWorkingDirectory + "/jackson.show" );
   boost::archive::text_oarchive oa(ofs);
+  oa << *this;
   m_pSurfaceSources->Save( oa );
   std::cout << "  done." << std::endl;
 }
@@ -112,6 +110,7 @@ void AppProjection::HandleLoad( void ) {
     std::cout << "Loading ..." << std::endl;
     std::ifstream ifs( m_sWorkingDirectory + "/jackson.show" );
     boost::archive::text_iarchive ia(ifs);
+    ia >> *this;
     m_pSurfaceSources->Load( ia );
     std::cout << "  done." << std::endl;
   }
