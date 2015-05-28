@@ -191,13 +191,16 @@ public:
   virtual void ShowContextMenu( void );
   
   void BrowseForMusic( void );
-  void LoadMusic( void );
+  void SelectMusic( void );
+  
+  void SetSelected( CommonGuiElements& elements );
+  void RemoveSelected( CommonGuiElements& elements );
 
 protected:
 private:
   enum {
     ID_Null = wxID_HIGHEST,
-    MILoadMusic, MIMusicSeek, MIMusicPlay, MIMusicStop, MIMusicStats, 
+    MISelectMusic, MIMusicSeek, MIMusicLoadBuffer, MIMusicStop, MIMusicStats, 
     MIDelete
   };
   
@@ -211,9 +214,11 @@ private:
   Audio::pAudioQueue_t m_pAudioQueueRight;
   
   // just want to keep the stream for now (may turn into a class) :
-  typedef std::vector<int16_t> vSamples_t;
-  vSamples_t m_vSamplesLeft;
-  vSamples_t m_vSamplesRight;
+  //typedef std::vector<int16_t> vSamples_t;
+  //vSamples_t m_vSamplesLeft;
+  //vSamples_t m_vSamplesRight;
+  WaveformView* m_pwfvFrontLeft;
+  WaveformView* m_pwfvFrontRight;
   
   boost::signals2::connection m_connectionAudioReady;
   boost::signals2::connection m_connectionDecodeComplete;
@@ -275,12 +280,23 @@ TreeItemMusic::~TreeItemMusic( void ) {
   //m_connectionFrameTrigger.disconnect();
 }
 
+void TreeItemMusic::SetSelected( CommonGuiElements& elements ) {
+  // may need to be more flexible as more waveforms are brought in
+  // may be reverse the approach and display our own waveform in the case of multichannel overlaps
+  m_pwfvFrontLeft = elements.channels.GetChannel( AudioChannels::MonoFrontLeft );
+  m_pwfvFrontRight = elements.channels.GetChannel( AudioChannels::MonoFrontRight );
+}
+
+void TreeItemMusic::RemoveSelected( CommonGuiElements& elements ) {
+  
+}
+
 void TreeItemMusic::ShowContextMenu( void ) {
   
   wxMenu* pMenu = new wxMenu();
 
-  pMenu->Append( MILoadMusic, "Load Music" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleLoadMusic, this, MILoadMusic );
+  pMenu->Append( MISelectMusic, "Select Music" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleLoadMusic, this, MISelectMusic );
 
 //  pMenu->Append( MIReset, "Reset" );
 //  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVisualCommon::HandleReset, this, MIReset );
@@ -297,11 +313,11 @@ void TreeItemMusic::ShowContextMenu( void ) {
   pMenu->Append( MIMusicStats, "Stats" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleStats, this, MIMusicStats );
   
-  pMenu->Append( MIMusicPlay, "Play" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandlePlay, this, MIMusicPlay );
+  pMenu->Append( MIMusicLoadBuffer, "Load Buffer" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandlePlay, this, MIMusicLoadBuffer );
   
-  pMenu->Append( MIMusicStop, "Stop" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleStop, this, MIMusicStop );
+  //pMenu->Append( MIMusicStop, "Stop" );
+  //pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleStop, this, MIMusicStop );
   
   //pMenu->Append( MIDelete, "Delete" );
   //pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleDelete, this, MIDelete );
@@ -329,7 +345,7 @@ void TreeItemMusic::HandleLoadMusic( wxCommandEvent& event ) {
 
 void TreeItemMusic::BrowseForMusic( void ) {
   
-  std::cout << "LoadMusic" << std::endl;  
+  //std::cout << "LoadMusic" << std::endl;  
   wxFileDialog dialogOpenFile( 
     m_pTree->GetParent(),
     //m_pPhysicalDisplay->GetFrame(), 
@@ -345,12 +361,13 @@ void TreeItemMusic::BrowseForMusic( void ) {
     m_sFilePath = dialogOpenFile.GetPath();
     //std::cout << "chose " << sPath << std::endl;
     
-    LoadMusic();
+    SelectMusic();
     
   }
 }
 
-void TreeItemMusic::LoadMusic( void ) {
+void TreeItemMusic::SelectMusic( void ) {
+  m_pTree->get
   m_vSamplesLeft.clear();
   m_vSamplesRight.clear();
   m_player.Close();
@@ -358,7 +375,7 @@ void TreeItemMusic::LoadMusic( void ) {
     if ( m_player.GetBestAudioStreamFound() ) {
       assert( 44100 == m_player.GetAudioSampleRate() );  // need to be a bit more flexible
     }
-    m_player.Play();  // get the stream into our local buffer, may have issue with premature closure
+    //m_player.Play();  // get the stream into our local buffer, may have issue with premature closure
   }
 }
 
@@ -458,7 +475,7 @@ private:
         {
           TreeItemMusic* pMusic = AddMusic();
           ar & *pMusic;
-          pMusic->LoadMusic();
+          pMusic->SelectMusic();
         }
           break;
       }
@@ -940,7 +957,6 @@ private:
   
   typedef SceneManager::key_t key_t;
   typedef boost::shared_ptr<SETexture> pSETexture_t;
-  //typedef boost::shared_ptr<wxImage> pImage_t;
   typedef RawImage::pRawImage_t pRawImage_t;
   typedef std::vector<pRawImage_t> vpRawImage_t;
   typedef std::list<pRawImage_t> lpRawImage_t;
@@ -948,7 +964,6 @@ private:
   wxString m_sPictureDirectory;
   wxString m_sVideoDirectory;
   
-  //wxImage m_image;
   vpRawImage_t m_vpRawImage;
   vpRawImage_t::size_type m_ixvRawImage;  // allows cycling through m_vpRawImage
   
@@ -1019,7 +1034,6 @@ TreeItemVideo::TreeItemVideo(
   
   namespace args = boost::phoenix::arg_names;
   m_connectionFrameTrigger = TreeItemImageCommon::ConnectFrameTrigger( boost::phoenix::bind( &TreeItemVideo::ShowImage, this ) );
-  //m_connectionImageReady = m_player.ConnectImageReady( boost::phoenix::bind( &TreeItemVideo::HandleImage, this, args::arg1, args::arg2, args::arg3 ) );
   m_connectionImageReady = m_player.ConnectImageReady( boost::phoenix::bind( &TreeItemVideo::HandleImage, this, args::arg1, args::arg2 ) );
   m_connectionAudioReady = m_player.ConnectAudioReady( boost::phoenix::bind( &TreeItemVideo::HandleAudio, this, args::arg1, args::arg2, args::arg3 ) );
   
@@ -1714,6 +1728,16 @@ void TreeDisplayManager::SetStaticTextInfo( wxStaticText* pstInfo ) {
 
 void TreeDisplayManager::SetSlider( wxSlider* pSlider ) {
   m_guiElements.pSlider = pSlider;
+}
+
+void TreeDisplayManager::SetWaveformViewersFront( WaveformView* pfl, WaveformView* pfr ) {
+  m_guiElements.channels.SetChannel( AudioChannels::MonoFrontLeft, pfl );
+  m_guiElements.channels.SetChannel( AudioChannels::MonoFrontRight, pfr );
+}
+
+void TreeDisplayManager::SetWaveformViewersRear( WaveformView* prl, WaveformView* prr ) {
+  m_guiElements.channels.SetChannel( AudioChannels::MonoRearLeft, prl );
+  m_guiElements.channels.SetChannel( AudioChannels::MonoRearRight, prr );
 }
 
 void TreeDisplayManager::HandleContextMenu( wxTreeEvent& event ) {

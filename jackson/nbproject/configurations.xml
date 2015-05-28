@@ -36,6 +36,7 @@
       <itemPath>SpinLock.h</itemPath>
       <itemPath>TimeLine.h</itemPath>
       <itemPath>TreeDisplayManager.h</itemPath>
+      <itemPath>WaveformView.h</itemPath>
       <itemPath>common.h</itemPath>
       <itemPath>structures.h</itemPath>
       <itemPath>tex1.h</itemPath>
@@ -83,6 +84,7 @@
       <itemPath>ShaderManager.cpp</itemPath>
       <itemPath>TimeLine.cpp</itemPath>
       <itemPath>TreeDisplayManager.cpp</itemPath>
+      <itemPath>WaveformView.cpp</itemPath>
       <itemPath>tex1.cpp</itemPath>
       <itemPath>tex2.cpp</itemPath>
       <itemPath>tut1.cpp</itemPath>
@@ -270,6 +272,10 @@
       <item path="TreeDisplayManager.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="TreeDisplayManager.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="WaveformView.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="WaveformView.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="common.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -466,6 +472,10 @@
       <item path="TreeDisplayManager.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="TreeDisplayManager.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="WaveformView.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="WaveformView.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="common.h" ex="false" tool="3" flavor2="0">
       </item>

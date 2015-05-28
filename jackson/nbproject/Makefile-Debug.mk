@@ -65,6 +65,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/ShaderManager.o \
 	${OBJECTDIR}/TimeLine.o \
 	${OBJECTDIR}/TreeDisplayManager.o \
+	${OBJECTDIR}/WaveformView.o \
 	${OBJECTDIR}/tex1.o \
 	${OBJECTDIR}/tex2.o \
 	${OBJECTDIR}/tut1.o
@@ -243,6 +244,11 @@ ${OBJECTDIR}/TreeDisplayManager.o: TreeDisplayManager.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/TreeDisplayManager.o TreeDisplayManager.cpp
+
+${OBJECTDIR}/WaveformView.o: WaveformView.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/WaveformView.o WaveformView.cpp
 
 ${OBJECTDIR}/tex1.o: tex1.cpp 
 	${MKDIR} -p ${OBJECTDIR}

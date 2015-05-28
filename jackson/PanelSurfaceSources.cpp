@@ -52,6 +52,11 @@ void PanelSurfaceSources::Init() {
 
   m_bInEditMode = false;
   m_sliderHorizontal = 0;
+  
+  m_pWaveFormFrontLeft = 0;
+  m_pWaveFormFrontRight = 0;
+  m_pWaveFormBackLeft = 0;
+  m_pWaveFormBackRight = 0;
 }
 
 void PanelSurfaceSources::Append( pPhysicalDisplay_t pPhysicalDisplay ) {
@@ -139,8 +144,15 @@ void PanelSurfaceSources::CreateControls() {
   m_btnUndo = new wxButton( m_panelRight, ID_BTN_UNDO, _("Undo"), wxDefaultPosition, wxDefaultSize, 0 );
   itemBoxSizerVertColumn3->Add(m_btnUndo, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 3);
   
+  m_pWaveFormFrontLeft = new WaveformView( m_panelRight, ID_WFV_FRONTLEFT );
+  itemBoxSizerPanelVertical->Add( m_pWaveFormFrontLeft, 1, wxGROW|wxALL, 1 );
+  
+  m_pWaveFormFrontRight = new WaveformView( m_panelRight, ID_WFV_FRONTLEFT );
+  itemBoxSizerPanelVertical->Add( m_pWaveFormFrontRight, 1, wxGROW|wxALL, 1 );
+  
   m_treeDisplays->SetStaticTextInfo( m_stInfo );
   m_treeDisplays->SetSlider( m_sliderHorizontal );
+  m_treeDisplays->SetWaveformViewersFront( m_pWaveFormFrontLeft, m_pWaveFormFrontRight );
 
   Bind( wxEVT_TOGGLEBUTTON, &PanelSurfaceSources::HandleToggleEditMode, this, ID_BTN_EDITMODE );
   Bind( wxEVT_BUTTON, &PanelSurfaceSources::HandleUndo, this, ID_BTN_UNDO );

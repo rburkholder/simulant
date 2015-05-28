@@ -9,6 +9,7 @@
 #define	TREEDISPLAYMANAGER_H
 
 #include <map>
+#include <array>
 
 #include <boost/shared_ptr.hpp>
 
@@ -20,6 +21,7 @@
 
 #include "Audio.h"
 #include "PhysicalDisplay.h"
+#include "WaveformView.h"
 
 #define SYMBOL_TREEDISPLAYMANAGER_STYLE wxTR_HAS_BUTTONS | wxTR_SINGLE
 #define SYMBOL_TREEDISPLAYMANAGER_TITLE _("Displays")
@@ -29,10 +31,35 @@
 
 class TreeItemBase;
 
+class AudioChannels {
+public:
+  enum Mono {
+    MonoFrontLeft, MonoFrontRight,
+    MonoRearLeft, MonoRearRight,
+    MonoWoofer, MonoFrontCenter,
+    MonoCount
+  };
+  
+  AudioChannels( void ) {
+    for ( int ix = MonoFrontLeft; ix < MonoCount; ++ix ) {
+      m_rpWaveformView[ ix ] = 0;
+    }
+  }
+  void SetChannel( Mono channel, WaveformView* p ) { m_rpWaveformView[ channel ] = p;}
+  WaveformView* GetChannel( Mono channel ) { return m_rpWaveformView[ channel ]; }
+  
+protected:
+private:
+  std::array<WaveformView*,MonoCount> m_rpWaveformView;
+};
+  
 struct CommonGuiElements {
   wxStaticText* pstInfo;
   wxSlider* pSlider;
-  CommonGuiElements( void ): pstInfo( 0 ), pSlider( 0 ) {}
+  AudioChannels channels;
+  CommonGuiElements( void ): 
+  pstInfo( 0 ), pSlider( 0 )
+  {}
 };
 
 class TreeDisplayManager: public wxTreeCtrl {
@@ -69,6 +96,8 @@ public:
   
   void SetStaticTextInfo( wxStaticText* pstInfo );
   void SetSlider( wxSlider* pSlider );
+  void SetWaveformViewersFront( WaveformView* pfl, WaveformView* pfr );
+  void SetWaveformViewersRear( WaveformView* prl, WaveformView* prr );
 
   void Save( boost::archive::text_oarchive& oa);
   void Load( boost::archive::text_iarchive& ia);

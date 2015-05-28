@@ -17,6 +17,8 @@
 #include <wx/tglbtn.h>
 #include <wx/slider.h>
 
+#include "WaveformView.h"
+
 #include "TreeDisplayManager.h"
 
 #define SYMBOL_PANELSURFACESOURCES_STYLE wxTAB_TRAVERSAL
@@ -49,7 +51,7 @@ public:
           const wxSize& size = SYMBOL_PANELSURFACESOURCES_SIZE, 
           long style = SYMBOL_PANELSURFACESOURCES_STYLE );
 
-  ~PanelSurfaceSources();
+  virtual ~PanelSurfaceSources();
   
   void Append( pPhysicalDisplay_t pPhysicalDisplay );
   
@@ -82,7 +84,11 @@ private:
     ID_SLIDER_HORIZONTAL,
     ID_SPLITTER_HORIZONTAL,
     ID_PANEL, 
-    ID_ST_FRAMECOUNTER
+    ID_ST_FRAMECOUNTER, 
+    ID_WFV_FRONTLEFT,
+    ID_WFV_FRONTRIGHT,
+    ID_WFV_BACKLEFT, 
+    ID_WFV_BACKRIGHT
   };
   
   bool m_bInEditMode;
@@ -93,6 +99,11 @@ private:
   wxButton* m_btnUndo;
   wxSlider* m_sliderHorizontal;
   wxStaticText* m_stInfo;
+  
+  WaveformView* m_pWaveFormFrontLeft;
+  WaveformView* m_pWaveFormFrontRight;
+  WaveformView* m_pWaveFormBackLeft; // not implemented yet
+  WaveformView* m_pWaveFormBackRight; // not implemented yet
 
   TreeDisplayManager* m_treeDisplays;
   
