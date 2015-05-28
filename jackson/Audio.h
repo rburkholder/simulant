@@ -43,6 +43,7 @@ public:
   
   template<typename Function>
   void Dequeue( unsigned int nSamples, Function function, boost::strict_lock<ChannelMixer<SampleType,OutputType> >& guard ) {
+    std::cout << "ChannelMixer::Dequeue" << std::endl;
     assert( guard.owns_lock( this ) );
     // lock each of the queues
     for ( typename vpAudioQueue_t::iterator iter = m_vpAudioQueue.begin(); iter != m_vpAudioQueue.end(); ++iter ) {

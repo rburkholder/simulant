@@ -442,16 +442,18 @@ void MediaStreamDecode::ProcessStream( size_t ixAudio, size_t ixVideo ) {  // ba
           std::cout << "audio decode error: " << status << std::endl;
         }
         else { 
-          // emit the audio
-          assert( AV_SAMPLE_FMT_S16P == m_vStreamInfo[ ixAudio ].pCodecContext->sample_fmt );
-          m_signalAudioReady( &pFrame->buf, m_vStreamInfo[ ixAudio ].pCodecContext->channels, pFrame->nb_samples );
-          //m_ts.decoded = boost::chrono::high_resolution_clock::now();
-          //m_fi.nAudioFrame = m_vStreamInfo[ixAudio].pCodecContext->frame_number;
-          //std::cout << "#audio samples in frame: " << pFrame->nb_samples << std::endl;
-          //std::cout << "line size: " << pFrame->linesize << std::endl;  // single plane for planar
-          //std::cout << "sample rate: " << m_vStreamInfo[ ix ].pCodecContext->sample_rate << std::endl;
-          //std::cout << "channels: " << m_vStreamInfo[ ix ].pCodecContext->channels << std::endl;
-          //std::cout << "format: " << m_vStreamInfo[ ix ].pCodecContext->sample_fmt << std::endl; // AV_SAMPLE_FMT_S16P    mp3 decode format
+          if ( 0 != gotFrame ) {
+            // emit the audio
+            assert( AV_SAMPLE_FMT_S16P == m_vStreamInfo[ ixAudio ].pCodecContext->sample_fmt );
+            m_signalAudioReady( &pFrame->data, m_vStreamInfo[ ixAudio ].pCodecContext->channels, pFrame->nb_samples );
+            //m_ts.decoded = boost::chrono::high_resolution_clock::now();
+            //m_fi.nAudioFrame = m_vStreamInfo[ixAudio].pCodecContext->frame_number;
+            //std::cout << "#audio samples in frame: " << pFrame->nb_samples << std::endl;
+            //std::cout << "line size: " << pFrame->linesize << std::endl;  // single plane for planar
+            //std::cout << "sample rate: " << m_vStreamInfo[ ix ].pCodecContext->sample_rate << std::endl;
+            //std::cout << "channels: " << m_vStreamInfo[ ix ].pCodecContext->channels << std::endl;
+            //std::cout << "format: " << m_vStreamInfo[ ix ].pCodecContext->sample_fmt << std::endl; // AV_SAMPLE_FMT_S16P    mp3 decode format
+          }
         }
       }
       if ( ixVideo == packet.stream_index ) {

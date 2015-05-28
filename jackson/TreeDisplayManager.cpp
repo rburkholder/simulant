@@ -350,6 +350,7 @@ void TreeItemMusic::LoadMusic( void ) {
 }
 
 void TreeItemMusic::HandleAudio( void* buffers, int nChannels, int nSamples ) {
+  //std::cout << "TreeItemMusic::HandleAudio" << std::endl;
   assert( 2 == nChannels );
   const int16_t** pSamples( reinterpret_cast<const int16_t**>( buffers ) );
   boost::strict_lock<AudioQueue<int16_t> > guardLeft( *m_pAudioQueueLeft );
@@ -429,8 +430,8 @@ private:
         case IdMusic:
         {
           TreeItemMusic* pMusic = AddMusic();
-          pMusic->LoadMusic();
           ar & *pMusic;
+          pMusic->LoadMusic();
         }
           break;
       }

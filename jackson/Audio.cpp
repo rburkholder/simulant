@@ -30,6 +30,8 @@ int Audio::HandleSampleRequest( void* pOutput, void* pInput, unsigned int nFrame
   assert( 0 == pInput );
   assert( 0 != pOutput );
   
+  std::cout << "Audio::HandleSampleRequest" << std::endl;
+  
   if ( RTAUDIO_INPUT_OVERFLOW == status ) std::cout << "audio stream overflow" << std::endl;
   if ( RTAUDIO_OUTPUT_UNDERFLOW == status ) std::cout << "audio stream underflow" << std::endl;
   
