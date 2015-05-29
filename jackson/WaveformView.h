@@ -9,8 +9,6 @@
 
 #include <vector>
 
-//#include <boost/thread/mutex.hpp>
-
 #include <wx/panel.h>
 
 #define SYMBOL_CONTROLWAVEFORMVIEW_STYLE wxTAB_TRAVERSAL
@@ -44,10 +42,6 @@ public:
           long style = SYMBOL_CONTROLWAVEFORMVIEW_STYLE );
   virtual ~WaveformView( );
   
-//  void Clear( void );
-//  void AppendSamples( int nSamples, int16_t* );
-//  vSamples_t::size_type GetSampleCount( void ) { return m_vSamples.size(); }
-  
   void SetSamples( vSamples_t* );
   
 protected:
@@ -58,11 +52,12 @@ private:
     ID_CONTROLWAVEFORMVIEW
   };
   
-//  boost::mutex m_mutexSamples;
+  
   
   vSamples_t* m_pvSamples;
   
   void HandlePaint( wxPaintEvent& );
+  void HandleSize( wxSizeEvent& );
   
   void Init();
   void CreateControls();

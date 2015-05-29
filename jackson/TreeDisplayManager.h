@@ -16,6 +16,9 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 
+#include <boost/phoenix/bind/bind_member_function.hpp>
+#include <boost/phoenix/core/argument.hpp>
+
 #include <wx/wx.h>
 #include <wx/treectrl.h>
 
@@ -103,7 +106,11 @@ public:
   void SetSlider( wxSlider* pSlider );
   void SetWaveformViewersFront( WaveformView* pfl, WaveformView* pfr );
   void SetWaveformViewersRear( WaveformView* prl, WaveformView* prr );
-  void SetButtonEvent( signalBtnEvent_t* signal ) { m_psignalBtnEvent = signal; }
+  void SetButtonEvent( signalBtnEvent_t* signal ) { 
+    m_psignalBtnEvent = signal; 
+    namespace args = boost::phoenix::arg_names;
+    m_connectionBtnEvent = signal->connect( boost::phoenix::bind( &TreeDisplayManager::HandleBtnEvent, this, args::arg1 ) );  
+  }
   
   boost::signals2::connection ConnectSignalBtnEvent( const slotBtnEvent_t& slot ) {
     return m_psignalBtnEvent->connect( slot );
@@ -121,6 +128,7 @@ private:
   };
 
   signalBtnEvent_t* m_psignalBtnEvent;
+  boost::signals2::connection m_connectionBtnEvent;
   
   wxTreeItemId m_idOld;
   

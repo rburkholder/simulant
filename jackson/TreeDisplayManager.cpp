@@ -13,10 +13,6 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/lexical_cast.hpp>
 
-//#include <boost/thread.hpp>
-//#include <boost/asio.hpp>
-
-////#include <boost/phoenix/bind.hpp>
 #include <boost/phoenix/bind/bind_member_function.hpp>
 #include <boost/phoenix/core/argument.hpp>
 
@@ -200,7 +196,7 @@ protected:
 private:
   enum {
     ID_Null = wxID_HIGHEST,
-    MISelectMusic, MIMusicSeek, MIMusicLoadBuffer, MIMusicStop, MIMusicStats, MIMusicPlayBuffer,
+    MISelectMusic, MIMusicSeek, MIMusicLoadBuffer, MIMusicStop, MIMusicStats, MIMusicSendBuffer,
     MIDelete
   };
   
@@ -233,10 +229,10 @@ private:
   void HandleStats( wxCommandEvent& event );
   void HandleSeek( wxCommandEvent& event );
   void HandleLoadBuffer( wxCommandEvent& event );
-  //void HandlePlayBuffer( wxCommandEvent& event );
+  void HandleSendBuffer( wxCommandEvent& event );
   void HandleStop( wxCommandEvent& event );
   
-  void HandlePlayBuffer( TreeDisplayManager::BtnEvent event );
+  //void HandlePlayBuffer( TreeDisplayManager::BtnEvent event );
   
   template<typename Archive>
   void save( Archive& ar, const unsigned int version ) const {
@@ -293,12 +289,12 @@ void TreeItemMusic::SetSelected( CommonGuiElements& elements ) {
   m_pwfvFrontLeft->Refresh();
   m_pwfvFrontRight->SetSamples( &m_vSamplesRight );
   m_pwfvFrontRight->Refresh();
-  namespace args = boost::phoenix::arg_names;
-  m_connectionBtnEvent = m_pTree->ConnectSignalBtnEvent( boost::phoenix::bind( &TreeItemMusic::HandlePlayBuffer, this, args::arg1 ) );
+  //namespace args = boost::phoenix::arg_names;
+  //m_connectionBtnEvent = m_pTree->ConnectSignalBtnEvent( boost::phoenix::bind( &TreeItemMusic::HandlePlayBuffer, this, args::arg1 ) );
 }
 
 void TreeItemMusic::RemoveSelected( CommonGuiElements& elements ) {
-  m_connectionBtnEvent.disconnect();
+  //m_connectionBtnEvent.disconnect();
   m_pwfvFrontLeft->SetSamples( 0 );
   m_pwfvFrontLeft->Refresh();
   m_pwfvFrontLeft = 0;
@@ -333,8 +329,8 @@ void TreeItemMusic::ShowContextMenu( void ) {
   pMenu->Append( MIMusicLoadBuffer, "Load Buffer" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleLoadBuffer, this, MIMusicLoadBuffer );
   
-//  pMenu->Append( MIMusicPlayBuffer, "Play Buffer" );
-//  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandlePlayBuffer, this, MIMusicPlayBuffer );
+  pMenu->Append( MIMusicSendBuffer, "Send Buffer" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleSendBuffer, this, MIMusicSendBuffer );
   
   //pMenu->Append( MIMusicStop, "Stop" );
   //pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleStop, this, MIMusicStop );
@@ -378,10 +374,11 @@ void TreeItemMusic::BrowseForMusic( void ) {
   if (dialogOpenFile.ShowModal() == wxID_OK) {
     m_sMusicDirectory = dialogOpenFile.GetDirectory();
     
-    m_sFilePath = dialogOpenFile.GetPath();
-    //std::cout << "chose " << sPath << std::endl;
+    m_sFilePath = dialogOpenFile.GetPath(); 
     
     SelectMusic();
+    
+    Rename( "Button Label:", dialogOpenFile.GetFilename() );
     
   }
 }
@@ -439,17 +436,21 @@ void TreeItemMusic::HandleAudioForBuffer( AVSampleFormat format, void* buffers, 
   
 }
 
-//void TreeItemMusic::HandlePlayBuffer( wxCommandEvent& event ) {
-//}
-
-void TreeItemMusic::HandlePlayBuffer( TreeDisplayManager::BtnEvent event ) {
-  std::cout << "play buffer start" << std::endl;
-  // need to test that there is something in the buffer before playing
-  boost::strict_lock<AudioQueue<int16_t> > guardLeft( *m_pAudioQueueLeft );
-  m_pAudioQueueLeft->AddSamples( m_vSamplesLeft.size(), &(m_vSamplesLeft[0]), guardLeft );
-  boost::strict_lock<AudioQueue<int16_t> > guardRight( *m_pAudioQueueRight );
-  m_pAudioQueueRight->AddSamples( m_vSamplesLeft.size(), &(m_vSamplesRight[0]), guardRight );
-  pAudio->Play();
+void TreeItemMusic::HandleSendBuffer( wxCommandEvent& event ) {
+//void TreeItemMusic::HandlePlayBuffer( TreeDisplayManager::BtnEvent event ) {
+//  if ( TreeDisplayManager::BtnPlay == event ) {
+    if ( 0 == m_vSamplesLeft.size() && 0 == m_vSamplesLeft.size() ) {
+      std::cout << "nothing to play" << std::endl;
+    }
+    else {
+      std::cout << "stuff to play" << std::endl;
+      boost::strict_lock<AudioQueue<int16_t> > guardLeft( *m_pAudioQueueLeft );
+      m_pAudioQueueLeft->AddSamples( m_vSamplesLeft.size(), &(m_vSamplesLeft[0]), guardLeft );
+      boost::strict_lock<AudioQueue<int16_t> > guardRight( *m_pAudioQueueRight );
+      m_pAudioQueueRight->AddSamples( m_vSamplesLeft.size(), &(m_vSamplesRight[0]), guardRight );
+      //pAudio->Play();
+    }
+//  }
 }
 
 void TreeItemMusic::HandleDecodeComplete( void ) {

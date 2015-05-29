@@ -105,8 +105,13 @@ void WaveformView::HandlePaint( wxPaintEvent& event ) {
   }
 }
 
+void WaveformView::HandleSize( wxSizeEvent& ) {
+  
+}
+
 void WaveformView::CreateControls() {
   Bind( wxEVT_PAINT, &WaveformView::HandlePaint, this );
+  Bind( wxEVT_SIZING, &WaveformView::HandleSize, this );
 }
 
 wxBitmap WaveformView::GetBitmapResource( const wxString& name ) {
