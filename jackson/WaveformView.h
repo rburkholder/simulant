@@ -52,12 +52,28 @@ private:
     ID_CONTROLWAVEFORMVIEW
   };
   
+  bool m_bMouseLeftDown;
+  wxRect m_rectLast;
   
+  struct Vertical { // tracks a line for pixel width of the waveform
+    size_t index;  // index into supplied waveform in m_pvSamples
+    int16_t sampleMin;  // value we want to show  ( may use floats (6 digits) or double (15 digits) for everything )
+    int16_t sampleMax;
+  };
+  
+  typedef std::vector<Vertical> vVertical_t;
+  vVertical_t m_vVertical;
   
   vSamples_t* m_pvSamples;
   
+  void SummarizeSamplesOnEvent( void );
+  void SummarizeSamples( unsigned long width ); // sub-sample at interval based upon number of pixels present
+  
   void HandlePaint( wxPaintEvent& );
   void HandleSize( wxSizeEvent& );
+  void HandleSizing( wxSizeEvent& );
+  void HandleMouseLeftDown( wxMouseEvent& );
+  void HandleMouseLeftUp( wxMouseEvent& );
   
   void Init();
   void CreateControls();

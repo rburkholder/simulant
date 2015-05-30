@@ -286,9 +286,9 @@ void TreeItemMusic::SetSelected( CommonGuiElements& elements ) {
   m_pwfvFrontLeft = elements.channels.GetChannel( AudioChannels::MonoFrontLeft );
   m_pwfvFrontRight = elements.channels.GetChannel( AudioChannels::MonoFrontRight );
   m_pwfvFrontLeft->SetSamples( &m_vSamplesLeft );
-  m_pwfvFrontLeft->Refresh();
+  //m_pwfvFrontLeft->Refresh();
   m_pwfvFrontRight->SetSamples( &m_vSamplesRight );
-  m_pwfvFrontRight->Refresh();
+  //m_pwfvFrontRight->Refresh();
   //namespace args = boost::phoenix::arg_names;
   //m_connectionBtnEvent = m_pTree->ConnectSignalBtnEvent( boost::phoenix::bind( &TreeItemMusic::HandlePlayBuffer, this, args::arg1 ) );
 }
@@ -296,10 +296,10 @@ void TreeItemMusic::SetSelected( CommonGuiElements& elements ) {
 void TreeItemMusic::RemoveSelected( CommonGuiElements& elements ) {
   //m_connectionBtnEvent.disconnect();
   m_pwfvFrontLeft->SetSamples( 0 );
-  m_pwfvFrontLeft->Refresh();
+  //m_pwfvFrontLeft->Refresh();
   m_pwfvFrontLeft = 0;
   m_pwfvFrontRight->SetSamples( 0 );
-  m_pwfvFrontRight->Refresh();
+  //m_pwfvFrontRight->Refresh();
   m_pwfvFrontRight = 0;
   
 }
@@ -455,8 +455,8 @@ void TreeItemMusic::HandleSendBuffer( wxCommandEvent& event ) {
 
 void TreeItemMusic::HandleDecodeComplete( void ) {
   std::cout << "Audio Decode Complete: " << m_vSamplesLeft.size() << ", " << m_vSamplesRight.size() << " samples" << std::endl;
-  if ( 0 != m_pwfvFrontLeft ) m_pwfvFrontLeft->Refresh();
-  if ( 0 != m_pwfvFrontRight ) m_pwfvFrontRight->Refresh();
+  if ( 0 != m_pwfvFrontLeft )  m_pwfvFrontLeft->SetSamples( &m_vSamplesLeft );  //m_pwfvFrontLeft->Refresh();
+  if ( 0 != m_pwfvFrontRight ) m_pwfvFrontRight->SetSamples( &m_vSamplesRight ); //m_pwfvFrontRight->Refresh();
 }
 
 // ================
