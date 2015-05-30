@@ -118,7 +118,7 @@ private:
   
   wxPanel* m_panelWaveforms; // handles mouse events
   
-  wxPoint m_posMouse;
+  wxPoint m_posMouseOnLeftDown;
   
   WaveformView* m_pWaveFormFrontLeft;
   WaveformView* m_pWaveFormFrontRight;
@@ -140,8 +140,12 @@ private:
 
   void HandleMouseWheelInWaveformsPanel( wxMouseEvent& );
   void HandleMouseMotionInWaveformsPanel( wxMouseEvent& );
+  
   void HandleMouseWheelInWaveform( wxMouseEvent& );
   void HandleMouseMotionInWaveform( wxMouseEvent& );
+  void HandleMouseLeftDownInWaveform( wxMouseEvent& );
+  void HandleMouseLeftUpInWaveform( wxMouseEvent& );
+  
   void HandleEnterWindow( wxMouseEvent& );
   void HandleLeaveWindow( wxMouseEvent& );
   

@@ -47,6 +47,8 @@ public:
   void ZoomIn( int x );
   void ZoomOut( int x );
   
+  void Shift( int x ); // x is relative left or right
+  
 protected:
 private:
   

@@ -255,6 +255,12 @@ void PanelSurfaceSources::CreateControls() {
   m_pWaveFormFrontLeft->Bind( wxEVT_MOUSEWHEEL, &PanelSurfaceSources::HandleMouseWheelInWaveform, this );
   m_pWaveFormFrontRight->Bind( wxEVT_MOUSEWHEEL, &PanelSurfaceSources::HandleMouseWheelInWaveform, this );
   
+  m_pWaveFormFrontLeft->Bind( wxEVT_LEFT_DOWN, &PanelSurfaceSources::HandleMouseLeftDownInWaveform, this );
+  m_pWaveFormFrontRight->Bind( wxEVT_LEFT_DOWN, &PanelSurfaceSources::HandleMouseLeftDownInWaveform, this );
+  
+  m_pWaveFormFrontLeft->Bind( wxEVT_LEFT_UP, &PanelSurfaceSources::HandleMouseLeftUpInWaveform, this );
+  m_pWaveFormFrontRight->Bind( wxEVT_LEFT_UP, &PanelSurfaceSources::HandleMouseLeftUpInWaveform, this );
+  
   //Bind( wxEVT_SCROLL_THUMBTRACK, &PanelSurfaceSources::HandleScrollThumbTrack, this, ID_SLIDER_HORIZONTAL );
   //Bind( wxEVT_SCROLL_LINEUP, &PanelSurfaceSources::HandleScrollLineChange, this, ID_SLIDER_HORIZONTAL );
   //Bind( wxEVT_SCROLL_LINEDOWN, &PanelSurfaceSources::HandleScrollLineChange, this, ID_SLIDER_HORIZONTAL );
@@ -275,37 +281,50 @@ void PanelSurfaceSources::HandleMouseWheelInWaveformsPanel( wxMouseEvent& event 
 
 void PanelSurfaceSources::HandleMouseMotionInWaveformsPanel( wxMouseEvent& event ) {
   //m_pWaveFormFrontLeft->HitTest()
-  m_posMouse = event.GetPosition();
+  //m_posMouse = event.GetPosition();
   //std::cout << "1 motion: " << m_posMouse.x << "," << m_posMouse.y << std::endl;
 }
 
 void PanelSurfaceSources::HandleMouseWheelInWaveform( wxMouseEvent& event ) {
-  m_posMouse = event.GetPosition();
-  std::cout << "0 wheel: " 
-    << event.GetWheelRotation() 
-    << "," << event.GetWheelDelta()
-    << "," << event.GetLinesPerAction() 
-    << "," << m_posMouse.x << "," << m_posMouse.y 
-    << std::endl;
+  wxPoint posMouse = event.GetPosition();
+  //std::cout << "0 wheel: " << event.GetWheelRotation() << "," << event.GetWheelDelta()
+  //  << "," << event.GetLinesPerAction() << "," << m_posMouse.x << "," << m_posMouse.y 
+  //  << std::endl;
   //event.Skip();
   //event.ResumePropagation( 1 );
   if ( event.GetWheelRotation() > 0 ) {
-    m_pWaveFormFrontLeft->ZoomIn( m_posMouse.x );
-    m_pWaveFormFrontRight->ZoomIn( m_posMouse.x );
+    m_pWaveFormFrontLeft->ZoomIn( posMouse.x );
+    m_pWaveFormFrontRight->ZoomIn( posMouse.x );
   }
   else {
-    m_pWaveFormFrontLeft->ZoomOut( m_posMouse.x );
-    m_pWaveFormFrontRight->ZoomOut( m_posMouse.x );
+    m_pWaveFormFrontLeft->ZoomOut( posMouse.x );
+    m_pWaveFormFrontRight->ZoomOut( posMouse.x );
   }
   m_pWaveFormFrontLeft->Refresh();
   m_pWaveFormFrontRight->Refresh();
 }
 
 void PanelSurfaceSources::HandleMouseMotionInWaveform( wxMouseEvent& event ) {
-  m_posMouse = event.GetPosition();
   //std::cout << "0 motion: " << m_posMouse.x << "," << m_posMouse.y << "," << event.Dragging() << std::endl;
-  //event.Skip();
-  //event.ResumePropagation( 1 );
+  wxPoint point = event.GetPosition();
+  int x = point.x;
+  if ( event.Dragging() && ( x != m_posMouseOnLeftDown.x ) ) {
+    int diff = x - m_posMouseOnLeftDown.x;
+    std::cout << "shift " << diff << std::endl;
+    m_pWaveFormFrontLeft->Shift( diff );
+    m_pWaveFormFrontRight->Shift( diff );
+    m_pWaveFormFrontLeft->Refresh();
+    m_pWaveFormFrontRight->Refresh();
+    m_posMouseOnLeftDown = point;
+  }
+}
+
+void PanelSurfaceSources::HandleMouseLeftDownInWaveform( wxMouseEvent& event ) {
+  m_posMouseOnLeftDown = event.GetPosition();
+}
+
+void PanelSurfaceSources::HandleMouseLeftUpInWaveform( wxMouseEvent& event ) {
+  
 }
 
 void PanelSurfaceSources::HandleUndo( wxCommandEvent& event ) {

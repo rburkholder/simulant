@@ -247,6 +247,30 @@ void WaveformView::SummarizeSamples( unsigned long width, size_t ixStart, size_t
   }
 }
 
+void WaveformView::Shift( int x ) {
+  if ( 0 != x ) {
+    if ( 0 != m_pvSamples ) {
+      const size_t width( m_vVertical.size() );
+      const size_t nSamplesTotal( m_pvSamples->size() );
+      assert( width <= m_nSamplesInWindow );
+      size_t stepSamples = m_nSamplesInWindow / width;
+      if ( 0 <= x ) { // positive
+        size_t diff = x * stepSamples;
+        size_t first = 0;
+        if ( diff < m_ixFirstSampleInWindow ) first = m_ixFirstSampleInWindow - diff;
+        SummarizeSamples( width, first, m_nSamplesInWindow );
+      }
+      else {
+        size_t diff = -x * stepSamples;
+        size_t first = m_ixFirstSampleInWindow + diff;
+        if ( first >  ( nSamplesTotal - m_nSamplesInWindow ) ) first = nSamplesTotal - m_nSamplesInWindow;
+        SummarizeSamples( width, first, m_nSamplesInWindow );
+
+      }
+    }
+  }
+}
+
 void WaveformView::ZoomIn( int x ) {
   
   if ( 0 != m_pvSamples ) {
@@ -259,7 +283,7 @@ void WaveformView::ZoomIn( int x ) {
       assert( x <= width );
       size_t ixAbsoluteSample = m_vVertical[ x ].index;
       size_t nSamplesInWindow = ( m_nSamplesInWindow * 3 ) / 4;  // use this ratio for now
-      if ( width > nSamplesInWindow ) nSamplesInWindow = width;
+      if ( width > nSamplesInWindow ) nSamplesInWindow = width;  // minimum of 1 to 1 samples
       size_t offsetRelative = ( x * nSamplesInWindow ) / width;
       size_t startAbsolute = ixAbsoluteSample - offsetRelative;
       assert( m_pvSamples->size() > ( startAbsolute + nSamplesInWindow ) );
