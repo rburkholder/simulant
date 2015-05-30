@@ -91,6 +91,7 @@ private:
     ID_SPLITTER_HORIZONTAL,
     ID_PANEL, 
     ID_ST_FRAMECOUNTER, 
+    ID_PANEL_WAVEFORMS,
     ID_WFV_FRONTLEFT,
     ID_WFV_FRONTRIGHT,
     ID_WFV_BACKLEFT, 
@@ -115,6 +116,10 @@ private:
   wxButton* m_btnStop;
   wxButton* m_btnAbort;  
   
+  wxPanel* m_panelWaveforms; // handles mouse events
+  
+  wxPoint m_posMouse;
+  
   WaveformView* m_pWaveFormFrontLeft;
   WaveformView* m_pWaveFormFrontRight;
   WaveformView* m_pWaveFormBackLeft; // not implemented yet
@@ -133,6 +138,14 @@ private:
   void HandleStop( wxCommandEvent& event );
   void HandleAbort( wxCommandEvent& event );
 
+  void HandleMouseWheelInWaveformsPanel( wxMouseEvent& );
+  void HandleMouseMotionInWaveformsPanel( wxMouseEvent& );
+  void HandleMouseWheelInWaveform( wxMouseEvent& );
+  void HandleMouseMotionInWaveform( wxMouseEvent& );
+  void HandleEnterWindow( wxMouseEvent& );
+  void HandleLeaveWindow( wxMouseEvent& );
+  
+  
   void Init();
   void CreateControls();
   wxBitmap GetBitmapResource( const wxString& name );

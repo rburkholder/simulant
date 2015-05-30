@@ -29,6 +29,8 @@ WaveformView::WaveformView( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 void WaveformView::Init() {
   m_pvSamples = 0;
   m_bMouseLeftDown = false;
+  m_ixFirstSampleInWindow = 0;
+  m_nSamplesInWindow = 0;
 }
 
 bool WaveformView::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) {
@@ -45,7 +47,7 @@ bool WaveformView::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, 
   
   // this code snippet should be in a method
   wxRect rect( this->GetClientRect() );
-  SummarizeSamples( rect.GetWidth() );
+  SummarizeSamples( rect.GetWidth(), m_ixFirstSampleInWindow, m_nSamplesInWindow );
   
   return true;
 }
@@ -54,8 +56,10 @@ void WaveformView::CreateControls() {
   Bind( wxEVT_PAINT, &WaveformView::HandlePaint, this );
   Bind( wxEVT_SIZE, &WaveformView::HandleSize, this );
   Bind( wxEVT_SIZING, &WaveformView::HandleSizing, this );
-  Bind( wxEVT_LEFT_DOWN, &WaveformView::HandleMouseLeftDown, this );
-  Bind( wxEVT_LEFT_UP, &WaveformView::HandleMouseLeftUp, this );
+  //Bind( wxEVT_LEFT_DOWN, &WaveformView::HandleMouseLeftDown, this );
+  //Bind( wxEVT_LEFT_UP, &WaveformView::HandleMouseLeftUp, this );
+  //Bind( wxEVT_MOUSEWHEEL, &WaveformView::HandleMouseWheel, this );
+  //Bind( wxEVT_MOTION, &WaveformView::HandleMouseMotion, this );
 }
 
 WaveformView::~WaveformView( ) {
@@ -65,8 +69,8 @@ void WaveformView::SetSamples( vSamples_t* p ) {
   //std::cout << "Set Samples start" << std::endl;
   m_pvSamples = p;
   wxRect rect( this->GetClientRect() );
-  SummarizeSamples( rect.GetWidth() );
-  this->Refresh();
+  SummarizeSamples( rect.GetWidth(), 0, p->size() );
+  this->Refresh();  // is this needed?
   //std::cout << "Set Samples done" << std::endl;
 }
 
@@ -118,7 +122,7 @@ void WaveformView::HandlePaint( wxPaintEvent& event ) {
 }
 
 // may want to do in background thread at some point
-void WaveformView::SummarizeSamples( unsigned long width ) {
+void WaveformView::SummarizeSamples( unsigned long width, size_t ixStart, size_t n ) {
   
   struct EmptyFill {
     inline void operator()( Vertical& vertical ) {
@@ -157,14 +161,14 @@ void WaveformView::SummarizeSamples( unsigned long width ) {
   struct FullFill {
     typedef WaveformView::vVertical_t::iterator iter;
     typedef WaveformView::vVertical_t::const_iterator citer;
-    FullFill( iter iterBegin_, citer iterEnd_, size_t step_ )
+    FullFill( iter iterBegin_, citer iterEnd_, size_t start_, size_t step_ )
       : iterBegin( iterBegin_ ), iterEnd( iterEnd_ ), step( step_ ), remaining_in_step( step_ ), 
-      ix( 0 ), ixBeginOfSummary( 0 ), min {}, max {}, initType {} {
+      ix( start_ ), ixBeginOfSummary( start_ ), min {}, max {}, initType {} {
         assert( 0 != step_ );
                                                       }
       ~FullFill( void ) {
         if ( 0 != remaining_in_step ) {
-          std::cout << "~fullfill " << step << "," << remaining_in_step << ", " << iterEnd - iterBegin << std::endl;
+          //std::cout << "~fullfill " << step << "," << remaining_in_step << ", " << iterEnd - iterBegin << std::endl;
           if ( iterEnd != iterBegin ) {
             iterBegin->index = ixBeginOfSummary;  // index to beginning of summarized samples
             iterBegin->sampleMin = min;
@@ -179,14 +183,19 @@ void WaveformView::SummarizeSamples( unsigned long width ) {
       max = std::max<int16_t>( max, sample );
       --remaining_in_step;
       if ( 0 == remaining_in_step ) {
-        assert( iterEnd != iterBegin );
-        iterBegin->index = ixBeginOfSummary;  // index to beginning of summarized samples
-        ixBeginOfSummary = ix;
-        iterBegin->sampleMin = min;
-        iterBegin->sampleMax = max;
-        min = max = initType;
-        remaining_in_step = step;
-        ++iterBegin; 
+        if ( iterEnd == iterBegin ) {
+          std::cout << "left over? " << ixBeginOfSummary << "," << ix << std::endl;
+        }
+        else {
+          //assert( iterEnd != iterBegin );
+          iterBegin->index = ixBeginOfSummary;  // index to beginning of summarized samples
+          ixBeginOfSummary = ix;
+          iterBegin->sampleMin = min;
+          iterBegin->sampleMax = max;
+          min = max = initType;
+          remaining_in_step = step;
+          ++iterBegin; 
+        }
       }
       ++ix;
     }
@@ -200,6 +209,9 @@ void WaveformView::SummarizeSamples( unsigned long width ) {
     iter iterBegin;
     citer iterEnd;
   };
+  
+  m_ixFirstSampleInWindow = ixStart;
+  m_nSamplesInWindow = n;
   
   m_vVertical.resize( width );
   if ( ( 0 == m_pvSamples ) || ( 4 >= width ) ) { // show a straight line for little or nothing
@@ -225,10 +237,58 @@ void WaveformView::SummarizeSamples( unsigned long width ) {
         // not sure yet if a +1 is needed after width
         // may have an overflow issue with not enough samples to fill vertical
         //std::cout << "summary with FullFill: " << width << ", v=" << m_vVertical.size() << ", s=" << m_pvSamples->size() << std::endl;
-        size_t step = m_pvSamples->size() / ( width - 1 ); // # samples per pixel width, integer arithmetic, make use of remainder
+        size_t step = n / ( width ); // # samples per pixel width, integer arithmetic, make use of remainder
         //std::for_each( m_vVertical.begin(), m_vVertical.end(), FullFill( m_pvSamples->begin(), m_pvSamples->end(), step ) );
-        std::for_each( m_pvSamples->begin(), m_pvSamples->end(), FullFill( m_vVertical.begin(), m_vVertical.end(), step ) );
+        //std::for_each( m_pvSamples->begin(), m_pvSamples->end(), FullFill( m_vVertical.begin(), m_vVertical.end(), step ) );
+        vSamples_t::const_iterator iterBegin( m_pvSamples->begin() + ixStart );
+        std::for_each( iterBegin, iterBegin + n, FullFill( m_vVertical.begin(), m_vVertical.end(), ixStart, step ) );
       }
+    }
+  }
+}
+
+void WaveformView::ZoomIn( int x ) {
+  
+  if ( 0 != m_pvSamples ) {
+    const size_t width( m_vVertical.size() );
+    if ( width == m_nSamplesInWindow ) {
+      // can't zoom in any more
+    }
+    else {
+      const size_t width( m_vVertical.size() );
+      assert( x <= width );
+      size_t ixAbsoluteSample = m_vVertical[ x ].index;
+      size_t nSamplesInWindow = ( m_nSamplesInWindow * 3 ) / 4;  // use this ratio for now
+      if ( width > nSamplesInWindow ) nSamplesInWindow = width;
+      size_t offsetRelative = ( x * nSamplesInWindow ) / width;
+      size_t startAbsolute = ixAbsoluteSample - offsetRelative;
+      assert( m_pvSamples->size() > ( startAbsolute + nSamplesInWindow ) );
+      SummarizeSamples( width, startAbsolute, nSamplesInWindow );
+    }
+  }
+  
+}
+
+void WaveformView::ZoomOut( int x ) {
+  
+  if ( 0 != m_pvSamples ) {
+    const size_t size( m_pvSamples->size() );
+    if ( size == m_nSamplesInWindow ) {
+      // can't zoom out any more, need to check for the < issue, check done below
+    }
+    else {
+      const size_t width( m_vVertical.size() );
+      assert( x <= width );
+      size_t ixAbsoluteSample = m_vVertical[ x ].index;
+      size_t nSamplesInWindow = ( m_nSamplesInWindow * 4 ) / 3;  // use this ratio for now
+      if ( size < nSamplesInWindow ) nSamplesInWindow = size;
+      size_t offsetRelative = ( x * nSamplesInWindow ) / width;
+      if ( offsetRelative > ixAbsoluteSample ) offsetRelative = ixAbsoluteSample;
+      size_t startAbsolute = ixAbsoluteSample - offsetRelative;
+      if ( startAbsolute > ( size - nSamplesInWindow ) ) startAbsolute = size - nSamplesInWindow;
+      std::cout << "final: " << startAbsolute << "," << size << "," << nSamplesInWindow << std::endl;
+      assert( size >= ( startAbsolute + nSamplesInWindow ) );
+      SummarizeSamples( width, startAbsolute, nSamplesInWindow );
     }
   }
 }
@@ -237,7 +297,7 @@ void WaveformView::SummarizeSamplesOnEvent( void ) {
   wxRect rectNew = this->GetRect();
   if ( rectNew != m_rectLast ) {
     m_rectLast = rectNew;
-    SummarizeSamples( m_rectLast.GetWidth() );
+    SummarizeSamples( m_rectLast.GetWidth(), m_ixFirstSampleInWindow, m_nSamplesInWindow );
   }
 }
 
@@ -262,6 +322,15 @@ void WaveformView::HandleMouseLeftUp( wxMouseEvent& ) {
   std::cout << "leftup" << std::endl; // isn't being called
   m_bMouseLeftDown = false;
   SummarizeSamplesOnEvent();
+}
+
+void WaveformView::HandleMouseWheel( wxMouseEvent& event ) {
+  //std::cout << "wheel: " << event.GetWheelRotation() << std::endl;
+}
+
+void WaveformView::HandleMouseMotion( wxMouseEvent& event ) {
+  //m_posMouse = event.GetPosition();
+  //std::cout << "motion: " << m_posMouse.x << std::endl;
 }
 
 wxBitmap WaveformView::GetBitmapResource( const wxString& name ) {

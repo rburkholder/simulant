@@ -44,6 +44,9 @@ public:
   
   void SetSamples( vSamples_t* );
   
+  void ZoomIn( int x );
+  void ZoomOut( int x );
+  
 protected:
 private:
   
@@ -66,14 +69,19 @@ private:
   
   vSamples_t* m_pvSamples;
   
+  size_t m_ixFirstSampleInWindow;
+  size_t m_nSamplesInWindow;
+  
   void SummarizeSamplesOnEvent( void );
-  void SummarizeSamples( unsigned long width ); // sub-sample at interval based upon number of pixels present
+  void SummarizeSamples( unsigned long width, size_t ixStart, size_t n ); // sub-sample at interval based upon number of pixels present
   
   void HandlePaint( wxPaintEvent& );
   void HandleSize( wxSizeEvent& );
   void HandleSizing( wxSizeEvent& );
   void HandleMouseLeftDown( wxMouseEvent& );
   void HandleMouseLeftUp( wxMouseEvent& );
+  void HandleMouseWheel( wxMouseEvent& );
+  void HandleMouseMotion( wxMouseEvent& );
   
   void Init();
   void CreateControls();
