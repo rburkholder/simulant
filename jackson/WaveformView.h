@@ -82,18 +82,19 @@ private:
   size_t m_nSamplesInWindow;
   
   wxColour m_colourBackground;
-  wxColour m_colourText;
   wxColour m_colourWaveform;
   
   struct Cursor {
-    std::string m_sDescription;
+    //std::string m_sDescription;
     bool m_bCursorActive;
     bool m_bCursorDrawn;
     size_t m_locCursor;  // x cursor location/index into Vertical
     size_t m_ixFrame;  // for frame indexing
     wxColour m_colourCursor;
+    wxPoint m_pointStatusText;
     Cursor( void ): 
       m_bCursorActive( false ), m_bCursorDrawn( false ), 
+      m_pointStatusText( wxPoint( 0, 0 ) ),
       m_locCursor( std::numeric_limits<size_t>::max() ), 
       m_ixFrame( std::numeric_limits<size_t>::max() ),
       m_colourCursor( wxColour( 255,255,255 ) ) {}
@@ -104,8 +105,6 @@ private:
   
   boost::atomic<size_t> m_nFramesPlayed;
   boost::atomic<size_t> m_nEventsQueued;
-  
-  wxPoint m_pointStatusText;
   
   void SummarizeSamplesOnEvent( void );
   void SummarizeSamples( unsigned long width, size_t ixStart, size_t n ); // sub-sample at interval based upon number of pixels present
@@ -124,6 +123,9 @@ private:
   void HandleLeaveWindow( wxMouseEvent& );
   
   void HandlePlayCursor( wxCommandEvent& );
+  
+  void DrawTime( Cursor& cursor, wxPoint& point, size_t nSample, size_t numerator, size_t denominator );
+  void EraseTime( Cursor& cursor, wxPoint& point );
   
   void DrawCursor( int ix, Cursor& cursor ); // if < 0, don't draw
   

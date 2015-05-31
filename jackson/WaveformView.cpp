@@ -18,8 +18,6 @@
 
 IMPLEMENT_DYNAMIC_CLASS( WaveformView, wxPanel )
 
-// todo:  count up / count down on the timer
-
 WaveformView::WaveformView( ) {
   Init();
 }
@@ -36,16 +34,13 @@ void WaveformView::Init() {
   m_nSamplesInWindow = 0;
   
   m_colourBackground = wxColour( 0, 0, 0 );
-  //m_colourText = wxColour( 0, 255, 255 );
-  m_colourText = wxColour( 218,112,214 );
   m_colourWaveform = wxColour( 255, 102, 0 );
-  //m_colourCursor = wxColour( 218,112,214 );
-  //m_colourCursorPlay = wxColour( 0, 255, 0 );
-  
-  m_pointStatusText = wxPoint( 2, 2 );
   
   m_cursorInteractive.m_colourCursor = wxColour( 218,112,214 );
+  m_cursorInteractive.m_pointStatusText = wxPoint( 120, 2 );
+  
   m_cursorPlay.m_colourCursor = wxColour( 0, 255, 0 );
+  m_cursorPlay.m_pointStatusText = wxPoint( 2, 2 );
   
   m_nFramesPlayed.store( 0 );
   m_nEventsQueued.store( 0 );
@@ -116,6 +111,16 @@ void WaveformView::HandlePlayCursor( wxCommandEvent& ) {
             DrawCursor( n, m_cursorPlay );
             cursor.m_ixFrame = nFramesPlayed;
           }
+        }
+        wxPoint point( m_cursorPlay.m_pointStatusText );
+        DrawTime( m_cursorPlay, point, nFramesPlayed, 1, 44100 );
+        point.y += 13;
+        size_t size( m_pvSamples->size() );
+        if ( nFramesPlayed <= size ) {
+          DrawTime( m_cursorPlay, point, size - nFramesPlayed, 1, 44100 );
+        }
+        else {
+          EraseTime( m_cursorPlay, point );
         }
       }
     }
@@ -469,49 +474,41 @@ void WaveformView::DrawCursor( int ix, Cursor& cursor ) {
   }
 }
 
-void WaveformView::HandleMouseMotion( wxMouseEvent& event ) {
-  wxPoint posMouse = event.GetPosition();
-  if ( 0 != m_pvSamples ) {
-    
-    wxClientDC dc( this );
-    wxBrush brush( dc.GetBrush() );
-    wxPen pen( dc.GetPen() );
-    
-    size_t nSample( m_vVertical[ posMouse.x ].index );
-    
-    int x = event.GetPosition().x;
-    DrawCursor( x, m_cursorInteractive );
-    
-    // generalize this for generic cursor management and keyframe management
-    size_t nSeconds = nSample / 44100;
-    size_t ms = ( 1000 * ( nSample % 44100 ) ) / 44100;
-    boost::posix_time::time_duration time( 0, 0, nSeconds );
-    time += boost::posix_time::milliseconds( ms );
-    //std::cout << "samples: " << nSamples << "," << remainder << "," << ms << std::endl;
-    
-    std::stringstream ss;
-    ss << time;
-    std::string s( ss.str() );
-    
-    wxSize sizeText = dc.GetTextExtent( s );
-    
-    dc.SetTextBackground( m_colourBackground );
-    dc.SetTextForeground( m_colourText );
-    brush.SetColour( m_colourBackground );
-    dc.SetBrush( brush );
-    pen.SetColour( m_colourBackground );
-    dc.SetPen( pen );
-    dc.DrawRectangle( m_pointStatusText, sizeText );
-    //pen.SetColour( m_colourText );
-    //dc.SetPen( pen );
-    dc.DrawText( s, m_pointStatusText );
-  }
-  event.Skip();
+void WaveformView::DrawTime( Cursor& cursor, wxPoint& point, size_t nSample, size_t numerator, size_t denominator ) {
+  
+  // *** note: there is a problem with the numerator in the remainder part
+  // *** this needs to be fixed before fully generalized
+  assert( 1 == numerator );
+  
+  wxClientDC dc( this );
+  wxBrush brush( dc.GetBrush() );
+  wxPen pen( dc.GetPen() );
+
+  // generalize this for generic cursor management and keyframe management
+  size_t nSeconds = ( numerator * nSample ) / denominator;
+  size_t microseconds = ( 1000000 * ( nSample % denominator ) ) / denominator;
+  boost::posix_time::time_duration time( 0, 0, nSeconds );
+  time += boost::posix_time::microseconds( microseconds );
+  //std::cout << "samples: " << nSamples << "," << remainder << "," << ms << std::endl;
+
+  std::stringstream ss;
+  ss << time;
+  std::string s( ss.str() );
+
+  wxSize sizeText = dc.GetTextExtent( s );
+
+  brush.SetColour( m_colourBackground );
+  dc.SetBrush( brush );
+  pen.SetColour( m_colourBackground );
+  dc.SetPen( pen );
+  dc.DrawRectangle( point, sizeText );
+  dc.SetTextBackground( m_colourBackground );
+  dc.SetTextForeground( cursor.m_colourCursor );
+  dc.DrawText( s, point );
+
 }
 
-void WaveformView::HandleLeaveWindow( wxMouseEvent& event ) {
-  //std::cout << "wfv leave window" << std::endl;
-  DrawCursor( -1, m_cursorInteractive );  
+void WaveformView::EraseTime( Cursor& cursor, wxPoint& point ) {
   static const std::string s( "00:00:00.000000");
   wxClientDC dc( this );
   wxSize size = dc.GetTextExtent( s );
@@ -521,7 +518,27 @@ void WaveformView::HandleLeaveWindow( wxMouseEvent& event ) {
   wxPen pen( dc.GetPen() );
   pen.SetColour( m_colourBackground );
   dc.SetPen( pen );
-  dc.DrawRectangle( m_pointStatusText, size );
+  dc.DrawRectangle( point, size );
+}
+
+void WaveformView::HandleMouseMotion( wxMouseEvent& event ) {
+  wxPoint posMouse = event.GetPosition();
+  if ( 0 != m_pvSamples ) {
+    
+    size_t nSample( m_vVertical[ posMouse.x ].index );
+    
+    int x = event.GetPosition().x;
+    DrawCursor( x, m_cursorInteractive );
+    DrawTime( m_cursorInteractive, m_cursorInteractive.m_pointStatusText, nSample, 1, 44100 );
+    
+  }
+  event.Skip();
+}
+
+void WaveformView::HandleLeaveWindow( wxMouseEvent& event ) {
+  //std::cout << "wfv leave window" << std::endl;
+  DrawCursor( -1, m_cursorInteractive );  
+  EraseTime( m_cursorInteractive, m_cursorInteractive.m_pointStatusText );
 }
 
 wxBitmap WaveformView::GetBitmapResource( const wxString& name ) {
