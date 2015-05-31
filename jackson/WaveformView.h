@@ -74,16 +74,31 @@ private:
   size_t m_ixFirstSampleInWindow;
   size_t m_nSamplesInWindow;
   
+  wxColour m_colourBackground;
+  wxColour m_colourText;
+  wxColour m_colourWaveform;
+  wxColour m_colourCursor;
+  
+  bool m_bCursorDrawn;
+  int m_locCursor;  // x cursor location
+  
+  wxPoint m_pointStatusText;
+  
   void SummarizeSamplesOnEvent( void );
   void SummarizeSamples( unsigned long width, size_t ixStart, size_t n ); // sub-sample at interval based upon number of pixels present
   
   void HandlePaint( wxPaintEvent& );
+  void HandleEraseBackground( wxEraseEvent& );
+  
   void HandleSize( wxSizeEvent& );
   void HandleSizing( wxSizeEvent& );
   void HandleMouseLeftDown( wxMouseEvent& );
   void HandleMouseLeftUp( wxMouseEvent& );
   void HandleMouseWheel( wxMouseEvent& );
   void HandleMouseMotion( wxMouseEvent& );
+  void HandleLeaveWindow( wxMouseEvent& );
+  
+  void DrawCursor( int x ); // if < 0, don't draw
   
   void Init();
   void CreateControls();

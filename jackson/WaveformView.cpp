@@ -37,6 +37,17 @@ void WaveformView::Init() {
   m_bMouseLeftDown = false;
   m_ixFirstSampleInWindow = 0;
   m_nSamplesInWindow = 0;
+  
+  m_colourBackground = wxColour( 0, 0, 0 );
+  //m_colourText = wxColour( 0, 255, 255 );
+  m_colourText = wxColour( 218,112,214 );
+  m_colourWaveform = wxColour( 255, 102, 0 );
+  m_colourCursor = wxColour( 218,112,214 );
+  
+  m_pointStatusText = wxPoint( 2, 2 );
+  
+  m_bCursorDrawn = false;
+  m_locCursor = 0;
 }
 
 bool WaveformView::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) {
@@ -60,12 +71,14 @@ bool WaveformView::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, 
 
 void WaveformView::CreateControls() {
   Bind( wxEVT_PAINT, &WaveformView::HandlePaint, this );
+  Bind( wxEVT_ERASE_BACKGROUND, &WaveformView::HandleEraseBackground, this );
   Bind( wxEVT_SIZE, &WaveformView::HandleSize, this );
   Bind( wxEVT_SIZING, &WaveformView::HandleSizing, this );
   //Bind( wxEVT_LEFT_DOWN, &WaveformView::HandleMouseLeftDown, this );
   //Bind( wxEVT_LEFT_UP, &WaveformView::HandleMouseLeftUp, this );
   //Bind( wxEVT_MOUSEWHEEL, &WaveformView::HandleMouseWheel, this );
   Bind( wxEVT_MOTION, &WaveformView::HandleMouseMotion, this );
+  Bind( wxEVT_LEAVE_WINDOW, &WaveformView::HandleLeaveWindow, this );
 }
 
 WaveformView::~WaveformView( ) {
@@ -94,6 +107,10 @@ void WaveformView::SetSamples( vSamples_t* p ) {
 //  }
 //}
 
+void WaveformView::HandleEraseBackground( wxEraseEvent& event ) {
+  event.Skip();
+}
+
 void WaveformView::HandlePaint( wxPaintEvent& event ) {
       // make a vector with an entry for each pixel for moving the line back and forth, each entry has relative time stamp
       // logarithmic zoom scale
@@ -113,17 +130,25 @@ void WaveformView::HandlePaint( wxPaintEvent& event ) {
     //std::cout << "window width: " << width << ", sample width: " << m_vVertical.size() << std::endl;
   }
   else {
-      int halfheight = height / 2;
-      int scale = std::numeric_limits<short>::max() / halfheight;
-      assert( width == m_vVertical.size() );
-      
-      vVertical_t::const_iterator iter = m_vVertical.begin();
-      for ( int ix = 0; ix < width; ++ix ) {
-        int valMin = ( iter->sampleMin / scale ) + halfheight;
-        int valMax = ( iter->sampleMax / scale ) + halfheight;
-        dc.DrawLine( ix, valMin, ix, valMax );
-        ++iter;
-      }
+    wxBrush brush( dc.GetBrush() );
+    brush.SetColour( m_colourBackground );
+    dc.SetBrush( brush );
+    dc.DrawRectangle( rect );
+    wxPen pen( dc.GetPen() );
+    pen.SetColour( m_colourWaveform );
+    dc.SetPen( pen );
+    
+    int halfheight = height / 2;
+    int scale = std::numeric_limits<short>::max() / halfheight;
+    assert( width == m_vVertical.size() );
+
+    vVertical_t::const_iterator iter = m_vVertical.begin();
+    for ( int ix = 0; ix < width; ++ix ) {
+      int valMin = ( iter->sampleMin / scale ) + halfheight;
+      int valMax = ( iter->sampleMax / scale ) + halfheight;
+      dc.DrawLine( ix, valMin, ix, valMax );
+      ++iter;
+    }
   }
 }
 
@@ -326,6 +351,7 @@ void WaveformView::ZoomOut( int x ) {
 void WaveformView::SummarizeSamplesOnEvent( void ) {
   wxRect rectNew = this->GetRect();
   if ( rectNew != m_rectLast ) {
+    m_bCursorDrawn = false;
     m_rectLast = rectNew;
     SummarizeSamples( m_rectLast.GetWidth(), m_ixFirstSampleInWindow, m_nSamplesInWindow );
   }
@@ -358,14 +384,62 @@ void WaveformView::HandleMouseWheel( wxMouseEvent& event ) {
   //std::cout << "wheel: " << event.GetWheelRotation() << std::endl;
 }
 
+void WaveformView::DrawCursor( int x ) {
+  
+  wxRect rect( this->GetClientRect() );
+  int yMax( rect.height - 1 );
+  wxClientDC dc( this );
+  //wxPen pen( dc.GetPen() );
+  wxPen pen( m_colourCursor, 1, wxPENSTYLE_SOLID );
+  pen.SetColour( m_colourCursor );
+  dc.SetPen( pen );
+  
+  if ( m_bCursorDrawn ) {
+    wxBrush brush( dc.GetBrush() );
+    brush.SetColour( m_colourBackground );
+    dc.SetBrush( brush );
+    wxPen pen( dc.GetPen() );
+    pen.SetColour( m_colourBackground );
+    dc.SetPen( pen );
+    dc.DrawLine( m_locCursor, 0, m_locCursor, yMax );
+    
+    pen.SetColour( m_colourWaveform );
+    dc.SetPen( pen );
+    
+    int halfheight = rect.height / 2;
+    int scale = std::numeric_limits<short>::max() / halfheight;
+
+    Vertical& vertical( m_vVertical[ m_locCursor ] );
+    int valMin = ( vertical.sampleMin / scale ) + halfheight;
+    int valMax = ( vertical.sampleMax / scale ) + halfheight;
+    dc.DrawLine( m_locCursor, valMin, m_locCursor, valMax );
+    m_bCursorDrawn = false;
+  }
+  
+  if ( 0 <= x ) {
+    pen.SetColour( m_colourCursor );
+    dc.SetPen( pen );
+    dc.DrawLine( x, 0, x, rect.height - 1 );
+    m_locCursor = x;
+    m_bCursorDrawn = true;
+  }
+}
+
 void WaveformView::HandleMouseMotion( wxMouseEvent& event ) {
   wxPoint posMouse = event.GetPosition();
   if ( 0 != m_pvSamples ) {
+    
     wxClientDC dc( this );
-    wxPoint point( 2, 2 );
-    size_t nSamples( m_vVertical[ posMouse.x ].index );
-    size_t nSeconds = nSamples / 44100;
-    size_t ms = ( 1000 * ( nSamples % 44100 ) ) / 44100;
+    wxBrush brush( dc.GetBrush() );
+    wxPen pen( dc.GetPen() );
+    
+    size_t nSample( m_vVertical[ posMouse.x ].index );
+    
+    int x = event.GetPosition().x;
+    DrawCursor( x );
+    
+    size_t nSeconds = nSample / 44100;
+    size_t ms = ( 1000 * ( nSample % 44100 ) ) / 44100;
     boost::posix_time::time_duration time( 0, 0, nSeconds );
     time += boost::posix_time::milliseconds( ms );
     //std::cout << "samples: " << nSamples << "," << remainder << "," << ms << std::endl;
@@ -374,19 +448,35 @@ void WaveformView::HandleMouseMotion( wxMouseEvent& event ) {
     ss << time;
     std::string s( ss.str() );
     
-    wxSize size = dc.GetTextExtent( s );
-    wxColour colourBackground = this->GetBackgroundColour();
-    wxBrush brush( dc.GetBrush() );
-    brush.SetColour( colourBackground );
-    wxPen pen( dc.GetPen() );
-    pen.SetColour( colourBackground );
+    wxSize sizeText = dc.GetTextExtent( s );
+    
+    dc.SetTextBackground( m_colourBackground );
+    dc.SetTextForeground( m_colourText );
+    brush.SetColour( m_colourBackground );
+    dc.SetBrush( brush );
+    pen.SetColour( m_colourBackground );
     dc.SetPen( pen );
-    dc.DrawRectangle( point, size );
-    pen.SetColour( wxColour( 0, 0, 0 ) );
-    dc.SetPen( pen );
-    dc.DrawText( s, point );
+    dc.DrawRectangle( m_pointStatusText, sizeText );
+    //pen.SetColour( m_colourText );
+    //dc.SetPen( pen );
+    dc.DrawText( s, m_pointStatusText );
   }
   event.Skip();
+}
+
+void WaveformView::HandleLeaveWindow( wxMouseEvent& event ) {
+  std::cout << "wfv leave window" << std::endl;
+  DrawCursor( -1 );  
+  static const std::string s( "00:00:00.000000");
+  wxClientDC dc( this );
+  wxSize size = dc.GetTextExtent( s );
+  wxBrush brush( dc.GetBrush() );
+  brush.SetColour( m_colourBackground );
+  dc.SetBrush( brush );
+  wxPen pen( dc.GetPen() );
+  pen.SetColour( m_colourBackground );
+  dc.SetPen( pen );
+  dc.DrawRectangle( m_pointStatusText, size );
 }
 
 wxBitmap WaveformView::GetBitmapResource( const wxString& name ) {
