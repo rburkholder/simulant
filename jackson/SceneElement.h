@@ -10,33 +10,13 @@
 
 #pragma once
 
-#include <wx/wx.h>
-#include <wx/glcanvas.h>
-
-#include "ShaderManager.h"
-
 class SceneElement {
 public:
   
   SceneElement( );
   virtual ~SceneElement( );
   
-  virtual void Init( void ) { assert( false == m_bHadInit ); m_bHadInit = true; };
-  virtual void Paint( void ) {};
-  
-  bool HadInit( void ) const { return m_bHadInit; }
-  
-  virtual void OnFrameTrigger( void ) {};
-  
 protected:
-  
-  GLuint m_idProgram;
-  
-  ShaderManager m_managerShader;
-  
 private:
-  
-  bool m_bHadInit;
-  
 };
 

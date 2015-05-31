@@ -27,7 +27,7 @@
 #include "AspectRatio.h"
 
 SETexture::SETexture( ): 
-  SceneElement(), 
+  SceneElementOpenGL(), 
   m_idVertexArray( 0 ), m_idTexture( 0 ), m_idElements( 0 ), 
   m_idVertexBufferForImageCoords( 0 ), m_idVertexBufferForTextureCoords( 0 ), 
   m_idVapImageCoords( 0 ), m_idVapTextureCoords( 0 ), 
@@ -258,7 +258,7 @@ void SETexture::SetImageCoords( void ) {
 
 void SETexture::Init( void ) {
   
-  SceneElement::Init();
+  SceneElementOpenGL::Init();
 
   boost::filesystem::path path;
   path = boost::filesystem::current_path();
@@ -313,7 +313,7 @@ void SETexture::Init( void ) {
 
 void SETexture::Paint( void ) {
   
-  SceneElement::Paint();
+  SceneElementOpenGL::Paint();
   
 //  if ( 0 != m_pImage.use_count() ) {
     if ( ( 0 != m_pImage.use_count() ) || ( 0 != m_pRawImage.use_count() ) ) {

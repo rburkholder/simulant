@@ -65,7 +65,8 @@ public:
           value += (*iterQueues)->RemoveSampleAsyncChecked( (*iterLocks)->guard );
           ++iterLocks;
         }
-        function( value / (OutputType)m_vpAudioQueue.size() );
+        //function( value / (OutputType)m_vpAudioQueue.size() );
+        function( value );  // don't average out, just pass the mix, individual components are adjusted instead
       }
     }
     // locks go away with clearing of vector

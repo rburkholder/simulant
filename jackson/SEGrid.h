@@ -11,11 +11,11 @@
  
 #include <vector>
 
-#include "SceneElement.h"
+#include "SceneElementOpenGL.h"
 
 #include <glm/glm.hpp>
 
-class SEGrid: public SceneElement {
+class SEGrid: public SceneElementOpenGL {
 public:
   
   SEGrid( );

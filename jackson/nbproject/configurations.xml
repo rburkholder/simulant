@@ -31,6 +31,7 @@
       <itemPath>SEGrid.h</itemPath>
       <itemPath>SETexture.h</itemPath>
       <itemPath>SceneElement.h</itemPath>
+      <itemPath>SceneElementOpenGL.h</itemPath>
       <itemPath>SceneManager.h</itemPath>
       <itemPath>ShaderManager.h</itemPath>
       <itemPath>SpinLock.h</itemPath>
@@ -80,6 +81,7 @@
       <itemPath>SEGrid.cpp</itemPath>
       <itemPath>SETexture.cpp</itemPath>
       <itemPath>SceneElement.cpp</itemPath>
+      <itemPath>SceneElementOpenGL.cpp</itemPath>
       <itemPath>SceneManager.cpp</itemPath>
       <itemPath>ShaderManager.cpp</itemPath>
       <itemPath>TimeLine.cpp</itemPath>
@@ -254,6 +256,10 @@
       <item path="SceneElement.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="SceneElement.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="SceneElementOpenGL.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="SceneElementOpenGL.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="SceneManager.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -462,6 +468,10 @@
       <item path="SceneElement.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="SceneElement.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="SceneElementOpenGL.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="SceneElementOpenGL.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="SceneManager.cpp" ex="false" tool="1" flavor2="0">
       </item>

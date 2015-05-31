@@ -61,6 +61,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/SEGrid.o \
 	${OBJECTDIR}/SETexture.o \
 	${OBJECTDIR}/SceneElement.o \
+	${OBJECTDIR}/SceneElementOpenGL.o \
 	${OBJECTDIR}/SceneManager.o \
 	${OBJECTDIR}/ShaderManager.o \
 	${OBJECTDIR}/TimeLine.o \
@@ -224,6 +225,11 @@ ${OBJECTDIR}/SceneElement.o: SceneElement.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneElement.o SceneElement.cpp
+
+${OBJECTDIR}/SceneElementOpenGL.o: SceneElementOpenGL.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneElementOpenGL.o SceneElementOpenGL.cpp
 
 ${OBJECTDIR}/SceneManager.o: SceneManager.cpp 
 	${MKDIR} -p ${OBJECTDIR}

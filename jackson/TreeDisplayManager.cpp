@@ -1443,7 +1443,7 @@ private:
   };
   
   typedef SceneManager::key_t key_t;
-  typedef SceneManager::pSceneElement_t pSceneElement_t;
+  //typedef SceneManager::pSceneElementOpenGL_t pSceneElementOpenGL_t;
   typedef boost::signals2::connection connection;
   
   // note:  no way to delete this yet, may need a signal for it

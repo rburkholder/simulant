@@ -17,7 +17,7 @@
 
 // NDS Normalized Device Space: x,y: -1.0,-1.0 -> 1.0, 1.0 ; depth: 0.0 -> 1.0  pg 39
 
-SEGrid::SEGrid( ): SceneElement() {
+SEGrid::SEGrid( ): SceneElementOpenGL() {
 
   const GLuint nCols( 10 );  // but will n + 1, iterate 0 .. n
   const GLuint nRows( 10 );  // but will n + 1, iterate 0 .. n
@@ -68,7 +68,7 @@ void SEGrid::UpdateTransform( const glm::mat4& mat4Transform ) {
 
 void SEGrid::Init( void ) {
   
-  SceneElement::Init();
+  SceneElementOpenGL::Init();
   
   std::string prefix( "/home/rpb/projects/simulant/jackson/" );
   m_managerShader.LoadShader( GL_VERTEX_SHADER, prefix + "oglGrid.shvert" );
@@ -113,7 +113,7 @@ void SEGrid::Init( void ) {
 
 void SEGrid::Paint( void ) {
   
-  SceneElement::Paint();
+  SceneElementOpenGL::Paint();
   
   glUseProgram(m_idProgram);
   glBindVertexArray( m_idVertexArray );  
