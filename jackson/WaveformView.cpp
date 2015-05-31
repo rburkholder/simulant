@@ -10,18 +10,15 @@
 #include <sstream>
 
 #include <boost/thread/lock_guard.hpp>
-//#include <boost/lexical_cast.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-//#include <boost/ratio.hpp>
-///#include <boost/chrono/duration.hpp>
-//#include <boost/chrono/io/duration_io.hpp>
-//#include <boost/chrono/process_cpu_clocks.hpp>
 
 #include <wx/wx.h>
 
 #include "WaveformView.h"
 
 IMPLEMENT_DYNAMIC_CLASS( WaveformView, wxPanel )
+
+// todo:  count up / count down on the timer
 
 WaveformView::WaveformView( ) {
   Init();
@@ -42,12 +39,16 @@ void WaveformView::Init() {
   //m_colourText = wxColour( 0, 255, 255 );
   m_colourText = wxColour( 218,112,214 );
   m_colourWaveform = wxColour( 255, 102, 0 );
-  m_colourCursor = wxColour( 218,112,214 );
+  //m_colourCursor = wxColour( 218,112,214 );
+  //m_colourCursorPlay = wxColour( 0, 255, 0 );
   
   m_pointStatusText = wxPoint( 2, 2 );
   
-  m_bCursorDrawn = false;
-  m_locCursor = 0;
+  m_cursorInteractive.m_colourCursor = wxColour( 218,112,214 );
+  m_cursorPlay.m_colourCursor = wxColour( 0, 255, 0 );
+  
+  m_nFramesPlayed.store( 0 );
+  m_nEventsQueued.store( 0 );
 }
 
 bool WaveformView::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) {
@@ -56,8 +57,7 @@ bool WaveformView::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, 
   wxPanel::Create( parent, id, pos, size, style );
 
   CreateControls();
-  if (GetSizer())
-  {
+  if (GetSizer()) {
     GetSizer()->SetSizeHints(this);
   }
   Centre();
@@ -79,9 +79,66 @@ void WaveformView::CreateControls() {
   //Bind( wxEVT_MOUSEWHEEL, &WaveformView::HandleMouseWheel, this );
   Bind( wxEVT_MOTION, &WaveformView::HandleMouseMotion, this );
   Bind( wxEVT_LEAVE_WINDOW, &WaveformView::HandleLeaveWindow, this );
+  //Bind( wxEVT_IDLE, &WaveformView::HandleIdle, this );
+  Bind( wxEVT_COMMAND_ENTER, &WaveformView::HandlePlayCursor, this, ID_EVENT_PLAYCURSOR );
 }
 
 WaveformView::~WaveformView( ) {
+}
+
+// gui thread
+void WaveformView::HandlePlayCursor( wxCommandEvent& ) {
+  m_nEventsQueued.fetch_sub( 1 );
+  const size_t nFramesPlayed( m_nFramesPlayed.load() );
+  
+  if ( 0 != nFramesPlayed ) { // some frames played, so move/display cursor
+    Cursor& cursor( m_cursorPlay );
+    if ( cursor.m_ixFrame != nFramesPlayed ) {  // cursor has moved, so update
+      vVertical_t::const_iterator iter = std::lower_bound( m_vVertical.begin(), m_vVertical.end(), nFramesPlayed );
+      if ( m_vVertical.end() == iter ) { // error if can't find something
+        // don't do anything, play may continue with nothing to play
+      }
+      else { // something found
+        bool bCanDrawCursor( true );
+        if ( iter->index > nFramesPlayed ) { // if found vertical has value greater than frame, need to back up
+          if ( m_vVertical.begin() == iter ) {  // check if can back up
+            // means cursor is off left end so don't draw anything
+            bCanDrawCursor = false;
+          }
+          else {
+            --iter; // backup
+            assert( iter->index <= nFramesPlayed ); // and test that things are now fine
+          }
+        }
+        if ( bCanDrawCursor ) {
+          size_t n = iter - m_vVertical.begin(); // index into the vector for cursor calc
+          if ( n != cursor.m_locCursor ) { // cursor location has changed 
+            DrawCursor( n, m_cursorPlay );
+            cursor.m_ixFrame = nFramesPlayed;
+          }
+        }
+      }
+    }
+  }
+}
+
+// background thread
+void WaveformView::UpdatePlayCursor( size_t nFrames ) {
+  m_nFramesPlayed.fetch_add( nFrames );
+  size_t nEventsQueued = m_nEventsQueued.load();
+  if ( 3 > nEventsQueued ) {
+    wxCommandEvent* event = new wxCommandEvent( wxEVT_COMMAND_ENTER, ID_EVENT_PLAYCURSOR );
+    this->QueueEvent( event );
+    m_nEventsQueued.fetch_add( 1 );
+  }
+}
+
+void WaveformView::ResetPlayCursor( void ) {
+  m_nFramesPlayed.store( 0 );
+}
+
+void WaveformView::HandleIdle( wxIdleEvent& event ) {
+  
 }
 
 void WaveformView::SetSamples( vSamples_t* p ) {
@@ -112,20 +169,11 @@ void WaveformView::HandleEraseBackground( wxEraseEvent& event ) {
 }
 
 void WaveformView::HandlePaint( wxPaintEvent& event ) {
-      // make a vector with an entry for each pixel for moving the line back and forth, each entry has relative time stamp
-      // logarithmic zoom scale
-      // ultimately:
-      //   scan samples, looking for zero crossings, 
-      //     on up->down: reset min and and adjust downwards
-      //     on down->up: reset max and and adjust upwards
-      // or keep track of min/max over 1 sec intervals, 1 ms intervals
   
   wxPaintDC dc(this);
-  //dc.DrawText( wxT( "waveform" ), 2, 2 );
-  //boost::lock_guard<boost::mutex> guard( m_mutexSamples );
-  wxRect rect( this->GetClientRect() );
-  int width( rect.GetWidth() );
-  int height( rect.GetHeight() );
+  wxRect rectClientArea( this->GetClientRect() );
+  int width( rectClientArea.GetWidth() );
+  int height( rectClientArea.GetHeight() );
   if ( width != m_vVertical.size() ) {
     //std::cout << "window width: " << width << ", sample width: " << m_vVertical.size() << std::endl;
   }
@@ -133,7 +181,7 @@ void WaveformView::HandlePaint( wxPaintEvent& event ) {
     wxBrush brush( dc.GetBrush() );
     brush.SetColour( m_colourBackground );
     dc.SetBrush( brush );
-    dc.DrawRectangle( rect );
+    dc.DrawRectangle( rectClientArea );  // black out background
     wxPen pen( dc.GetPen() );
     pen.SetColour( m_colourWaveform );
     dc.SetPen( pen );
@@ -265,12 +313,9 @@ void WaveformView::SummarizeSamples( unsigned long width, size_t ixStart, size_t
       else {
         // sub sample the samples
         // there might be an overflow when no data to fill end verticals, fill with zero
-        // not sure yet if a +1 is needed after width
         // may have an overflow issue with not enough samples to fill vertical
         //std::cout << "summary with FullFill: " << width << ", v=" << m_vVertical.size() << ", s=" << m_pvSamples->size() << std::endl;
         size_t step = n / ( width ); // # samples per pixel width, integer arithmetic, make use of remainder
-        //std::for_each( m_vVertical.begin(), m_vVertical.end(), FullFill( m_pvSamples->begin(), m_pvSamples->end(), step ) );
-        //std::for_each( m_pvSamples->begin(), m_pvSamples->end(), FullFill( m_vVertical.begin(), m_vVertical.end(), step ) );
         vSamples_t::const_iterator iterBegin( m_pvSamples->begin() + ixStart );
         std::for_each( iterBegin, iterBegin + n, FullFill( m_vVertical.begin(), m_vVertical.end(), ixStart, step ) );
       }
@@ -351,7 +396,8 @@ void WaveformView::ZoomOut( int x ) {
 void WaveformView::SummarizeSamplesOnEvent( void ) {
   wxRect rectNew = this->GetRect();
   if ( rectNew != m_rectLast ) {
-    m_bCursorDrawn = false;
+    m_cursorInteractive.m_bCursorDrawn = false;
+    m_cursorPlay.m_bCursorDrawn = false;
     m_rectLast = rectNew;
     SummarizeSamples( m_rectLast.GetWidth(), m_ixFirstSampleInWindow, m_nSamplesInWindow );
   }
@@ -384,44 +430,42 @@ void WaveformView::HandleMouseWheel( wxMouseEvent& event ) {
   //std::cout << "wheel: " << event.GetWheelRotation() << std::endl;
 }
 
-void WaveformView::DrawCursor( int x ) {
+void WaveformView::DrawCursor( int ix, Cursor& cursor ) {
   
-  wxRect rect( this->GetClientRect() );
-  int yMax( rect.height - 1 );
+  wxRect rectClientArea( this->GetClientRect() );
+  int yMax( rectClientArea.height - 1 );
   wxClientDC dc( this );
-  //wxPen pen( dc.GetPen() );
-  wxPen pen( m_colourCursor, 1, wxPENSTYLE_SOLID );
-  pen.SetColour( m_colourCursor );
+  wxPen pen( cursor.m_colourCursor, 1, wxPENSTYLE_SOLID );
   dc.SetPen( pen );
   
-  if ( m_bCursorDrawn ) {
+  if ( cursor.m_bCursorDrawn ) {
     wxBrush brush( dc.GetBrush() );
     brush.SetColour( m_colourBackground );
     dc.SetBrush( brush );
     wxPen pen( dc.GetPen() );
     pen.SetColour( m_colourBackground );
     dc.SetPen( pen );
-    dc.DrawLine( m_locCursor, 0, m_locCursor, yMax );
+    dc.DrawLine( cursor.m_locCursor, 0, cursor.m_locCursor, yMax );
     
     pen.SetColour( m_colourWaveform );
     dc.SetPen( pen );
     
-    int halfheight = rect.height / 2;
+    int halfheight = rectClientArea.height / 2;
     int scale = std::numeric_limits<short>::max() / halfheight;
 
-    Vertical& vertical( m_vVertical[ m_locCursor ] );
+    Vertical& vertical( m_vVertical[ cursor.m_locCursor ] );
     int valMin = ( vertical.sampleMin / scale ) + halfheight;
     int valMax = ( vertical.sampleMax / scale ) + halfheight;
-    dc.DrawLine( m_locCursor, valMin, m_locCursor, valMax );
-    m_bCursorDrawn = false;
+    dc.DrawLine( cursor.m_locCursor, valMin, cursor.m_locCursor, valMax );
+    cursor.m_bCursorDrawn = false;
   }
   
-  if ( 0 <= x ) {
-    pen.SetColour( m_colourCursor );
+  if ( 0 <= ix ) {
+    pen.SetColour( cursor.m_colourCursor );
     dc.SetPen( pen );
-    dc.DrawLine( x, 0, x, rect.height - 1 );
-    m_locCursor = x;
-    m_bCursorDrawn = true;
+    dc.DrawLine( ix, 0, ix, rectClientArea.height - 1 );
+    cursor.m_locCursor = ix;
+    cursor.m_bCursorDrawn = true;
   }
 }
 
@@ -436,8 +480,9 @@ void WaveformView::HandleMouseMotion( wxMouseEvent& event ) {
     size_t nSample( m_vVertical[ posMouse.x ].index );
     
     int x = event.GetPosition().x;
-    DrawCursor( x );
+    DrawCursor( x, m_cursorInteractive );
     
+    // generalize this for generic cursor management and keyframe management
     size_t nSeconds = nSample / 44100;
     size_t ms = ( 1000 * ( nSample % 44100 ) ) / 44100;
     boost::posix_time::time_duration time( 0, 0, nSeconds );
@@ -465,8 +510,8 @@ void WaveformView::HandleMouseMotion( wxMouseEvent& event ) {
 }
 
 void WaveformView::HandleLeaveWindow( wxMouseEvent& event ) {
-  std::cout << "wfv leave window" << std::endl;
-  DrawCursor( -1 );  
+  //std::cout << "wfv leave window" << std::endl;
+  DrawCursor( -1, m_cursorInteractive );  
   static const std::string s( "00:00:00.000000");
   wxClientDC dc( this );
   wxSize size = dc.GetTextExtent( s );

@@ -13,6 +13,7 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/lockable_adapter.hpp>
 #include <boost/thread/strict_lock.hpp>
+#include <boost/signals2.hpp>
 
 #include <RtAudio.h>
 
@@ -98,6 +99,11 @@ public:
   typedef int32_t OutputType;
   typedef ChannelMixer<SampleType,OutputType> ChannelMixer_t;  // needs to be more flexible when more types are available
   typedef ChannelMixer_t::pAudioQueue_t pAudioQueue_t;
+  
+  typedef boost::signals2::signal<void (unsigned int)> signalFramesProcessed_t;
+  typedef signalFramesProcessed_t::slot_type slotFramesProcessed_t;
+  
+  signalFramesProcessed_t m_signalFramesProcessed; // invoked from callback HandleSampleRequest
   
   Audio( );
   virtual ~Audio( );

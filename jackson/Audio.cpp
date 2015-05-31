@@ -8,11 +8,7 @@
 #include <cassert>
 
 #include <iostream>
-#include <string>
-//#include <boost/phoenix/bind/bind_member_function.hpp>
-//#include <boost/phoenix/bind/bind_function.hpp>
-//#include <boost/phoenix/bind/bind_function_object.hpp>
-//#include <boost/phoenix/core/argument.hpp>
+//#include <string>
 
 #include "Audio.h"
 
@@ -38,17 +34,14 @@ int Audio::HandleSampleRequest( void* pOutput, void* pInput, unsigned int nFrame
   Audio* pAudio( reinterpret_cast<Audio*>( pThis ) );
   int16_t* pSamples( reinterpret_cast<int16_t*>( pOutput ) );
   
-  //for ( size_t n = 0; n < nFrames * pAudio->m_nActiveChannels; ++n ) {
-    //*pSamples = 0;  // assign default of zero for now, no sound
-    //++pSamples;
-  //}
-  
   for ( vChannelMixer_t::iterator iter = pAudio->m_vcm.begin(); iter != pAudio->m_vcm.end(); ++iter ) {
     //namespace args = boost::phoenix::arg_names;
     boost::strict_lock<ChannelMixer<int16_t,int32_t> > guard( **iter );
     //(*iter)->Dequeue( nFrames, boost::phoenix::bind( &UpdateOutputBuffer, args::arg1, args::arg2 ), guard );
     (*iter)->Dequeue( nFrames, UpdateOutputBuffer( &pSamples ), guard );
   }
+  
+  pAudio->m_signalFramesProcessed( nFrames );
   
   return 0; // normal stream operation
   //return 1; // stop and drain

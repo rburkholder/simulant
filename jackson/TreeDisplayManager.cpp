@@ -219,6 +219,9 @@ private:
   
   boost::signals2::connection m_connectionBtnEvent;
   
+  boost::signals2::connection m_connectAudioFrontLeft;
+  boost::signals2::connection m_connectAudioFrontRight;
+  
   void HandleSelectMusic( wxCommandEvent& event );
   
   void HandleAudioForPlay( AVSampleFormat format, void* buffers, int nChannels, int nSamples );
@@ -284,24 +287,26 @@ void TreeItemMusic::SetSelected( CommonGuiElements& elements ) {
   // may need to be more flexible as more waveforms are brought in
   // may be reverse the approach and display our own waveform in the case of multichannel overlaps
   m_pwfvFrontLeft = elements.channels.GetChannel( AudioChannels::MonoFrontLeft );
-  m_pwfvFrontRight = elements.channels.GetChannel( AudioChannels::MonoFrontRight );
   m_pwfvFrontLeft->SetSamples( &m_vSamplesLeft );
-  //m_pwfvFrontLeft->Refresh();
+  
+  m_pwfvFrontRight = elements.channels.GetChannel( AudioChannels::MonoFrontRight );
   m_pwfvFrontRight->SetSamples( &m_vSamplesRight );
-  //m_pwfvFrontRight->Refresh();
-  //namespace args = boost::phoenix::arg_names;
-  //m_connectionBtnEvent = m_pTree->ConnectSignalBtnEvent( boost::phoenix::bind( &TreeItemMusic::HandlePlayBuffer, this, args::arg1 ) );
+  
+  namespace args = boost::phoenix::arg_names;
+  m_connectAudioFrontLeft = pAudio->m_signalFramesProcessed.connect( boost::phoenix::bind( &WaveformView::UpdatePlayCursor, m_pwfvFrontLeft, args::arg1 ) );
+  m_connectAudioFrontRight = pAudio->m_signalFramesProcessed.connect( boost::phoenix::bind( &WaveformView::UpdatePlayCursor, m_pwfvFrontRight, args::arg1 ) );
 }
 
 void TreeItemMusic::RemoveSelected( CommonGuiElements& elements ) {
-  //m_connectionBtnEvent.disconnect();
+  m_connectAudioFrontLeft.disconnect();
+  m_connectAudioFrontRight.disconnect();
+  
   m_pwfvFrontLeft->SetSamples( 0 );
-  //m_pwfvFrontLeft->Refresh();
   m_pwfvFrontLeft = 0;
   m_pwfvFrontRight->SetSamples( 0 );
-  //m_pwfvFrontRight->Refresh();
   m_pwfvFrontRight = 0;
   
+  //m_connectionBtnEvent.disconnect();
 }
 
 void TreeItemMusic::ShowContextMenu( void ) {

@@ -9,6 +9,8 @@
 
 #include <vector>
 
+#include <boost/atomic/atomic.hpp>
+
 #include <wx/panel.h>
 
 #define SYMBOL_CONTROLWAVEFORMVIEW_STYLE wxTAB_TRAVERSAL
@@ -49,12 +51,16 @@ public:
   
   void Shift( int x ); // x is relative left or right
   
+  void ResetPlayCursor( void );  // set to 0, maybe need a seek at some point
+  void UpdatePlayCursor( size_t nFrames );
+  
 protected:
 private:
   
   enum {
     ID_Null = wxID_HIGHEST,
-    ID_CONTROLWAVEFORMVIEW
+    ID_CONTROLWAVEFORMVIEW, 
+    ID_EVENT_PLAYCURSOR
   };
   
   bool m_bMouseLeftDown;
@@ -64,6 +70,7 @@ private:
     size_t index;  // index into supplied waveform in m_pvSamples
     int16_t sampleMin;  // value we want to show  ( may use floats (6 digits) or double (15 digits) for everything )
     int16_t sampleMax;
+    bool operator<( size_t rhs ) const { return ( index < rhs ); }
   };
   
   typedef std::vector<Vertical> vVertical_t;
@@ -77,10 +84,26 @@ private:
   wxColour m_colourBackground;
   wxColour m_colourText;
   wxColour m_colourWaveform;
-  wxColour m_colourCursor;
   
-  bool m_bCursorDrawn;
-  int m_locCursor;  // x cursor location
+  struct Cursor {
+    std::string m_sDescription;
+    bool m_bCursorActive;
+    bool m_bCursorDrawn;
+    size_t m_locCursor;  // x cursor location/index into Vertical
+    size_t m_ixFrame;  // for frame indexing
+    wxColour m_colourCursor;
+    Cursor( void ): 
+      m_bCursorActive( false ), m_bCursorDrawn( false ), 
+      m_locCursor( std::numeric_limits<size_t>::max() ), 
+      m_ixFrame( std::numeric_limits<size_t>::max() ),
+      m_colourCursor( wxColour( 255,255,255 ) ) {}
+  };
+  
+  Cursor m_cursorInteractive;
+  Cursor m_cursorPlay;
+  
+  boost::atomic<size_t> m_nFramesPlayed;
+  boost::atomic<size_t> m_nEventsQueued;
   
   wxPoint m_pointStatusText;
   
@@ -90,6 +113,8 @@ private:
   void HandlePaint( wxPaintEvent& );
   void HandleEraseBackground( wxEraseEvent& );
   
+  void HandleIdle( wxIdleEvent& );
+  
   void HandleSize( wxSizeEvent& );
   void HandleSizing( wxSizeEvent& );
   void HandleMouseLeftDown( wxMouseEvent& );
@@ -98,7 +123,9 @@ private:
   void HandleMouseMotion( wxMouseEvent& );
   void HandleLeaveWindow( wxMouseEvent& );
   
-  void DrawCursor( int x ); // if < 0, don't draw
+  void HandlePlayCursor( wxCommandEvent& );
+  
+  void DrawCursor( int ix, Cursor& cursor ); // if < 0, don't draw
   
   void Init();
   void CreateControls();
