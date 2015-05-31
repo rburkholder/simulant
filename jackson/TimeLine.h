@@ -14,10 +14,9 @@
 #include <boost/signals2.hpp>
 #include <boost/shared_ptr.hpp>
 
-// maintains a variable
 // has multiple keyframes
 // interpolates between keyframes
-// uses ticks? to count
+// uses ticks? to count -- WaveformView establishes milliseconds, use as basis of sync
 // if keyframes are skipped, then current value needs to be used somehow
 // each keyframe maintains a value specific to that step
 // even better, a timeline is one or more keyframes... maintains consistency
@@ -41,7 +40,7 @@ public:
   KeyFrame( Value, const std::string& ); // does not trigger changed event
   virtual ~KeyFrame( void );
   
-  void SetValue( Value );
+  void SetValue( Value );  // triggers a changeevent
   Value GetValue( void ) const;
   
   void SetDescription( const std::string& sDescription ) { m_sDescription = sDescription; }
@@ -92,8 +91,15 @@ Value KeyFrame<Value>::GetValue( void ) const {
 
 // ===========
 
+class TimeLineBase { // for collecting multiple timelines together
+public:
+  typedef boost::shared_ptr<TimeLineBase> pTimeLineBase_t;
+protected:
+private:
+};
+
 template <typename Position, typename Value>
-class TimeLine {
+class TimeLine: public TimeLineBase {
 public:
   
   TimeLine( void );
@@ -128,7 +134,7 @@ private:
 };
 
 template <typename Position, typename Value>
-TimeLine<Position,Value>::TimeLine( void ) {
+TimeLine<Position,Value>::TimeLine( void ): TimeLineBase() {
   m_iterBegin = m_iterEnd = m_mapKeyFrame.end();
 }
 

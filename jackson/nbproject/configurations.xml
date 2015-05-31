@@ -333,10 +333,10 @@
         <linkerTool>
           <linkerLibItems>
             <linkerLibLibItem>avdevice</linkerLibLibItem>
-            <linkerLibLibItem>avcodec</linkerLibLibItem>
-            <linkerLibLibItem>avresample</linkerLibLibItem>
             <linkerLibLibItem>avfilter</linkerLibLibItem>
             <linkerLibLibItem>avformat</linkerLibLibItem>
+            <linkerLibLibItem>avcodec</linkerLibLibItem>
+            <linkerLibLibItem>avresample</linkerLibLibItem>
             <linkerLibLibItem>avutil</linkerLibLibItem>
             <linkerLibLibItem>swscale</linkerLibLibItem>
             <linkerLibLibItem>z</linkerLibLibItem>
@@ -345,6 +345,14 @@
             <linkerLibLibItem>boost_system</linkerLibLibItem>
             <linkerLibLibItem>boost_thread</linkerLibLibItem>
             <linkerLibLibItem>boost_chrono</linkerLibLibItem>
+            <linkerLibLibItem>GL</linkerLibLibItem>
+            <linkerLibLibItem>wx_gtk3u_gl-3.1</linkerLibLibItem>
+            <linkerLibLibItem>GLU</linkerLibLibItem>
+            <linkerLibLibItem>SOIL</linkerLibLibItem>
+            <linkerLibLibItem>boost_filesystem</linkerLibLibItem>
+            <linkerLibLibItem>bz2</linkerLibLibItem>
+            <linkerLibLibItem>rtaudio</linkerLibLibItem>
+            <linkerLibLibItem>boost_serialization</linkerLibLibItem>
           </linkerLibItems>
           <commandLine>`/usr/local/bin/wx-config --libs`</commandLine>
         </linkerTool>

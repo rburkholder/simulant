@@ -38,7 +38,7 @@ void  callbackSceneManager(GLenum source, GLenum type, GLuint id,
 
 SceneManager::SceneManager( wxFrame* parent, int* args ): 
   m_bActive( false ), 
-  canvasOpenGL<SceneManager>( parent, args ), m_cntMapSceneElement( 0 ) 
+  CanvasOpenGL<SceneManager>( parent, args ), m_cntMapSceneElement( 0 ) 
 {
   wxApp::GetInstance()->Bind( EVENT_GENERATEFRAME, &SceneManager::HandleRefresh, this ); 
   //m_pScreenFrame->GetFrame()->Bind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this );  // doesn't propagate properly
