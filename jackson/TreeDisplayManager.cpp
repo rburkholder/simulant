@@ -1819,7 +1819,7 @@ void TreeDisplayManager::HandleSelectionChanging( wxTreeEvent& event ) {
 }
 
 void TreeDisplayManager::HandleItemActivated( wxTreeEvent& event ) {
-  std::cout << "HandleItemActivated" << std::endl;
+  //std::cout << "HandleItemActivated" << std::endl;
 }
 
 void TreeDisplayManager::HandleItemDeleted( wxTreeEvent& event ) {

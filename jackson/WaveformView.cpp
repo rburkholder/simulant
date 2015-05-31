@@ -7,11 +7,17 @@
 
 #include <limits>
 #include <algorithm>
+#include <sstream>
 
 #include <boost/thread/lock_guard.hpp>
+//#include <boost/lexical_cast.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+//#include <boost/ratio.hpp>
+///#include <boost/chrono/duration.hpp>
+//#include <boost/chrono/io/duration_io.hpp>
+//#include <boost/chrono/process_cpu_clocks.hpp>
 
 #include <wx/wx.h>
-#include <boost/chrono/process_cpu_clocks.hpp>
 
 #include "WaveformView.h"
 
@@ -59,7 +65,7 @@ void WaveformView::CreateControls() {
   //Bind( wxEVT_LEFT_DOWN, &WaveformView::HandleMouseLeftDown, this );
   //Bind( wxEVT_LEFT_UP, &WaveformView::HandleMouseLeftUp, this );
   //Bind( wxEVT_MOUSEWHEEL, &WaveformView::HandleMouseWheel, this );
-  //Bind( wxEVT_MOTION, &WaveformView::HandleMouseMotion, this );
+  Bind( wxEVT_MOTION, &WaveformView::HandleMouseMotion, this );
 }
 
 WaveformView::~WaveformView( ) {
@@ -98,7 +104,7 @@ void WaveformView::HandlePaint( wxPaintEvent& event ) {
       // or keep track of min/max over 1 sec intervals, 1 ms intervals
   
   wxPaintDC dc(this);
-  dc.DrawText( wxT( "waveform" ), 2, 2 );
+  //dc.DrawText( wxT( "waveform" ), 2, 2 );
   //boost::lock_guard<boost::mutex> guard( m_mutexSamples );
   wxRect rect( this->GetClientRect() );
   int width( rect.GetWidth() );
@@ -184,7 +190,7 @@ void WaveformView::SummarizeSamples( unsigned long width, size_t ixStart, size_t
       --remaining_in_step;
       if ( 0 == remaining_in_step ) {
         if ( iterEnd == iterBegin ) {
-          std::cout << "left over? " << ixBeginOfSummary << "," << ix << std::endl;
+          //std::cout << "left over? " << ixBeginOfSummary << "," << ix << std::endl;
         }
         else {
           //assert( iterEnd != iterBegin );
@@ -310,7 +316,7 @@ void WaveformView::ZoomOut( int x ) {
       if ( offsetRelative > ixAbsoluteSample ) offsetRelative = ixAbsoluteSample;
       size_t startAbsolute = ixAbsoluteSample - offsetRelative;
       if ( startAbsolute > ( size - nSamplesInWindow ) ) startAbsolute = size - nSamplesInWindow;
-      std::cout << "final: " << startAbsolute << "," << size << "," << nSamplesInWindow << std::endl;
+      //std::cout << "final: " << startAbsolute << "," << size << "," << nSamplesInWindow << std::endl;
       assert( size >= ( startAbsolute + nSamplesInWindow ) );
       SummarizeSamples( width, startAbsolute, nSamplesInWindow );
     }
@@ -353,8 +359,34 @@ void WaveformView::HandleMouseWheel( wxMouseEvent& event ) {
 }
 
 void WaveformView::HandleMouseMotion( wxMouseEvent& event ) {
-  //m_posMouse = event.GetPosition();
-  //std::cout << "motion: " << m_posMouse.x << std::endl;
+  wxPoint posMouse = event.GetPosition();
+  if ( 0 != m_pvSamples ) {
+    wxClientDC dc( this );
+    wxPoint point( 2, 2 );
+    size_t nSamples( m_vVertical[ posMouse.x ].index );
+    size_t nSeconds = nSamples / 44100;
+    size_t ms = ( 1000 * ( nSamples % 44100 ) ) / 44100;
+    boost::posix_time::time_duration time( 0, 0, nSeconds );
+    time += boost::posix_time::milliseconds( ms );
+    //std::cout << "samples: " << nSamples << "," << remainder << "," << ms << std::endl;
+    
+    std::stringstream ss;
+    ss << time;
+    std::string s( ss.str() );
+    
+    wxSize size = dc.GetTextExtent( s );
+    wxColour colourBackground = this->GetBackgroundColour();
+    wxBrush brush( dc.GetBrush() );
+    brush.SetColour( colourBackground );
+    wxPen pen( dc.GetPen() );
+    pen.SetColour( colourBackground );
+    dc.SetPen( pen );
+    dc.DrawRectangle( point, size );
+    pen.SetColour( wxColour( 0, 0, 0 ) );
+    dc.SetPen( pen );
+    dc.DrawText( s, point );
+  }
+  event.Skip();
 }
 
 wxBitmap WaveformView::GetBitmapResource( const wxString& name ) {

@@ -85,7 +85,7 @@ bool AppProjection::OnInit( ) {
 //  wxApp::Bind( wxEVT_RIGHT_DOWN, &AppProjection::HandleMouseRightDown, this );
   //wxApp::Bind( wxEVT_KEY_DOWN, &AppProjection::HandleKey, this );
   //wxApp::Bind( wxEVT_KEY_UP, &AppProjection::HandleKey, this );
-  //wxApp::Bind( wxEVT_CHAR, &AppProjection::HandleKey, this ); 
+  wxApp::Bind( wxEVT_CHAR, &AppProjection::HandleKey, this ); 
   //wxApp::Bind( wxEVT_CHAR_HOOK, &AppProjection::HandleKey, this ); 
   //wxApp::Bind( wxEVT_ENTER_WINDOW, &AppProjection::HandleEnterWindow, this );  // window specific, not in app
   //wxApp::Bind( wxEVT_LEAVE_WINDOW, &AppProjection::HandleLeaveWindow, this );  // window specific, not in app
@@ -153,7 +153,9 @@ void AppProjection::MediaFileStats( void ) {
 // http://docs.wxwidgets.org/trunk/classwx_key_event.html
 void AppProjection::HandleKey( wxKeyEvent& event ) {
   //if ( event.GetKeyCode() = )
-  std::cout << event.GetKeyCode() << std::endl;
+  // interacts with TreeDisplayManager::HandleItemActivated, may need to adjust skip on certain things
+  // ctrl, alt keys do pass through
+  std::cout << "key='" << event.GetKeyCode() << "'" << std::endl;
   event.Skip();
 }
 

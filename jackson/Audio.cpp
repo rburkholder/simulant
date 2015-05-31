@@ -17,7 +17,7 @@
 #include "Audio.h"
 
 struct UpdateOutputBuffer {
-  void operator()( int32_t value ) {
+  void operator()( int32_t value ) {  // converts 32 back to 16
     **pOutput = (int16_t) value;
     ++(*pOutput);
   }

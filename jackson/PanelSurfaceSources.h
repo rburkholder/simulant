@@ -137,6 +137,8 @@ private:
   void HandlePause( wxCommandEvent& event );
   void HandleStop( wxCommandEvent& event );
   void HandleAbort( wxCommandEvent& event );
+  
+  void HandleKey( wxKeyEvent& event );
 
   void HandleMouseWheelInWaveformsPanel( wxMouseEvent& );
   void HandleMouseMotionInWaveformsPanel( wxMouseEvent& );

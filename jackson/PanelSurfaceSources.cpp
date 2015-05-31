@@ -261,10 +261,16 @@ void PanelSurfaceSources::CreateControls() {
   m_pWaveFormFrontLeft->Bind( wxEVT_LEFT_UP, &PanelSurfaceSources::HandleMouseLeftUpInWaveform, this );
   m_pWaveFormFrontRight->Bind( wxEVT_LEFT_UP, &PanelSurfaceSources::HandleMouseLeftUpInWaveform, this );
   
+  Bind( wxEVT_CHAR, &PanelSurfaceSources::HandleKey, this );
+  
   //Bind( wxEVT_SCROLL_THUMBTRACK, &PanelSurfaceSources::HandleScrollThumbTrack, this, ID_SLIDER_HORIZONTAL );
   //Bind( wxEVT_SCROLL_LINEUP, &PanelSurfaceSources::HandleScrollLineChange, this, ID_SLIDER_HORIZONTAL );
   //Bind( wxEVT_SCROLL_LINEDOWN, &PanelSurfaceSources::HandleScrollLineChange, this, ID_SLIDER_HORIZONTAL );
   //Bind( wxEVT_SCROLL_THUMBRELEASE, &PanelSurfaceSources::HandleScrollThumbRelease, this, ID_SLIDER_HORIZONTAL );
+}
+
+void PanelSurfaceSources::HandleKey( wxKeyEvent& event ) {
+  std::cout << "key='" << event.GetKeyCode() << "'" << std::endl;
 }
 
 void PanelSurfaceSources::HandleEnterWindow( wxMouseEvent& event ) {
@@ -310,13 +316,14 @@ void PanelSurfaceSources::HandleMouseMotionInWaveform( wxMouseEvent& event ) {
   int x = point.x;
   if ( event.Dragging() && ( x != m_posMouseOnLeftDown.x ) ) {
     int diff = x - m_posMouseOnLeftDown.x;
-    std::cout << "shift " << diff << std::endl;
+    //std::cout << "shift " << diff << std::endl;
     m_pWaveFormFrontLeft->Shift( diff );
     m_pWaveFormFrontRight->Shift( diff );
     m_pWaveFormFrontLeft->Refresh();
     m_pWaveFormFrontRight->Refresh();
     m_posMouseOnLeftDown = point;
   }
+  event.Skip();
 }
 
 void PanelSurfaceSources::HandleMouseLeftDownInWaveform( wxMouseEvent& event ) {
