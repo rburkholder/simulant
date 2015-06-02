@@ -24,6 +24,8 @@ IMPLEMENT_APP( AppProjection )
 
 bool AppProjection::OnInit( ) {
   
+  wxImage::AddHandler(new wxPNGHandler);
+  
   typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
   
   m_sWorkingDirectory = boost::filesystem::current_path().string();

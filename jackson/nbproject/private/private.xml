@@ -17,12 +17,12 @@
             <url>TreeDisplayManager.cpp</url>
             <bookmark id="4">
                 <name/>
-                <line>635</line>
+                <line>640</line>
                 <key/>
             </bookmark>
             <bookmark id="5">
                 <name/>
-                <line>989</line>
+                <line>994</line>
                 <key/>
             </bookmark>
         </file>
@@ -38,19 +38,23 @@
             <file>file:/home/rpb/projects/simulant/jackson/AppProjection.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/Cue.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/RawImage.h</file>
-            <file>file:/home/rpb/projects/simulant/jackson/WaveformView.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/SETexture.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/WaveformView.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/AspectRatio.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/Scene.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/SceneElement.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/SceneElementOpenGL.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/KeyFrameDiamond.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/SceneManager.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/FrameProjection.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/FrameMain.cpp</file>
-            <file>file:/home/rpb/projects/simulant/jackson/common.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/Audio.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/SEGrid.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/common.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/Outline.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/PhysicalDisplay.h</file>
-            <file>file:/home/rpb/projects/simulant/jackson/PanelSurfaceSources.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/CanvasOpenGL.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/PanelSurfaceSources.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/CueList.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/CanvasOpenGL.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/SceneManager.cpp</file>
@@ -58,8 +62,10 @@
             <file>file:/home/rpb/projects/simulant/jackson/EventGenerateFrame.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/AudioQueue.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/tut1.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/TimeLineView.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/SceneElement.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/PanelSurfaceSources.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/TimeLineView.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/oglGrid.shfrag</file>
             <file>file:/home/rpb/projects/simulant/jackson/FpsGenerator.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/FrameProjection.h</file>
@@ -70,18 +76,22 @@
             <file>file:/home/rpb/projects/simulant/jackson/TimeLine.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/MediaStreamDecode.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/MediaStreamDecode.cpp</file>
-            <file>file:/home/rpb/projects/simulant/jackson/InteractiveTransform.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/InteractiveTransform.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/InteractiveTransform.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/Scene.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/PhysicalDisplay.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/EventGenerateFrame.cpp</file>
-            <file>file:/home/rpb/projects/simulant/jackson/TimeLine.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/SEGrid.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/TimeLine.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/AppProjection.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/tex2.shvert</file>
-            <file>file:/home/rpb/projects/simulant/jackson/notes.txt</file>
+            <file>file:/home/rpb/projects/simulant/jackson/SETexture.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/structures.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/SceneElementOpenGL.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/notes.txt</file>
             <file>file:/home/rpb/projects/simulant/jackson/CanvasBase.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/EventImage.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/KeyFrameDiamond.h</file>
         </group>
     </open-files>
 </project-private>

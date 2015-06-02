@@ -150,7 +150,12 @@ void WaveformView::SetSamples( vSamples_t* p ) {
   //std::cout << "Set Samples start" << std::endl;
   m_pvSamples = p;
   wxRect rect( this->GetClientRect() );
-  SummarizeSamples( rect.GetWidth(), 0, p->size() );
+  if ( 0 == p ) {
+    SummarizeSamples( rect.GetWidth(), 0, 0 );
+  }
+  else {
+    SummarizeSamples( rect.GetWidth(), 0, p->size() );
+  }
   this->Refresh();  // is this needed?
   //std::cout << "Set Samples done" << std::endl;
 }

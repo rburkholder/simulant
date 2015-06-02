@@ -22,6 +22,7 @@
       <itemPath>FrameMain.h</itemPath>
       <itemPath>FrameProjection.h</itemPath>
       <itemPath>InteractiveTransform.h</itemPath>
+      <itemPath>KeyFrameDiamond.h</itemPath>
       <itemPath>MediaStreamDecode.h</itemPath>
       <itemPath>Network.h</itemPath>
       <itemPath>Outline.h</itemPath>
@@ -30,12 +31,14 @@
       <itemPath>RawImage.h</itemPath>
       <itemPath>SEGrid.h</itemPath>
       <itemPath>SETexture.h</itemPath>
+      <itemPath>Scene.h</itemPath>
       <itemPath>SceneElement.h</itemPath>
       <itemPath>SceneElementOpenGL.h</itemPath>
       <itemPath>SceneManager.h</itemPath>
       <itemPath>ShaderManager.h</itemPath>
       <itemPath>SpinLock.h</itemPath>
       <itemPath>TimeLine.h</itemPath>
+      <itemPath>TimeLineView.h</itemPath>
       <itemPath>TreeDisplayManager.h</itemPath>
       <itemPath>WaveformView.h</itemPath>
       <itemPath>common.h</itemPath>
@@ -73,6 +76,7 @@
       <itemPath>FrameMain.cpp</itemPath>
       <itemPath>FrameProjection.cpp</itemPath>
       <itemPath>InteractiveTransform.cpp</itemPath>
+      <itemPath>KeyFrameDiamond.cpp</itemPath>
       <itemPath>MediaStreamDecode.cpp</itemPath>
       <itemPath>Outline.cpp</itemPath>
       <itemPath>PanelSurfaceSources.cpp</itemPath>
@@ -80,11 +84,13 @@
       <itemPath>RawImage.cpp</itemPath>
       <itemPath>SEGrid.cpp</itemPath>
       <itemPath>SETexture.cpp</itemPath>
+      <itemPath>Scene.cpp</itemPath>
       <itemPath>SceneElement.cpp</itemPath>
       <itemPath>SceneElementOpenGL.cpp</itemPath>
       <itemPath>SceneManager.cpp</itemPath>
       <itemPath>ShaderManager.cpp</itemPath>
       <itemPath>TimeLine.cpp</itemPath>
+      <itemPath>TimeLineView.cpp</itemPath>
       <itemPath>TreeDisplayManager.cpp</itemPath>
       <itemPath>WaveformView.cpp</itemPath>
       <itemPath>tex1.cpp</itemPath>
@@ -223,6 +229,10 @@
       </item>
       <item path="InteractiveTransform.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="KeyFrameDiamond.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="KeyFrameDiamond.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="MediaStreamDecode.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="MediaStreamDecode.h" ex="false" tool="3" flavor2="0">
@@ -253,6 +263,10 @@
       </item>
       <item path="SETexture.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="Scene.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Scene.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="SceneElement.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="SceneElement.h" ex="false" tool="3" flavor2="0">
@@ -274,6 +288,10 @@
       <item path="TimeLine.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="TimeLine.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="TimeLineView.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="TimeLineView.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="TreeDisplayManager.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -435,6 +453,10 @@
       </item>
       <item path="InteractiveTransform.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="KeyFrameDiamond.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="KeyFrameDiamond.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="MediaStreamDecode.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="MediaStreamDecode.h" ex="false" tool="3" flavor2="0">
@@ -465,6 +487,10 @@
       </item>
       <item path="SETexture.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="Scene.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Scene.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="SceneElement.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="SceneElement.h" ex="false" tool="3" flavor2="0">
@@ -486,6 +512,10 @@
       <item path="TimeLine.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="TimeLine.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="TimeLineView.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="TimeLineView.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="TreeDisplayManager.cpp" ex="false" tool="1" flavor2="0">
       </item>

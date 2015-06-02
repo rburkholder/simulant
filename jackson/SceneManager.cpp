@@ -13,9 +13,9 @@
 
 #include <boost/foreach.hpp>
 
-#define GL_GLEXT_PROTOTYPES
-
 #include "FpsGenerator.h"
+
+#define GL_GLEXT_PROTOTYPES
 
 #include "SceneElementOpenGL.h"
 #include "SceneManager.h"
