@@ -1,0 +1,246 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{1AF03BEC-8710-401F-AC95-392EE735AAA2}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>jackson</RootNamespace>
+    <TargetPlatformVersion>8.1</TargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_WIN32_WINNT=0x0502;WINVER=0x0502;WIN32;_DEBUG;__WXMSW__;_WINDOWS;wxUSE_GUI=1;_M_X64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\Data\Projects\VC++\msys\home\me\rtaudio-4.1.1;D:\Data\Projects\VC++\3rdparty\boost\boost_1_58_0;D:\Data\Projects\VC++\3rdparty\wxwidgets\wxwidgets-git\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>wxUSE_GLCANVAS=1;BOOST_SPIRIT_USE_PHOENIX_V3;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0502;WINVER=0x0502;WIN32;_DEBUG;__WXMSW__;_WINDOWS;wxUSE_GUI=1;_M_X64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\Data\Projects\VC++\3rdparty\glm;D:\Data\Projects\VC++\3rdparty;D:\Data\Projects\VC++\msys\home\me\libav;D:\Data\Projects\VC++\msys\home\me\rtaudio-4.1.1;D:\Data\Projects\VC++\3rdparty\boost\boost_1_58_0;D:\Data\Projects\VC++\3rdparty\wxwidgets\wxwidgets-git\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>D:\Data\Projects\VC++\3rdparty\glext_src\glext\x64\Debug;D:\Data\Projects\VC++\msys\usr\local\lib;D:\Data\Projects\VC++\msys\home\me\rtaudio-4.1.1\rtaudio\x64\Debug;D:\Data\Projects\VC++\3rdparty\wxwidgets\wxwidgets-git\lib\vc_x64_lib;D:\Data\Projects\VC++\3rdparty\boost\boost_1_58_0\stage\x64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glext.lib;libavcodec.a;libavdevice.a;libavfilter.a;libavformat.a;libavresample.a;libavutil.a;libswscale.a;RtAudio.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ShowProgress>NotSet</ShowProgress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AppProjection.h" />
+    <ClInclude Include="AspectRatio.h" />
+    <ClInclude Include="Audio.h" />
+    <ClInclude Include="AudioQueue.h" />
+    <ClInclude Include="CanvasBase.h" />
+    <ClInclude Include="CanvasOpenGL.h" />
+    <ClInclude Include="common.h" />
+    <ClInclude Include="ConsoleStream.h" />
+    <ClInclude Include="Cue.h" />
+    <ClInclude Include="CueList.h" />
+    <ClInclude Include="DecodeH264.h" />
+    <ClInclude Include="DndDropTarget.h" />
+    <ClInclude Include="DndSourceButton.h" />
+    <ClInclude Include="DndTargetButton.h" />
+    <ClInclude Include="EventGenerateFrame.h" />
+    <ClInclude Include="EventImage.h" />
+    <ClInclude Include="FpsGenerator.h" />
+    <ClInclude Include="FrameMain.h" />
+    <ClInclude Include="FrameProjection.h" />
+    <ClInclude Include="InteractiveTransform.h" />
+    <ClInclude Include="MediaStreamDecode.h" />
+    <ClInclude Include="Outline.h" />
+    <ClInclude Include="PanelLogging.h" />
+    <ClInclude Include="PanelSurfaceSources.h" />
+    <ClInclude Include="PhysicalDisplay.h" />
+    <ClInclude Include="RawImage.h" />
+    <ClInclude Include="ReusableBuffers.h" />
+    <ClInclude Include="SceneElement.h" />
+    <ClInclude Include="SceneManager.h" />
+    <ClInclude Include="SEGrid.h" />
+    <ClInclude Include="SETexture.h" />
+    <ClInclude Include="ShaderManager.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="structures.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="tex1.h" />
+    <ClInclude Include="tex2.h" />
+    <ClInclude Include="TimeLine.h" />
+    <ClInclude Include="TreeDisplayManager.h" />
+    <ClInclude Include="tut1.h" />
+    <ClInclude Include="WaveformView.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AppProjection.cpp" />
+    <ClCompile Include="AspectRatio.cpp" />
+    <ClCompile Include="Audio.cpp" />
+    <ClCompile Include="AudioQueue.cpp" />
+    <ClCompile Include="CanvasBase.cpp" />
+    <ClCompile Include="CanvasOpenGL.cpp" />
+    <ClCompile Include="ConsoleStream.cpp" />
+    <ClCompile Include="Cue.cpp" />
+    <ClCompile Include="CueList.cpp" />
+    <ClCompile Include="DecodeH264.cpp" />
+    <ClCompile Include="DndDropTarget.cpp" />
+    <ClCompile Include="DndSourceButton.cpp" />
+    <ClCompile Include="DndTargetButton.cpp" />
+    <ClCompile Include="EventGenerateFrame.cpp" />
+    <ClCompile Include="EventImage.cpp" />
+    <ClCompile Include="FpsGenerator.cpp" />
+    <ClCompile Include="FrameMain.cpp" />
+    <ClCompile Include="FrameProjection.cpp" />
+    <ClCompile Include="InteractiveTransform.cpp" />
+    <ClCompile Include="MediaStreamDecode.cpp" />
+    <ClCompile Include="Outline.cpp" />
+    <ClCompile Include="PanelLogging.cpp" />
+    <ClCompile Include="PanelSurfaceSources.cpp" />
+    <ClCompile Include="PhysicalDisplay.cpp" />
+    <ClCompile Include="RawImage.cpp" />
+    <ClCompile Include="ReusableBuffers.cpp" />
+    <ClCompile Include="SceneElement.cpp" />
+    <ClCompile Include="SceneManager.cpp" />
+    <ClCompile Include="SEGrid.cpp" />
+    <ClCompile Include="SETexture.cpp" />
+    <ClCompile Include="ShaderManager.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="tex1.cpp" />
+    <ClCompile Include="tex2.cpp" />
+    <ClCompile Include="TimeLine.cpp" />
+    <ClCompile Include="TreeDisplayManager.cpp" />
+    <ClCompile Include="tut1.cpp" />
+    <ClCompile Include="WaveformView.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
