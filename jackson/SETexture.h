@@ -13,11 +13,11 @@
 #include <boost/signals2.hpp>
 
 #include "RawImage.h"
-#include "SceneElement.h"
+#include "SceneElementOpenGL.h"
 
 #include <glm/glm.hpp>
 
-class SETexture: public SceneElement {
+class SETexture: public SceneElementOpenGL {
 public:
   
   typedef boost::signals2::signal<void()> signalFrame_t;

@@ -53,6 +53,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/FrameMain.o \
 	${OBJECTDIR}/FrameProjection.o \
 	${OBJECTDIR}/InteractiveTransform.o \
+	${OBJECTDIR}/KeyFrameDiamond.o \
 	${OBJECTDIR}/MediaStreamDecode.o \
 	${OBJECTDIR}/Outline.o \
 	${OBJECTDIR}/PanelSurfaceSources.o \
@@ -60,10 +61,13 @@ OBJECTFILES= \
 	${OBJECTDIR}/RawImage.o \
 	${OBJECTDIR}/SEGrid.o \
 	${OBJECTDIR}/SETexture.o \
+	${OBJECTDIR}/Scene.o \
 	${OBJECTDIR}/SceneElement.o \
+	${OBJECTDIR}/SceneElementOpenGL.o \
 	${OBJECTDIR}/SceneManager.o \
 	${OBJECTDIR}/ShaderManager.o \
 	${OBJECTDIR}/TimeLine.o \
+	${OBJECTDIR}/TimeLineView.o \
 	${OBJECTDIR}/TreeDisplayManager.o \
 	${OBJECTDIR}/WaveformView.o \
 	${OBJECTDIR}/tex1.o \
@@ -85,7 +89,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-lavdevice -lavcodec -lavresample -lavfilter -lavformat -lavutil -lswscale -lz -lpthread -lpng -lboost_system -lboost_thread -lboost_chrono
+LDLIBSOPTIONS=-lavdevice -lavfilter -lavformat -lavcodec -lavresample -lavutil -lswscale -lz -lpthread -lpng -lboost_system -lboost_thread -lboost_chrono -lGL -lwx_gtk3u_gl-3.1 -lGLU -lSOIL -lboost_filesystem -lbz2 -lrtaudio -lboost_serialization
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -185,6 +189,11 @@ ${OBJECTDIR}/InteractiveTransform.o: InteractiveTransform.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/InteractiveTransform.o InteractiveTransform.cpp
 
+${OBJECTDIR}/KeyFrameDiamond.o: KeyFrameDiamond.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/KeyFrameDiamond.o KeyFrameDiamond.cpp
+
 ${OBJECTDIR}/MediaStreamDecode.o: MediaStreamDecode.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -220,10 +229,20 @@ ${OBJECTDIR}/SETexture.o: SETexture.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SETexture.o SETexture.cpp
 
+${OBJECTDIR}/Scene.o: Scene.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Scene.o Scene.cpp
+
 ${OBJECTDIR}/SceneElement.o: SceneElement.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneElement.o SceneElement.cpp
+
+${OBJECTDIR}/SceneElementOpenGL.o: SceneElementOpenGL.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneElementOpenGL.o SceneElementOpenGL.cpp
 
 ${OBJECTDIR}/SceneManager.o: SceneManager.cpp 
 	${MKDIR} -p ${OBJECTDIR}
@@ -239,6 +258,11 @@ ${OBJECTDIR}/TimeLine.o: TimeLine.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/TimeLine.o TimeLine.cpp
+
+${OBJECTDIR}/TimeLineView.o: TimeLineView.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/TimeLineView.o TimeLineView.cpp
 
 ${OBJECTDIR}/TreeDisplayManager.o: TreeDisplayManager.cpp 
 	${MKDIR} -p ${OBJECTDIR}

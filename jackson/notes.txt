@@ -1,3 +1,10 @@
+2015/06/01
+libraries:
+libavdevice, libavffilter, libavformat, libavcodec, libavresample, libavutil, libswscale
+libz, pthread, png, boost(system, thread, chrono, filesystem, serialization),
+GL, wt_gtk3u_gl-3.1, GLU, SOIL, bz2, rtaudio
+
+
 2015/05/23
 apt-get install librtaudio-dev
 

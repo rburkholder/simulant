@@ -17,7 +17,7 @@
 
 #include "CanvasOpenGL.h"
 
-class SceneElement;
+class SceneElementOpenGL;
 
 class SceneManager: public CanvasOpenGL<SceneManager> {
   friend class CanvasOpenGL<SceneManager>;
@@ -25,13 +25,13 @@ public:
   
   typedef size_t key_t;
   typedef FpsGenerator::FPS FPS;
-  typedef boost::shared_ptr<SceneElement> pSceneElement_t;
+  typedef boost::shared_ptr<SceneElementOpenGL> pSceneElementOpenGL_t;
   
   SceneManager( wxFrame* parent, int* args );
   virtual ~SceneManager( );
   
-  key_t Add( FPS, pSceneElement_t );  // returns key element
-  key_t Add( size_t num, size_t den, pSceneElement_t );  // returns key element
+  key_t Add( FPS, pSceneElementOpenGL_t );  // returns key element
+  key_t Add( size_t num, size_t den, pSceneElementOpenGL_t );  // returns key element
   void Delete( size_t key );
   
 protected:
@@ -39,12 +39,12 @@ private:
   
   struct SceneDescription_t {
     FPS fps;
-    pSceneElement_t pSceneElement;
-    SceneDescription_t( FPS fps_, pSceneElement_t pSceneElement_ )
-      : fps( fps_ ), pSceneElement( pSceneElement_ ) {}
+    pSceneElementOpenGL_t pSceneElementOpenGL;
+    SceneDescription_t( FPS fps_, pSceneElementOpenGL_t pSceneElementOpenGL_ )
+      : fps( fps_ ), pSceneElementOpenGL( pSceneElementOpenGL_ ) {}
   };
   
-  typedef std::map<key_t,pSceneElement_t> mapSceneElementsToRefresh_t;
+  typedef std::map<key_t,pSceneElementOpenGL_t> mapSceneElementsToRefresh_t;
   
   struct FpsRelatedRefresh_t {
     boost::signals2::connection connection;

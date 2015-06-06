@@ -13,11 +13,11 @@
 
 #include <boost/foreach.hpp>
 
-#define GL_GLEXT_PROTOTYPES
-
 #include "FpsGenerator.h"
 
-#include "SceneElement.h"
+#define GL_GLEXT_PROTOTYPES
+
+#include "SceneElementOpenGL.h"
 #include "SceneManager.h"
 
 #include <GL/glext.h>
@@ -52,20 +52,20 @@ SceneManager::~SceneManager( ) {
   m_bActive = false;
 }
 
-SceneManager::key_t SceneManager::Add( size_t num, size_t den, pSceneElement_t pSceneElement ) {
-  return Add( fpsGenerator.FindFrameRate( num, den ), pSceneElement );
+SceneManager::key_t SceneManager::Add( size_t num, size_t den, pSceneElementOpenGL_t pSceneElementOpenGL ) {
+  return Add( fpsGenerator.FindFrameRate( num, den ), pSceneElementOpenGL );
 }
 
 
-SceneManager::key_t SceneManager::Add( FPS fps, pSceneElement_t pSceneElement ) {
+SceneManager::key_t SceneManager::Add( FPS fps, pSceneElementOpenGL_t pSceneElementOpenGL ) {
   
   key_t key( ++m_cntMapSceneElement ); 
-  m_mapSceneElement.insert( mapSceneElement_t::value_type( key, SceneDescription_t( fps, pSceneElement ) ) );
+  m_mapSceneElement.insert( mapSceneElement_t::value_type( key, SceneDescription_t( fps, pSceneElementOpenGL ) ) );
   m_vSceneElementToInit.push_back( key );
   
   mapSceneElementsToRefreshAtFps_t::iterator iter = m_mapSceneElementsToRefreshAtFps.find( fps );
   std::pair<mapSceneElementsToRefresh_t::iterator, bool> result2;
-  mapSceneElementsToRefresh_t::value_type entry( key, pSceneElement );
+  mapSceneElementsToRefresh_t::value_type entry( key, pSceneElementOpenGL );
   
   mapSceneElementsToRefresh_t::size_type nElements( 0 );
   
@@ -144,7 +144,7 @@ void SceneManager::OnPaint( void ) {
       mapSceneElement_t::iterator iter = m_mapSceneElement.find( key );
       assert( m_mapSceneElement.end() != iter );
       glDebugMessageCallback( &callbackSceneManager, (const void*) iter->first );
-      iter->second.pSceneElement->Init();
+      iter->second.pSceneElementOpenGL->Init();
       glDebugMessageCallback( 0, 0 );
     }
     m_vSceneElementToInit.clear();
@@ -155,7 +155,7 @@ void SceneManager::OnPaint( void ) {
   BOOST_FOREACH( mapSceneElement_t::value_type element, m_mapSceneElement ) { 
     glDebugMessageCallback( &callbackSceneManager, (const void*) element.first );
     //std::cout << "painting " << element.first << std::endl;
-    element.second.pSceneElement->Paint();
+    element.second.pSceneElementOpenGL->Paint();
     //std::cout << "done painting" << std::endl;
     glDebugMessageCallback( 0, 0 );
   }

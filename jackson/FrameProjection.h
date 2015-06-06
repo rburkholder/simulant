@@ -5,8 +5,7 @@
  * Created on March 8, 2015, 12:59 PM
  */
 
-#ifndef FRAMEPROJECTION_H
-#define	FRAMEPROJECTION_H
+#pragma once
 
 #include <boost/shared_ptr.hpp>
 
@@ -75,6 +74,3 @@ private:
   wxIcon GetIconResource( const wxString& name );
 
 };
-
-#endif	/* FRAMEPROJECTION_H */
-
