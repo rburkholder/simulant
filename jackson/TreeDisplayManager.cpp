@@ -59,7 +59,7 @@
 
 IMPLEMENT_DYNAMIC_CLASS( TreeDisplayManager, wxTreeCtrl )
 
-Audio* pAudio;  // kept in AppProjection
+TreeDisplayManager::pAudio_t pAudio;  // kept in AppProjection
 
 class TreeItemBase {
   friend class boost::serialization::access;
@@ -1836,7 +1836,7 @@ wxIcon TreeDisplayManager::GetIconResource( const wxString& name ) {
   return wxNullIcon;
 }
 
-void TreeDisplayManager::Add( Audio* pAudio_ ) { 
+void TreeDisplayManager::Add( pAudio_t pAudio_ ) { 
   pAudio = pAudio_; // global variable
 }
 

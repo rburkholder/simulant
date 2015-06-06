@@ -8,7 +8,23 @@
 #include <vector>
 #include <stdexcept>
 
-#include <boost/phoenix/bind/bind_member_function.hpp>
+#include <boost/thread.hpp>
+#include <boost/bind.hpp>
+//#include <boost/thread/thread_functors.hpp>
+#include <boost/function.hpp>
+
+//#include <boost/spirit/include/phoenix_core.hpp>
+//#include <boost/phoenix/core.hpp>
+//#include <boost/phoenix/bind.hpp>
+
+//#include <boost/spirit/include/phoenix_operator.hpp>
+
+//#include <boost/phoenix/bind/bind_member_function.hpp>
+//#include <boost/phoenix/core/reference.hpp>
+//#include <boost/phoenix/bind/bind_function.hpp>
+
+
+//#include <boost/phoenix/bind/bind_function.hpp>
 
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/chrono/duration.hpp>
@@ -83,9 +99,25 @@ private:
   size_t m_nCount;
   
 };
+
+struct mess{
+	void operator()() {
+		m_fps.Thread();
+	}
+	mess(FpsGenerator& fps) : m_fps(fps) {}
+	FpsGenerator& m_fps;
+};
+
+void FpsGenerator::operator()(void) {
+	Thread();
+}
   
-FpsGenerator::FpsGenerator( ) 
-: m_bStopThread( false ), m_bThreadRunning( false ), m_thread( boost::phoenix::bind( &FpsGenerator::Thread, this ) )
+FpsGenerator::FpsGenerator()
+	: m_bStopThread(false), m_bThreadRunning(false),
+	//m_thread(boost::phoenix::ref( boost::phoenix::bind( &FpsGenerator::Thread, this ) ) )
+	  //m_thread( mess(*this ) )
+	//m_thread(boost::ref(*this))
+	m_thread( boost::bind( &FpsGenerator::Thread, this ) )
 {
   using namespace boost::assign;
   {

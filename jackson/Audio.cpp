@@ -59,28 +59,38 @@ Audio::Audio( void ): m_nActiveChannels( 2 ) {
   
   unsigned int nDevices = m_audio.getDeviceCount();
   assert( 0 != nDevices );
+
+  bool bDeviceAvailable( false );
+  unsigned int ixFirstAvailableDevice( 0 );
   
   // Scan through devices for various capabilities
   RtAudio::DeviceInfo info;
   
   for ( unsigned int ix = 0; ix < nDevices; ++ix ) {
     info = m_audio.getDeviceInfo( ix );
-    if ( info.probed == true ) {
+    //if ( info.probed == true ) {
       // Print, for example, the maximum number of output channels for each device
       std::cout 
-        << "device " << ix
+        << info.probed
+        << " device " << ix
         << ": " << info.name
         << " maximum output channels = " << info.outputChannels 
         << ", is default = " << info.isDefaultOutput
         << ", output = " << info.nativeFormats
-        << std::endl;
-    }
+        ;
+      if (!bDeviceAvailable && info.probed ) {
+        bDeviceAvailable = true;
+        ixFirstAvailableDevice = ix;
+        std::cout << " << to be opened";
+      }
+      std::cout << std::endl;
+    //}
   }
   
   // RTAUDIO_SINT16 | RTAUDIO_SINT32 | RTAUDIO_FLOAT32
   RtAudio::StreamParameters parameters;
   //parameters.deviceId = dac.getDefaultOutputDevice();
-  parameters.deviceId = 0; // based on text output above, may need to change
+  parameters.deviceId = ixFirstAvailableDevice; // based on text output above, may need to change
   parameters.nChannels = m_nActiveChannels;
   
   unsigned int sampleRate = 44100;
@@ -95,19 +105,25 @@ Audio::Audio( void ): m_nActiveChannels( 2 ) {
   // or pause the stream while starting the buffers, use the pause rather then the abort,to let things run in the background
   options.flags = RTAUDIO_NONINTERLEAVED;
   //options.flags = 0;  // default to interleaved
-  try {
-    std::cout << "Audio Opening" << std::endl;
-    m_audio.openStream( &parameters, 0, RTAUDIO_SINT16, sampleRate, &bufferSamples, &HandleSampleRequest, this, &options );
-    std::cout << "Audio Opened" << std::endl;
+
+  if (!bDeviceAvailable) {
+    std::cout << "no audio device available" << std::endl;
   }
-  catch ( RtAudioError& e ) {
-    std::cout << "Audio Error on Open:  " << e.getMessage() << std::endl;
-  }
-  
-  //m_vcm.resize( m_nActiveChannels );
-  for ( size_t ix = 0; ix < m_nActiveChannels; ++ix ) {
-    pChannelMixer_t p( new ChannelMixer_t );
-    m_vcm.push_back( p );
+  else {
+    try {
+      std::cout << "Audio Opening" << std::endl;
+      m_audio.openStream(&parameters, 0, RTAUDIO_SINT16, sampleRate, &bufferSamples, &HandleSampleRequest, this, &options);
+      std::cout << "Audio Opened" << std::endl;
+    }
+    catch (RtAudioError& e) {
+      std::cout << "Audio Error on Open:  " << e.getMessage() << std::endl;
+    }
+
+    //m_vcm.resize( m_nActiveChannels );
+    for (size_t ix = 0; ix < m_nActiveChannels; ++ix) {
+      pChannelMixer_t p(new ChannelMixer_t);
+      m_vcm.push_back(p);
+    }
   }
   
   //m_audio.startStream(); // may need to change this to a global play/pause/stop/abort button

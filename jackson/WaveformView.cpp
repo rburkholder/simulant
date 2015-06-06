@@ -126,7 +126,7 @@ void WaveformView::HandlePaint( wxPaintEvent& event ) {
   wxRect rect( this->GetClientRect() );
   int width( rect.GetWidth() );
   int height( rect.GetHeight() );
-  if ( width != m_vVertical.size() ) {
+  if ( ( width != m_vVertical.size() ) || ( 1 >= height ) ) {
     //std::cout << "window width: " << width << ", sample width: " << m_vVertical.size() << std::endl;
   }
   else {
@@ -465,7 +465,7 @@ void WaveformView::HandleMouseMotion( wxMouseEvent& event ) {
 }
 
 void WaveformView::HandleLeaveWindow( wxMouseEvent& event ) {
-  std::cout << "wfv leave window" << std::endl;
+  //std::cout << "wfv leave window" << std::endl;
   DrawCursor( -1 );  
   static const std::string s( "00:00:00.000000");
   wxClientDC dc( this );

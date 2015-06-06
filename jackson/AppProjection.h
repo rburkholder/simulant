@@ -7,12 +7,14 @@
 
 #pragma once
 
-#include <wx/wx.h>
-
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/split_member.hpp>
+
+#include <boost/shared_ptr.hpp>
+
+#include <wx/wx.h>
 
 #include "Audio.h"
 
@@ -34,7 +36,8 @@ private:
   FrameMain *m_pFrameMain;
   PanelSurfaceSources* m_pSurfaceSources;
   
-  Audio audio;
+  typedef boost::shared_ptr<Audio> pAudio_t;
+  pAudio_t m_pAudio;
   
   virtual bool OnInit( );
   virtual void OnClose( wxCloseEvent& event );

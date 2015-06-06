@@ -19,6 +19,7 @@
 class FrameRate;
 
 class FpsGenerator {
+	friend class boost::thread;
 public:
   
   enum FPS { fps24x = 23, fps24 = 24, fps25 = 25, fps30x = 29, fps30 = 30, fps48 = 48, fps60 = 60, fps100 = 100 }; 
@@ -32,6 +33,8 @@ public:
   boost::signals2::connection Connect( FPS, const slotFrame_t& );
   
   FPS FindFrameRate( size_t num, size_t den );
+
+  void Thread(void); // stuff running in the thread
   
 protected:  
 private:
@@ -41,10 +44,11 @@ private:
   bool m_bStopThread;
   bool m_bThreadRunning;
   
+  void operator()(void);
   boost::thread m_thread;
   
   typedef std::map<FPS, pFrameRate_t> mapFrameRate_t;
   mapFrameRate_t m_mapFrameRate;
   
-  void Thread( void ); // stuff running in the thread
+
 };

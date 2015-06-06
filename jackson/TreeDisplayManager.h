@@ -77,6 +77,8 @@ public:
   
   typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
   typedef boost::shared_ptr<TreeItemBase> pTreeItemBase_t;
+
+  typedef boost::shared_ptr<Audio> pAudio_t;
   
   TreeDisplayManager();
   TreeDisplayManager( 
@@ -100,7 +102,7 @@ public:
   void Add( const wxTreeItemId& id, pTreeItemBase_t pTreeItemBase );
   void Delete( wxTreeItemId id );
   
-  void Add( Audio* pAudio );
+  void Add( pAudio_t pAudio );
   
   void SetStaticTextInfo( wxStaticText* pstInfo );
   void SetSlider( wxSlider* pSlider );

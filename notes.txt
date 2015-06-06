@@ -1,3 +1,24 @@
+2015/06/01
+building libav on windows
+msys2 http://msys2.github.io/  ./configure based env for windows compatible with win
+http://yasm.tortall.net/   assembler for win
+
+
+2015/01/2
+
+  215  git init
+  217  git add *.hpp
+  218  git add *.cpp
+  236  git config --global user.name "rburkholder"
+  237  git config --global user.email "github@oneunified.net"
+  241  git commit
+  244  git clone https://github.com/rburkholder/nodestar.git
+  251  git pull https://github.com/rburkholder/nodestar.git
+  252  git push https://github.com/rburkholder/nodestar.git
+git pull https://github.com/rburkholder/simulant.git
+git push --set-upstream https://github.com/rburkholder/simulant.git master
+
+
 2015/01/01
 ..\junction.exe -d include\libraw
 ..\junction.exe -d link\libraw
@@ -13,13 +34,6 @@ With git download of LibRaw:
 
 
 2014/12/29
-git command line:
-
-git add .filename.  
-git commit   # local commit
-
-git pull https://github.com/rburkholder/simulant.git
-git push --set-upstream https://github.com/rburkholder/simulant.git master
 
 
 2014/12/28

@@ -21,6 +21,10 @@
 #include "OpenGL/glu.h"
 #include "OpenGL/gl.h"
 #else
+#ifdef __WXMSW__
+#include <windows.h>
+//#include <gl/wglext.h>
+#endif
 #include <GL/glu.h>
 #include <GL/gl.h>
 #include <GL/glext.h>

@@ -62,7 +62,7 @@ bool DndSourceButton::Create(
   
   wxStaticText::Create( parent, id, text, pos, size, style );
   Init();
-  
+  return true;
 }
 
 DndSourceButton::~DndSourceButton() {

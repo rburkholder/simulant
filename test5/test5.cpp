@@ -155,7 +155,7 @@ void AppTest5::HandleDemosaicSelection( const PanelLibRawOptions::options_t& opt
   // options are supplied through callback to SetLibRawOutputParams
   m_options = options;
   LoadImage( );
-  std::cout << std::endl;  // clears the auto timer
+  std::cout << std::endl;  // clears the auto timer in LoadImage
 
 }
 

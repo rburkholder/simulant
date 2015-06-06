@@ -35,7 +35,7 @@ bool DndTargetButton::Create(
   
   wxStaticText::Create( parent, id, text, pos, size, style );
   Init();
-  
+  return true;
 }
 
 DndTargetButton::~DndTargetButton() {

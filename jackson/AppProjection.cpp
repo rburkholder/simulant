@@ -18,6 +18,8 @@
 #include "MediaStreamDecode.h"
 
 #include "PanelSurfaceSources.h"
+#include "PanelLogging.h"
+
 #include "AppProjection.h"
 
 IMPLEMENT_APP( AppProjection )
@@ -63,7 +65,7 @@ bool AppProjection::OnInit( ) {
     
     // need to keep track of projection frames, so can iconize them sometime for visual reference in the gui
     // force frame size for the time being
-    m_pSurfaceSources->Append( pPhysicalDisplay_t( new PhysicalDisplay( ix, m_pFrameMain, wxPoint( rectClientArea.x, rectClientArea.y ), wxSize( 1920, 1080 ) ) ) );
+    m_pSurfaceSources->Append( pPhysicalDisplay_t( new PhysicalDisplay( ix, m_pFrameMain, wxPoint( rectClientArea.x, rectClientArea.y ), wxSize( 1000, 720 ) ) ) );
     
   }
   
@@ -72,9 +74,13 @@ bool AppProjection::OnInit( ) {
 
   sizer->Add( m_pSurfaceSources, 1, wxEXPAND|wxGROW|wxALL );
 
+  ou::tf::PanelLogging* p = new ou::tf::PanelLogging(m_pFrameMain, wxID_ANY );
+  sizer->Add( p, 1, wxEXPAND | wxGROW | wxALL );
+
   m_pFrameMain->Show( );
   // serialize the following for session to session persistence
-  m_pFrameMain->Move( wxPoint( 1950, 150 ) );
+  //m_pFrameMain->Move( wxPoint( 1950, 150 ) );
+  m_pFrameMain->Move( wxPoint( 1078, 224 ) );
   
   // templates for windows requiring them
 //  wxApp::Bind( EVENT_IMAGE, &AppProjection::HandleEventImage, this );
@@ -91,7 +97,9 @@ bool AppProjection::OnInit( ) {
   //wxApp::Bind( wxEVT_LEAVE_WINDOW, &AppProjection::HandleLeaveWindow, this );  // window specific, not in app
   //wxApp::Bind( wxEVT_SIZE, &AppProjection::HandleMouseMoved, this );  // window specific, not in app
   
-  m_pSurfaceSources->Add( &audio );
+  m_pAudio.reset( new Audio );
+
+  m_pSurfaceSources->Add( m_pAudio );
   
   return true;
 }

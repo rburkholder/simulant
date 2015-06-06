@@ -59,7 +59,7 @@ public:
   
   void Append( pPhysicalDisplay_t pPhysicalDisplay );
   
-  void Add( Audio* pAudio ) { m_treeDisplays->Add( pAudio ); }
+  void Add( TreeDisplayManager::pAudio_t pAudio ) { m_treeDisplays->Add( pAudio ); }
   
   void Save( boost::archive::text_oarchive& oa);
   void Load( boost::archive::text_iarchive& ia);
