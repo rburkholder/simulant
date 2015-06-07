@@ -21,13 +21,14 @@ protected:
   
   glm::mat4 m_mat4Transform;
   
-  void Activate( wxWindow* );
+  void Activate( wxWindow*, wxSlider* );
   void DeActivate( void );
   
   void ResetTransformMatrix( void );
   void HandleMouseWheel( wxMouseEvent& event );
   void HandleMouseMoved( wxMouseEvent& event );
   void HandleMouseLeftDown( wxMouseEvent& event );
+  void HandleScrollChanged( wxScrollEvent& event );
   
   virtual void UpdateTransformMatrix( void ) {};
   
@@ -42,6 +43,15 @@ private:
   
   bool m_bReceivingEvents;
   
+  // keep each transform type separate and make composite on demand
+  glm::mat4 m_matAspectRatio;
+  glm::mat4 m_mat4Rotation;
+  glm::mat4 m_mat4Scale;
+  glm::mat4 m_mat4Translation;
+  
+  int m_zOld;  // previous z
+  
   wxWindow* m_pWin;
+  wxSlider* m_pSliderZ;
   
 };

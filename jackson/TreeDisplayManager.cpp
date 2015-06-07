@@ -802,11 +802,11 @@ void TreeItemVisualCommon::HandleReset( wxCommandEvent& event ) {
   UpdateTransformMatrix();
 }
 
-void TreeItemVisualCommon::SetSelected( CommonGuiElements& ) {
-  InteractiveTransform::Activate( m_pSceneManager.get() );
+void TreeItemVisualCommon::SetSelected( CommonGuiElements& cge ) {
+  InteractiveTransform::Activate( m_pSceneManager.get(), cge.pSliderZ );
 }
 
-void TreeItemVisualCommon::RemoveSelected( CommonGuiElements& ) {
+void TreeItemVisualCommon::RemoveSelected( CommonGuiElements& cge ) {
   InteractiveTransform::DeActivate();
 }
 
@@ -1120,7 +1120,7 @@ private:
   };
   
   typedef SceneManager::key_t key_t;
-  typedef boost::shared_ptr<SETexture> pSETexture_t;
+  //typedef TreeItemImageCommon::pSETexture_t pSETexture_t;
   typedef RawImage::pRawImage_t pRawImage_t;
   typedef std::vector<pRawImage_t> vpRawImage_t;
   typedef std::list<pRawImage_t> lpRawImage_t;

@@ -238,18 +238,21 @@ void PanelSurfaceSources::CreateControls() {
     m_sliderZ->SetToolTip(_("z"));
   m_sliderZ->SetForegroundColour(wxColour(165, 42, 42));
   m_sliderZ->SetBackgroundColour(wxColour(189, 146, 53));
+  m_sliderZ->Enable(false);
   itemBoxSizerHorizontal->Add(m_sliderZ, 0, wxGROW|wxALL, 1);
 
   m_sliderVolume = new wxSlider( itemPanel1, ID_SLIDER_VOLUME, 100, 0, 130, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE|wxNO_BORDER );
   if (PanelSurfaceSources::ShowToolTips())
     m_sliderVolume->SetToolTip(_("volume"));
   m_sliderVolume->SetBackgroundColour(wxColour(203, 86, 57));
+  m_sliderVolume->Enable(false);
   itemBoxSizerHorizontal->Add(m_sliderVolume, 0, wxGROW|wxALL, 1);
 
   m_sliderFader = new wxSlider( itemPanel1, ID_SLIDER_FADER, 100, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE|wxNO_BORDER );
   if (PanelSurfaceSources::ShowToolTips())
     m_sliderFader->SetToolTip(_("fader"));
   m_sliderFader->SetBackgroundColour(wxColour(218, 58, 37));
+  m_sliderFader->Enable(false);
   itemBoxSizerHorizontal->Add(m_sliderFader, 0, wxGROW|wxALL, 1);
 
   m_sliderMaster = new wxSlider( itemPanel1, ID_SLIDER_MASTER, 0, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE|wxNO_BORDER );

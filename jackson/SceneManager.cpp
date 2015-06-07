@@ -52,10 +52,9 @@ SceneManager::~SceneManager( ) {
   m_bActive = false;
 }
 
-SceneManager::key_t SceneManager::Add( size_t num, size_t den, pSceneElementOpenGL_t pSceneElementOpenGL ) {
-  return Add( fpsGenerator.FindFrameRate( num, den ), pSceneElementOpenGL );
+SceneManager::key_t SceneManager::Add( size_t frNumerator, size_t frDenominator, pSceneElementOpenGL_t pSceneElementOpenGL ) {
+  return Add( fpsGenerator.FindFrameRate( frNumerator, frDenominator ), pSceneElementOpenGL );
 }
-
 
 SceneManager::key_t SceneManager::Add( FPS fps, pSceneElementOpenGL_t pSceneElementOpenGL ) {
   
@@ -139,7 +138,7 @@ void SceneManager::OnPaint( void ) {
   glClear(GL_COLOR_BUFFER_BIT);
   
   if ( !m_vSceneElementToInit.empty() ) {
-    std::cout << "init start" << std::endl;
+    //std::cout << "SceneManager::OnPaint init start" << std::endl;
     BOOST_FOREACH( key_t key, m_vSceneElementToInit ) {
       mapSceneElement_t::iterator iter = m_mapSceneElement.find( key );
       assert( m_mapSceneElement.end() != iter );
@@ -148,9 +147,10 @@ void SceneManager::OnPaint( void ) {
       glDebugMessageCallback( 0, 0 );
     }
     m_vSceneElementToInit.clear();
-    std::cout << "init end" << std::endl;
+    //std::cout << "SceneManager::OnPaint init end" << std::endl;
   }  
   
+  // add in z order rendering at some point, z arrives due to SceneElement, or simple float z
   // need to paint using mapSceneElementsToRefreshAtFps_t instead
   BOOST_FOREACH( mapSceneElement_t::value_type element, m_mapSceneElement ) { 
     glDebugMessageCallback( &callbackSceneManager, (const void*) element.first );

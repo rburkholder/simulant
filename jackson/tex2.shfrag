@@ -22,3 +22,12 @@ void main(void) {
   vFragColor = vec4(texture(textureMap, vUV).rgb, fltAlpha ); // the 1.0 is opacity and could be adjusted for fade-in / fade-out
 //  vFragColor = tmp1;
 }
+
+// https://www.opengl.org/discussion_boards/showthread.php/175741-Colour-Threshold-Alpha
+//  float tmp = texture2D(texture, gl_TexCoord[0].xy);;
+//  float intensity = gl_tmp.r + gl_tmp.g + gl_tmp.b;
+//	if(intensity < 0.2)
+//		discard;
+
+// or 
+//if(myColor.a<0.4) { discard; }

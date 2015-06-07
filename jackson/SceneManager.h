@@ -31,7 +31,7 @@ public:
   virtual ~SceneManager( );
   
   key_t Add( FPS, pSceneElementOpenGL_t );  // returns key element
-  key_t Add( size_t num, size_t den, pSceneElementOpenGL_t );  // returns key element
+  key_t Add( size_t frNumerator, size_t frDenominator, pSceneElementOpenGL_t );  // returns key element
   void Delete( size_t key );
   
 protected:

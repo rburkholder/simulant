@@ -304,6 +304,7 @@ void SETexture::Init( void ) {
   //   "destination" is the color already in the framebuffer (the landscape)
   // http://stackoverflow.com/questions/721705/how-do-i-set-the-opacity-of-a-vertex-in-opengl
   // https://www.opengl.org/archives/resources/faq/technical/transparency.htm
+  // http://www.openglsuperbible.com/2013/08/20/is-order-independent-transparency-really-necessary/
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   //glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);

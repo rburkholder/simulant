@@ -62,6 +62,8 @@ void CanvasOpenGL<CRTP>::HandlePaint( wxPaintEvent& event ) {
 
   // opacity works with these disabled, so need to work with depth buffer to get these back
   // also need to sort by depth to get best effect
+  // since all depth at 0.0, rendering against background, instead of each other
+  //   so fixe that, then turn these two things back on
   // related to SETexture::Init
   // Enable depth test
   glEnable(GL_DEPTH_TEST);
