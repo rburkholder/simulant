@@ -16,8 +16,13 @@
 
 #include <vector>
 #include <sstream>
-#include <typeinfo.h>
 #include <cassert>
+
+// not sure about how is used
+#ifdef __WXMSW__
+#include <typeinfo.h>
+#endif
+
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/locks.hpp>
@@ -59,17 +64,17 @@ namespace ou {
 	template<typename bufferT>
 	class BufferRepository {
 	public:
-		typedef typename bufferT* buffer_t;
+		typedef bufferT* pBuffer_t;
 		BufferRepository(void);
 		~BufferRepository(void);
-		inline void CheckIn(buffer_t Buffer);
-		inline buffer_t CheckOut();
-		void CheckInL(buffer_t Buffer);  // locked version
-		buffer_t CheckOutL();  // locked version
+		inline void CheckIn(pBuffer_t Buffer);
+		inline pBuffer_t CheckOut();
+		void CheckInL(pBuffer_t Buffer);  // locked version
+		pBuffer_t CheckOutL();  // locked version
 		bool Outstanding(void) { return (cntCheckins != cntCheckouts); };
 	protected:
 		boost::mutex m_mutex;
-		std::vector<buffer_t> m_vStack;
+		std::vector<pBuffer_t> m_vStack;
 	private:
 		size_t cntCheckins, cntCheckouts;
 #ifdef _DEBUG

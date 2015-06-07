@@ -10,21 +10,6 @@
 
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
-//#include <boost/thread/thread_functors.hpp>
-#include <boost/function.hpp>
-
-//#include <boost/spirit/include/phoenix_core.hpp>
-//#include <boost/phoenix/core.hpp>
-//#include <boost/phoenix/bind.hpp>
-
-//#include <boost/spirit/include/phoenix_operator.hpp>
-
-//#include <boost/phoenix/bind/bind_member_function.hpp>
-//#include <boost/phoenix/core/reference.hpp>
-//#include <boost/phoenix/bind/bind_function.hpp>
-
-
-//#include <boost/phoenix/bind/bind_function.hpp>
 
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/chrono/duration.hpp>
@@ -100,15 +85,7 @@ private:
   
 };
 
-struct mess{
-	void operator()() {
-		m_fps.Thread();
-	}
-	mess(FpsGenerator& fps) : m_fps(fps) {}
-	FpsGenerator& m_fps;
-};
-
-void FpsGenerator::operator()(void) {
+void FpsGenerator::operator()( void ) {
 	Thread();
 }
   
@@ -182,7 +159,7 @@ FpsGenerator::FpsGenerator()
       mapFrameRate_t::value_type( fps100, pFrameRate_t( new FrameRate( fps100, v100fps, 1, 10, 100, 1 ) ) ) );
   }
   
-  }
+}
 
 FpsGenerator::~FpsGenerator( ) {
   m_bStopThread = true;

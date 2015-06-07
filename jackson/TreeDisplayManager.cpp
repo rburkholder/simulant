@@ -852,7 +852,7 @@ TreeItemGrid::TreeItemGrid(
   
   std::cout << "Tree Item Add Grid" << std::endl;
   
-  wxImage::AddHandler( new wxJPEGHandler );
+  //wxImage::AddHandler( new wxJPEGHandler );
 
   m_pGrid.reset( new SEGrid );
   m_keyGrid = m_pSceneManager->Add( FpsGenerator::fps24, m_pGrid );
@@ -939,7 +939,7 @@ TreeItemImageCommon::TreeItemImageCommon(
   
   std::cout << "Tree Item Add Image Common" << std::endl;
   
-  wxImage::AddHandler( new wxJPEGHandler );
+  //wxImage::AddHandler( new wxJPEGHandler );
 
   m_pTexture.reset( new SETexture );
   m_pTexture->SetTransform( InteractiveTransform::m_mat4Transform );
@@ -1184,7 +1184,7 @@ TreeItemVideo::TreeItemVideo(
   
   std::cout << "Tree Item Add Video" << std::endl; 
   
-  wxImage::AddHandler( new wxJPEGHandler );
+  //wxImage::AddHandler( new wxJPEGHandler );
 
   m_sPictureDirectory = wxT( "~/Pictures/");
   m_sVideoDirectory = wxT( "~/Videos/");
@@ -1391,7 +1391,7 @@ void TreeItemVideo::LoadVideo( void ) {
       m_duration = m_player.GetDuration();
       m_timebase = m_player.GetTimeBase();
       if ( m_player.GetBestAudioStreamFound() ) {
-        assert( 44100 == m_player.GetAudioSampleRate() );  // need to be a bit more flexible
+//        assert( 44100 == m_player.GetAudioSampleRate() );  // need to be a bit more flexible
       }
       
       TreeItemImageCommon::Enable( fr.num, fr.den );
@@ -1413,13 +1413,19 @@ void TreeItemVideo::HandleImage( RawImage::pRawImage_t pRawImage, const structTi
 }
 
 void TreeItemVideo::HandleAudio( AVSampleFormat format, void* buffers, int nChannels, int nSamples ) {
-  assert( 2 == nChannels );
-  assert( AV_SAMPLE_FMT_S16P == format ); // TreeItemMusic for better decoder, maybe share buffering process
-  const int16_t** pSamples( reinterpret_cast<const int16_t**>( buffers ) );
-  boost::strict_lock<AudioQueue<int16_t> > guardLeft( *m_pAudioQueueLeft );
-  m_pAudioQueueLeft->AddSamples( nSamples, pSamples[0], guardLeft );
-  boost::strict_lock<AudioQueue<int16_t> > guardRight( *m_pAudioQueueRight );
-  m_pAudioQueueRight->AddSamples( nSamples, pSamples[1], guardRight );
+  if ( 2 == nChannels ) {
+    const int16_t** pSamples( reinterpret_cast<const int16_t**>( buffers ) );
+    switch ( format ) {
+      case AV_SAMPLE_FMT_S16P: { // see TreeItemMusic for better decoder, maybe share buffering process
+        boost::strict_lock<AudioQueue<int16_t> > guardLeft( *m_pAudioQueueLeft );
+        m_pAudioQueueLeft->AddSamples( nSamples, pSamples[0], guardLeft );
+        boost::strict_lock<AudioQueue<int16_t> > guardRight( *m_pAudioQueueRight );
+        m_pAudioQueueRight->AddSamples( nSamples, pSamples[1], guardRight );
+      }
+        break;
+    }
+    
+  }
 }
 
 void TreeItemVideo::HandleEventImage( EventImage& event ) {

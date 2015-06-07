@@ -84,7 +84,7 @@ private:
 template <typename charT, typename traits>
 ConsoleStreamBuf<charT, traits>::ConsoleStreamBuf(void) : std::basic_streambuf<charT, traits>() {
 	m_pBuf = m_buffers.CheckOutL();
-	setp(m_pBuf->buf, m_pBuf->buf + nCharT - 1);  // allow for one of our own terminating characters
+	this->setp(m_pBuf->buf, m_pBuf->buf + nCharT - 1);  // allow for one of our own terminating characters
 }
 
 template <typename charT, typename traits>
@@ -115,14 +115,14 @@ typename ConsoleStreamBuf<charT, traits>::int_type
 		*iend++ = traits_type::to_char_type(meta);
 	}
 
-	m_pBuf->n = iend - pbase();
+	m_pBuf->n = iend - this->pbase();
 	//if ( NULL != OnNewString ) OnNewString( pbase(), (int) ( pptr() - pbase() - 1 ) ); // assumes CR at end
 	//if (NULL != OnEmitString) OnEmitString(m_pBuf);
   m_signalEmitString( m_pBuf );
 	//if ( NULL != OnFlushString ) OnFlushString();
 	//setp( pbase(), epptr() );  // had this first but following line just resets everything.  better?  does the same thing?
 	m_pBuf = m_buffers.CheckOutL();
-	setp(m_pBuf->buf, m_pBuf->buf + nCharT - 1);  // allow for one of our own terminating characters
+	this->setp(m_pBuf->buf, m_pBuf->buf + nCharT - 1);  // allow for one of our own terminating characters
 													//  if ( NULL != OnFlushString ) OnFlushString();
 
 	return traits_type::not_eof(meta);

@@ -21,12 +21,12 @@ DndDropTarget::~DndDropTarget( ) {
 bool DndDropTarget::OnDropText (wxCoord x, wxCoord y, const wxString &data) {
   std::cout << "got text " << data << std::endl;
   // do nothing with the text for now, inheritor should deal with it
-  return true;
+  return true;  // not sure to return true or false
 }
 
 bool DndDropTarget::GetData() {
   std::cout << "got GetData " << std::endl;
-  return true;
+  return true;  // not sure to return true or false
 }
 
 wxDragResult DndDropTarget::OnData (wxCoord x, wxCoord y, wxDragResult defResult) {

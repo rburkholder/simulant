@@ -26,7 +26,8 @@ IMPLEMENT_APP( AppProjection )
 
 bool AppProjection::OnInit( ) {
   
-  wxImage::AddHandler(new wxPNGHandler);
+  wxImage::AddHandler( new wxPNGHandler );
+  wxImage::AddHandler( new wxJPEGHandler );
   
   typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
   
@@ -34,7 +35,7 @@ bool AppProjection::OnInit( ) {
   
   m_sMediaDirectory = "~/";
   
-  m_pFrameMain = new FrameMain( (wxFrame *)NULL, -1, wxT( "Projection Demo" ), wxPoint( 10, 10 ), wxSize( 500, 250 ) );
+  m_pFrameMain = new FrameMain( (wxFrame *)NULL, -1, wxT( "Projection Demo" ), wxPoint( 10, 10 ), wxSize( 500, 500 ) );
   m_pFrameMain->Bind( wxEVT_CLOSE_WINDOW, &AppProjection::OnClose, this );  // start close of windows and controls
 
   namespace args = boost::phoenix::arg_names;
@@ -67,22 +68,28 @@ bool AppProjection::OnInit( ) {
     
     // need to keep track of projection frames, so can iconize them sometime for visual reference in the gui
     // force frame size for the time being
+#ifdef __WXMSW__
     m_pSurfaceSources->Append( pPhysicalDisplay_t( new PhysicalDisplay( ix, m_pFrameMain, wxPoint( rectClientArea.x, rectClientArea.y ), wxSize( 1000, 720 ) ) ) );
-    
+#else
+    m_pSurfaceSources->Append( pPhysicalDisplay_t( new PhysicalDisplay( ix, m_pFrameMain, wxPoint( rectClientArea.x, rectClientArea.y ), wxSize( 1920, 1080 ) ) ) );
+#endif
   }
   
   m_pFrameMain->SetSizer( sizer );
   m_pFrameMain->SetAutoLayout( true );
 
-  sizer->Add( m_pSurfaceSources, 1, wxEXPAND|wxGROW|wxALL );
+  sizer->Add( m_pSurfaceSources, 3, wxEXPAND|wxGROW|wxALL );
 
   ou::tf::PanelLogging* p = new ou::tf::PanelLogging(m_pFrameMain, wxID_ANY );
   sizer->Add( p, 1, wxEXPAND | wxGROW | wxALL );
 
   m_pFrameMain->Show( );
   // serialize the following for session to session persistence
-  //m_pFrameMain->Move( wxPoint( 1950, 150 ) );
-  m_pFrameMain->Move( wxPoint( 1078, 224 ) );
+#ifdef __WXMSW__
+  m_pFrameMain->Move( wxPoint( 1078, 224 ) );  // testing on laptop
+#else
+  m_pFrameMain->Move( wxPoint( 1950, 150 ) );  // testing on desktop
+#endif
   
   // templates for windows requiring them
 //  wxApp::Bind( EVENT_IMAGE, &AppProjection::HandleEventImage, this );
@@ -100,7 +107,6 @@ bool AppProjection::OnInit( ) {
   //wxApp::Bind( wxEVT_SIZE, &AppProjection::HandleMouseMoved, this );  // window specific, not in app
   
   m_pAudio.reset( new Audio );
-
   m_pSurfaceSources->Add( m_pAudio );
   
   return true;

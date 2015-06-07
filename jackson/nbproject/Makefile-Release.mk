@@ -41,6 +41,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/AudioQueue.o \
 	${OBJECTDIR}/CanvasBase.o \
 	${OBJECTDIR}/CanvasOpenGL.o \
+	${OBJECTDIR}/ConsoleStream.o \
 	${OBJECTDIR}/Cue.o \
 	${OBJECTDIR}/CueList.o \
 	${OBJECTDIR}/DecodeH264.o \
@@ -56,9 +57,11 @@ OBJECTFILES= \
 	${OBJECTDIR}/KeyFrameDiamond.o \
 	${OBJECTDIR}/MediaStreamDecode.o \
 	${OBJECTDIR}/Outline.o \
+	${OBJECTDIR}/PanelLogging.o \
 	${OBJECTDIR}/PanelSurfaceSources.o \
 	${OBJECTDIR}/PhysicalDisplay.o \
 	${OBJECTDIR}/RawImage.o \
+	${OBJECTDIR}/ReusableBuffers.o \
 	${OBJECTDIR}/SEGrid.o \
 	${OBJECTDIR}/SETexture.o \
 	${OBJECTDIR}/Scene.o \
@@ -128,6 +131,11 @@ ${OBJECTDIR}/CanvasOpenGL.o: CanvasOpenGL.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/CanvasOpenGL.o CanvasOpenGL.cpp
+
+${OBJECTDIR}/ConsoleStream.o: ConsoleStream.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/ConsoleStream.o ConsoleStream.cpp
 
 ${OBJECTDIR}/Cue.o: Cue.cpp 
 	${MKDIR} -p ${OBJECTDIR}
@@ -204,6 +212,11 @@ ${OBJECTDIR}/Outline.o: Outline.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Outline.o Outline.cpp
 
+${OBJECTDIR}/PanelLogging.o: PanelLogging.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/PanelLogging.o PanelLogging.cpp
+
 ${OBJECTDIR}/PanelSurfaceSources.o: PanelSurfaceSources.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -218,6 +231,11 @@ ${OBJECTDIR}/RawImage.o: RawImage.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/RawImage.o RawImage.cpp
+
+${OBJECTDIR}/ReusableBuffers.o: ReusableBuffers.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/ReusableBuffers.o ReusableBuffers.cpp
 
 ${OBJECTDIR}/SEGrid.o: SEGrid.cpp 
 	${MKDIR} -p ${OBJECTDIR}
