@@ -59,15 +59,13 @@
 
 IMPLEMENT_DYNAMIC_CLASS( TreeDisplayManager, wxTreeCtrl )
 
-TreeDisplayManager::pAudio_t pAudio;  // kept in AppProjection
-
 class TreeItemBase {
   friend class boost::serialization::access;
 public:
   
   typedef boost::shared_ptr<TreeItemBase> pTreeItemBase_t;
   
-  TreeItemBase( TreeDisplayManager* pTree_, wxTreeItemId id_ ): m_pTree( pTree_ ), m_id( id_ ) {}
+  TreeItemBase( wxTreeItemId id_, TreeDisplayManager::TreeItemResources& resources ): m_id( id_ ), m_resources( resources ) {}
   virtual ~TreeItemBase( void ) {}
   virtual void ShowContextMenu( void ) {}
   virtual void SetSelected( CommonGuiElements& ) {}
@@ -83,7 +81,8 @@ public:
 protected:
   
   wxTreeItemId m_id;  // identifier of this part of the tree control
-  TreeDisplayManager* m_pTree;  // used for assigning the popup, plus other base class functions, eg for Bind, etc
+  
+  TreeDisplayManager::TreeItemResources& m_resources;
   
   typedef std::map<void*,pTreeItemBase_t> mapMembers_t;  // void* from wxTreeItemId, tracks owned items for access
   mapMembers_t m_mapMembers; 
@@ -107,7 +106,7 @@ protected:
   template<typename TreeItem, typename id_t>  
   TreeItem* AddTreeItem( const std::string& sLabel, id_t idType ) { 
     wxTreeItemId id = AppendSubItem( sLabel );
-    TreeItem* p = new TreeItem( m_pTree, id );
+    TreeItem* p = new TreeItem( id, m_resources );
     assert( 0 != p );
     pTreeItemBase_t pTreeItemBase = AppendSubItem( id, p );
     assert( 0 != pTreeItemBase.get() );
@@ -119,7 +118,7 @@ private:
   
   template<typename Archive>
   void save( Archive& ar, const unsigned int version ) const {
-    std::string sLabel( m_pTree->GetItemText( m_id ) );
+    std::string sLabel( m_resources.tree.GetItemText( m_id ) );
     ar & sLabel;
   }
   
@@ -127,7 +126,7 @@ private:
   void load( Archive& ar, const unsigned int version ) {
     std::string sLabel;
     ar & sLabel;
-    m_pTree->SetItemText( m_id, sLabel );
+    m_resources.tree.SetItemText( m_id, sLabel );
   }
   
   BOOST_SERIALIZATION_SPLIT_MEMBER()
@@ -164,25 +163,25 @@ void TreeItemBase::HandleRename( wxCommandEvent& event ) {
 }
 
 void TreeItemBase::Rename( const wxString& sPrompt ) { 
-  Rename( sPrompt, m_pTree->GetItemText( m_id ) );
+  Rename( sPrompt, m_resources.tree.GetItemText( m_id ) );
 }
 
 void TreeItemBase::Rename( const wxString& sPrompt, const wxString& sDefault ) { 
-  wxTextEntryDialog* p = new wxTextEntryDialog( m_pTree, sPrompt, sPrompt, sDefault );
+  wxTextEntryDialog* p = new wxTextEntryDialog( &m_resources.tree, sPrompt, sPrompt, sDefault );
   if ( wxID_OK == p->ShowModal() ) {
-    m_pTree->SetItemText( m_id, p->GetValue() );
+    m_resources.tree.SetItemText( m_id, p->GetValue() );
   }
 }
 
 wxTreeItemId TreeItemBase::AppendSubItem( const std::string& sLabel ) {
-  wxTreeItemId id = m_pTree->AppendItem( m_id, sLabel );
-  m_pTree->EnsureVisible( id );
+  wxTreeItemId id = m_resources.tree.AppendItem( m_id, sLabel );
+  m_resources.tree.EnsureVisible( id );
   return id;
 }
 
 TreeItemBase::pTreeItemBase_t TreeItemBase::AppendSubItem( wxTreeItemId id, TreeItemBase* p ) {
   pTreeItemBase_t pTreeItemBase( p );
-  m_pTree->Add( id, pTreeItemBase );
+  m_resources.tree.Add( id, pTreeItemBase );
   return pTreeItemBase;
 }
 
@@ -192,7 +191,7 @@ class TreeItemMusic: public TreeItemBase {
   friend class boost::serialization::access;
 public:
   
-  TreeItemMusic( TreeDisplayManager* pTree_, wxTreeItemId id_ );
+  TreeItemMusic( wxTreeItemId id_, TreeDisplayManager::TreeItemResources& resources );
   virtual ~TreeItemMusic( void );
   
   virtual void ShowContextMenu( void );
@@ -266,15 +265,15 @@ private:
   
 };
 
-TreeItemMusic::TreeItemMusic( TreeDisplayManager* pTree_, wxTreeItemId id_ )
-: TreeItemBase( pTree_, id_ ), m_pwfvFrontLeft( 0 ), m_pwfvFrontRight( 0 )
+TreeItemMusic::TreeItemMusic( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources )
+: TreeItemBase( id, resources ), m_pwfvFrontLeft( 0 ), m_pwfvFrontRight( 0 )
 {
   m_sMusicDirectory = "~/Music/";
 
   m_pAudioQueueLeft.reset( new AudioQueue<int16_t> );
-  pAudio->Attach( 0, m_pAudioQueueLeft );
+  m_resources.pAudio->Attach( 0, m_pAudioQueueLeft );
   m_pAudioQueueRight.reset( new AudioQueue<int16_t> );
-  pAudio->Attach( 1, m_pAudioQueueRight );
+  m_resources.pAudio->Attach( 1, m_pAudioQueueRight );
   
   namespace args = boost::phoenix::arg_names;
   m_connectionAudioReady = m_player.ConnectAudioReady( boost::phoenix::bind( &TreeItemMusic::HandleAudioForBuffer, this, args::arg1, args::arg2, args::arg3, args::arg4 ) );
@@ -284,9 +283,9 @@ TreeItemMusic::TreeItemMusic( TreeDisplayManager* pTree_, wxTreeItemId id_ )
 
 TreeItemMusic::~TreeItemMusic( void ) {
   
-  pAudio->Detach( 0, m_pAudioQueueLeft );
+  m_resources.pAudio->Detach( 0, m_pAudioQueueLeft );
   m_pAudioQueueLeft.reset();
-  pAudio->Detach( 1, m_pAudioQueueRight );
+  m_resources.pAudio->Detach( 1, m_pAudioQueueRight );
   m_pAudioQueueRight.reset();
   
   m_connectionDecodeComplete.disconnect();
@@ -304,8 +303,8 @@ void TreeItemMusic::SetSelected( CommonGuiElements& elements ) {
   m_pwfvFrontRight->SetSamples( &m_vSamplesRight );
   
   namespace args = boost::phoenix::arg_names;
-  m_connectAudioFrontLeft = pAudio->m_signalFramesProcessed.connect( boost::phoenix::bind( &WaveformView::UpdatePlayCursor, m_pwfvFrontLeft, args::arg1 ) );
-  m_connectAudioFrontRight = pAudio->m_signalFramesProcessed.connect( boost::phoenix::bind( &WaveformView::UpdatePlayCursor, m_pwfvFrontRight, args::arg1 ) );
+  m_connectAudioFrontLeft = m_resources.pAudio->m_signalFramesProcessed.connect( boost::phoenix::bind( &WaveformView::UpdatePlayCursor, m_pwfvFrontLeft, args::arg1 ) );
+  m_connectAudioFrontRight = m_resources.pAudio->m_signalFramesProcessed.connect( boost::phoenix::bind( &WaveformView::UpdatePlayCursor, m_pwfvFrontRight, args::arg1 ) );
 }
 
 void TreeItemMusic::RemoveSelected( CommonGuiElements& elements ) {
@@ -354,7 +353,7 @@ void TreeItemMusic::ShowContextMenu( void ) {
   //pMenu->Append( MIDelete, "Delete" );
   //pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleDelete, this, MIDelete );
   
-  m_pTree->PopupMenu( pMenu );
+  m_resources.tree.PopupMenu( pMenu );
 }
 
 void TreeItemMusic::HandleStats( wxCommandEvent& event ) {
@@ -379,7 +378,7 @@ void TreeItemMusic::BrowseForMusic( void ) {
   
   //std::cout << "LoadMusic" << std::endl;  
   wxFileDialog dialogOpenFile( 
-    m_pTree->GetParent(),
+    m_resources.tree.GetParent(),
     //m_pPhysicalDisplay->GetFrame(), 
     wxT("Select Music" ), m_sMusicDirectory, "", 
     //"Video Files (*.ts)|*.ts", 
@@ -481,7 +480,7 @@ class TreeItemScene: public TreeItemBase {
   friend class boost::serialization::access;
 public:
   
-  TreeItemScene( TreeDisplayManager* pTree_, wxTreeItemId id_ ): TreeItemBase( pTree_, id_ ) {}
+  TreeItemScene( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources ): TreeItemBase( id, resources ) {}
   virtual ~TreeItemScene( void ) {};
   
   virtual void ShowContextMenu( void );
@@ -550,7 +549,7 @@ void TreeItemScene::ShowContextMenu( void ) {  // need scene elements instead on
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScene::HandleAddMusic, this, MIAddMusic );
   pMenu->Append( MIRename, "&Rename" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScene::HandleRename, this, MIRename );
-  m_pTree->PopupMenu( pMenu );
+  m_resources.tree.PopupMenu( pMenu );
 }
   
 void TreeItemScene::HandleAddMusic( wxCommandEvent& event ) {
@@ -565,7 +564,7 @@ class TreeItemGroup: public TreeItemBase {
 public:
   
   // deals with organizing groups of branches, eg:  master - act - scene
-  TreeItemGroup( TreeDisplayManager* pTree_, wxTreeItemId id_ ): TreeItemBase( pTree_, id_ ) {}
+  TreeItemGroup( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources ): TreeItemBase( id, resources ) {}
   virtual ~TreeItemGroup( void ) {};
   
   virtual void ShowContextMenu( void );
@@ -669,7 +668,7 @@ void TreeItemGroup::ShowContextMenu( void ) {
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemGroup::HandleAddGroup, this, MIAddSubGroup );
   pMenu->Append( MIRename, "&Rename" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemBase::HandleRename, this, MIRename );
-  m_pTree->PopupMenu( pMenu );
+  m_resources.tree.PopupMenu( pMenu );
 }
 
 void TreeItemGroup::HandleAddGroup( wxCommandEvent& event ) { 
@@ -696,7 +695,7 @@ class TreeItemRoot: public TreeItemGroup {
   friend class boost::serialization::access;
 public:
   
-  TreeItemRoot( TreeDisplayManager* pTree_, wxTreeItemId id_ ): TreeItemGroup( pTree_, id_ ) {}
+  TreeItemRoot( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources ): TreeItemGroup( id, resources ) {}
   virtual ~TreeItemRoot( void ) {}
   
   virtual void ShowContextMenu( void );
@@ -734,7 +733,7 @@ void TreeItemRoot::ShowContextMenu( void ) {
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemRoot::HandleAddGroup, this, MIAddGroup );
   pMenu->Append( MIAddScreenFrame, "&Add Screen Frame" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemRoot::HandleAddScreenFrame, this, MIAddScreenFrame );
-  m_pTree->PopupMenu( pMenu );
+  m_resources.tree.PopupMenu( pMenu );
 }
 
 void TreeItemRoot::HandleAddGroup( wxCommandEvent& event ) {
@@ -753,7 +752,7 @@ public:
   typedef boost::signals2::signal<void ( const glm::mat4& )> signalTransformUpdated_t;
   typedef signalTransformUpdated_t::slot_type slotTransformUpdated_t;
   
-  TreeItemVisualCommon( TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
+  TreeItemVisualCommon( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
   virtual ~TreeItemVisualCommon( void );
   
   boost::signals2::connection ConnectTransformUpdated( const slotTransformUpdated_t& slot ) {
@@ -780,8 +779,8 @@ protected:
 private:
 };
 
-TreeItemVisualCommon::TreeItemVisualCommon( TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager ) 
-: TreeItemBase( pTree, id ), 
+TreeItemVisualCommon::TreeItemVisualCommon( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager ) 
+: TreeItemBase( id, resources ), 
   InteractiveTransform( pPhysicalDisplay->GetFrame()->GetClientSize().GetWidth(), pPhysicalDisplay->GetFrame()->GetClientSize().GetHeight() ), 
   //m_bActive( false ), 
   m_pPhysicalDisplay( pPhysicalDisplay ), m_pSceneManager( pSceneManager )
@@ -794,7 +793,7 @@ TreeItemVisualCommon::~TreeItemVisualCommon( void ) {
 
 void TreeItemVisualCommon::HandleDelete( wxCommandEvent& event ) {
   std::cout << "Tree Item Delete" << std::endl;
-  m_pTree->Delete( this->m_id );
+  m_resources.tree.Delete( this->m_id );
 }
 
 void TreeItemVisualCommon::HandleReset( wxCommandEvent& event ) {
@@ -820,7 +819,7 @@ public:
   typedef TreeItemVisualCommon::pSceneManager_t pSceneManager_t;
   
   TreeItemGrid( 
-    TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
+    wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
   virtual ~TreeItemGrid( void );
   
   virtual void ShowContextMenu( void );
@@ -844,9 +843,9 @@ private:
 };
 
 TreeItemGrid::TreeItemGrid( 
-  TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager)
+  wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager)
 : 
-  TreeItemVisualCommon( pTree, id, pPhysicalDisplay, pSceneManager ),
+  TreeItemVisualCommon( id, resources, pPhysicalDisplay, pSceneManager ),
   m_keyGrid( 0 )
 {
   
@@ -882,7 +881,7 @@ void TreeItemGrid::ShowContextMenu( void ) {
   pMenu->Append( MIDelete, "Delete" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVisualCommon::HandleDelete, this, MIDelete );
   
-  m_pTree->PopupMenu( pMenu );
+  m_resources.tree.PopupMenu( pMenu );
 }
 
 // ================
@@ -893,7 +892,7 @@ public:
   typedef TreeItemVisualCommon::pPhysicalDisplay_t pPhysicalDisplay_t;
   typedef TreeItemVisualCommon::pSceneManager_t pSceneManager_t;
   
-  TreeItemImageCommon( TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
+  TreeItemImageCommon( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
   virtual ~TreeItemImageCommon( void );
   
   boost::signals2::connection ConnectFrameTrigger( const SETexture::slotFrame_t& slot ) { return m_pTexture->Connect( slot ); }
@@ -932,8 +931,8 @@ wxString TreeItemImageCommon::m_sPictureDirectory( wxT( "~/Pictures/" ) );
 wxString TreeItemImageCommon::m_sVideoDirectory( wxT( "~/Videos/") );
 
 TreeItemImageCommon::TreeItemImageCommon( 
-  TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager )
-: TreeItemVisualCommon( pTree, id, pPhysicalDisplay, pSceneManager ),
+  wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager )
+: TreeItemVisualCommon( id, resources, pPhysicalDisplay, pSceneManager ),
   m_keyTexture( 0 )
 {
   
@@ -1003,7 +1002,7 @@ public:
   typedef TreeItemVisualCommon::pPhysicalDisplay_t pPhysicalDisplay_t;
   typedef TreeItemVisualCommon::pSceneManager_t pSceneManager_t;
   
-  TreeItemImage( TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
+  TreeItemImage( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
   virtual ~TreeItemImage( void );
   
   virtual void ShowContextMenu( void );
@@ -1026,8 +1025,8 @@ private:
 };
 
 TreeItemImage::TreeItemImage( 
-  TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager )
-: TreeItemImageCommon( pTree, id, pPhysicalDisplay, pSceneManager )
+  wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager )
+: TreeItemImageCommon( id, resources, pPhysicalDisplay, pSceneManager )
 {
   
   std::cout << "Tree Item Add Image" << std::endl;
@@ -1091,7 +1090,7 @@ void TreeItemImage::ShowContextMenu( void ) {
   pMenu->Append( MIDelete, "Delete" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVisualCommon::HandleDelete, this, MIDelete );
   
-  m_pTree->PopupMenu( pMenu );
+  m_resources.tree.PopupMenu( pMenu );
 }
 
 // ================
@@ -1102,7 +1101,7 @@ public:
   typedef TreeItemVisualCommon::pPhysicalDisplay_t pPhysicalDisplay_t;
   typedef TreeItemVisualCommon::pSceneManager_t pSceneManager_t;
   
-  TreeItemVideo( TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
+  TreeItemVideo( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
   virtual ~TreeItemVideo( void );
   
   virtual void ShowContextMenu( void );
@@ -1175,8 +1174,8 @@ private:
 };
 
 TreeItemVideo::TreeItemVideo( 
-  TreeDisplayManager* pTree, wxTreeItemId id, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager )
-: TreeItemImageCommon( pTree, id, pPhysicalDisplay, pSceneManager ),
+  wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager )
+: TreeItemImageCommon( id, resources, pPhysicalDisplay, pSceneManager ),
   m_ttlVideoFrames( 0 ), m_ttlAudioFrames( 0 ),
   m_ixvRawImage( 0 ), m_bResumed( true ),
   m_pstInfo( 0 ), m_nThumbPosition( 0 )
@@ -1193,9 +1192,9 @@ TreeItemVideo::TreeItemVideo(
   wxApp::GetInstance()->Bind( EVENT_IMAGE, &TreeItemVideo::HandleEventImage, this );
   
   m_pAudioQueueLeft.reset( new AudioQueue<int16_t> );
-  pAudio->Attach( 0, m_pAudioQueueLeft );
+  m_resources.pAudio->Attach( 0, m_pAudioQueueLeft );
   m_pAudioQueueRight.reset( new AudioQueue<int16_t> );
-  pAudio->Attach( 0, m_pAudioQueueRight );
+  m_resources.pAudio->Attach( 0, m_pAudioQueueRight );
   
   namespace args = boost::phoenix::arg_names;
   m_connectionFrameTrigger = TreeItemImageCommon::ConnectFrameTrigger( boost::phoenix::bind( &TreeItemVideo::ShowImage, this ) );
@@ -1317,7 +1316,7 @@ void TreeItemVideo::ShowContextMenu( void ) {
   pMenu->Append( MIDelete, "Delete" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVisualCommon::HandleDelete, this, MIDelete );
   
-  m_pTree->PopupMenu( pMenu );
+  m_resources.tree.PopupMenu( pMenu );
 }
 
 void TreeItemVideo::HandleLoadVideo( wxCommandEvent& event ) {
@@ -1538,7 +1537,7 @@ public:
   typedef Outline::pOutline_t pOutline_t;
   typedef boost::shared_ptr<SceneManager> pSceneManager_t;
   
-  TreeItemPlaceHolder( TreeDisplayManager* pTree_, wxTreeItemId id_, 
+  TreeItemPlaceHolder( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, 
               pPhysicalDisplay_t pScreenFrame, pOutline_t pOutline, pSceneManager_t pSceneManager );
   ~TreeItemPlaceHolder( void );
   
@@ -1601,8 +1600,8 @@ private:
 };
 
 TreeItemPlaceHolder::TreeItemPlaceHolder( 
-  TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay, pOutline_t pOutline, pSceneManager_t pSceneManager )
-: TreeItemBase( pTree_, id_ ), m_pPhysicalDisplay( pPhysicalDisplay ), 
+  wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pOutline_t pOutline, pSceneManager_t pSceneManager )
+: TreeItemBase( id, resources ), m_pPhysicalDisplay( pPhysicalDisplay ), 
   m_pOutline( pOutline ), m_pSceneManager( pSceneManager ), m_bHasGrid( false ) {
   //m_mat4Transform = glm::mat4( 1.0f );  // identity matrix to start
 }
@@ -1627,7 +1626,7 @@ void TreeItemPlaceHolder::ShowContextMenu( void ) {
   pMenu->Append( MIDelete, "Delete" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPlaceHolder::HandleDelete, this, MIDelete );
   
-  m_pTree->PopupMenu( pMenu );
+  m_resources.tree.PopupMenu( pMenu );
 }
 
 void TreeItemPlaceHolder::SetSelected( CommonGuiElements& ) {
@@ -1651,12 +1650,12 @@ void TreeItemPlaceHolder::DeletingChild( wxTreeItemId id ) {
 
 void TreeItemPlaceHolder::HandleAddGrid( wxCommandEvent& event ) {
   
-  wxTreeItemId id = m_pTree->AppendItem( m_id, "Grid" );
-  m_pTree->EnsureVisible( id );
+  wxTreeItemId id = m_resources.tree.AppendItem( m_id, "Grid" );
+  m_resources.tree.EnsureVisible( id );
   
-  TreeItemGrid* pGrid = new TreeItemGrid( m_pTree, id, m_pPhysicalDisplay, m_pSceneManager );
+  TreeItemGrid* pGrid = new TreeItemGrid( id, m_resources, m_pPhysicalDisplay, m_pSceneManager );
   pTreeItemBase_t pTreeItemBase( pGrid );
-  m_pTree->Add( id, pTreeItemBase );
+  m_resources.tree.Add( id, pTreeItemBase );
   
   pSceneElementInfo_t pInfo( new SceneElementInfo );
   m_mapSceneElementInfo.insert( mapSceneElementInfo_t::value_type( id, pInfo ) );
@@ -1669,12 +1668,12 @@ void TreeItemPlaceHolder::HandleAddGrid( wxCommandEvent& event ) {
 
 void TreeItemPlaceHolder::HandleAddPicture( wxCommandEvent& event ) {
   
-  wxTreeItemId id = m_pTree->AppendItem( m_id, "Image" );
-  m_pTree->EnsureVisible( id );
+  wxTreeItemId id = m_resources.tree.AppendItem( m_id, "Image" );
+  m_resources.tree.EnsureVisible( id );
   
-  TreeItemImage* pImage = new TreeItemImage( m_pTree, id, m_pPhysicalDisplay, m_pSceneManager );
+  TreeItemImage* pImage = new TreeItemImage( id, m_resources, m_pPhysicalDisplay, m_pSceneManager );
   pTreeItemBase_t pTreeItemBase( pImage );
-  m_pTree->Add( id, pTreeItemBase );
+  m_resources.tree.Add( id, pTreeItemBase );
   
   pSceneElementInfo_t pInfo( new SceneElementInfo );
   m_mapSceneElementInfo.insert( mapSceneElementInfo_t::value_type( id, pInfo ) );
@@ -1687,12 +1686,12 @@ void TreeItemPlaceHolder::HandleAddPicture( wxCommandEvent& event ) {
 
 void TreeItemPlaceHolder::HandleAddVideo( wxCommandEvent& event ) {
   
-  wxTreeItemId id = m_pTree->AppendItem( m_id, "Video" );
-  m_pTree->EnsureVisible( id );
+  wxTreeItemId id = m_resources.tree.AppendItem( m_id, "Video" );
+  m_resources.tree.EnsureVisible( id );
   
-  TreeItemVideo* pVideo = new TreeItemVideo( m_pTree, id, m_pPhysicalDisplay, m_pSceneManager );
+  TreeItemVideo* pVideo = new TreeItemVideo( id, m_resources, m_pPhysicalDisplay, m_pSceneManager );
   pTreeItemBase_t pTreeItemBase( pVideo );
-  m_pTree->Add( id, pTreeItemBase );
+  m_resources.tree.Add( id, pTreeItemBase );
   
   pSceneElementInfo_t pInfo( new SceneElementInfo );
   m_mapSceneElementInfo.insert( mapSceneElementInfo_t::value_type( id, pInfo ) );
@@ -1705,7 +1704,7 @@ void TreeItemPlaceHolder::HandleAddVideo( wxCommandEvent& event ) {
 
 void TreeItemPlaceHolder::HandleDelete( wxCommandEvent& event ) {
   std::cout << "Tree Item Delete" << std::endl;
-  m_pTree->Delete( this->m_id );
+  m_resources.tree.Delete( this->m_id );
 }
 
 
@@ -1716,7 +1715,7 @@ public:
   
   typedef boost::shared_ptr<PhysicalDisplay> pPhysicalDisplay_t;
   
-  TreeItemPhysicalDisplay( TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pScreenFrame );
+  TreeItemPhysicalDisplay( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pScreenFrame );
   ~TreeItemPhysicalDisplay( void );
   
   virtual void ShowContextMenu( void );
@@ -1745,8 +1744,8 @@ private:
   
 };
 
-TreeItemPhysicalDisplay::TreeItemPhysicalDisplay( TreeDisplayManager* pTree_, wxTreeItemId id_, pPhysicalDisplay_t pPhysicalDisplay )
-: TreeItemBase( pTree_, id_ ), m_pPhysicalDisplay( pPhysicalDisplay ) {
+TreeItemPhysicalDisplay::TreeItemPhysicalDisplay( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay )
+: TreeItemBase( id, resources ), m_pPhysicalDisplay( pPhysicalDisplay ) {
   
   // add a right click pop up to add displayable objects and surfaces
   // which are then serialized for session persistence
@@ -1782,13 +1781,13 @@ void TreeItemPhysicalDisplay::HandleAddPlaceHolder( wxCommandEvent& event ) {
   //   6) create the canvas? - done
   //   7) handle events from outline to adjust canvas
   
-  wxTreeItemId id = m_pTree->AppendItem( m_id, "PlaceHolder" );
-  m_pTree->EnsureVisible( id );
+  wxTreeItemId id = m_resources.tree.AppendItem( m_id, "PlaceHolder" );
+  m_resources.tree.EnsureVisible( id );
   
   pOutline_t pOutline( new Outline( wxRect( 300, 300, 600, 600 ), true, false ) );  // instead, use some ratio of the main window
 
-  pTreeItemBase_t pTreeItemBase( new TreeItemPlaceHolder( m_pTree, id, m_pPhysicalDisplay, pOutline, m_pSceneManager ) );
-  m_pTree->Add( id, pTreeItemBase );
+  pTreeItemBase_t pTreeItemBase( new TreeItemPlaceHolder( id, m_resources, m_pPhysicalDisplay, pOutline, m_pSceneManager ) );
+  m_resources.tree.Add( id, pTreeItemBase );
 }
 
 void TreeItemPhysicalDisplay::ShowContextMenu( void ) {
@@ -1802,16 +1801,16 @@ void TreeItemPhysicalDisplay::ShowContextMenu( void ) {
   pMenu->Append( MIAddOutline, "&Add Outline" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemPhysicalDisplay::HandleAddOutline, this, MIAddOutline );
 
-  m_pTree->PopupMenu( pMenu );
+  m_resources.tree.PopupMenu( pMenu );
 }
 
 // ====================================
     
-TreeDisplayManager::TreeDisplayManager() {
+TreeDisplayManager::TreeDisplayManager(): m_resources( *this ) {
   Init();
 }
 
-TreeDisplayManager::TreeDisplayManager( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) {
+TreeDisplayManager::TreeDisplayManager( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ): m_resources( *this ) {
   Init();
   Create(parent, id, pos, size, style);
 }
@@ -1830,7 +1829,7 @@ bool TreeDisplayManager::Create( wxWindow* parent, wxWindowID id, const wxPoint&
 }
 
 TreeDisplayManager::~TreeDisplayManager() {
-  pAudio.reset();
+  // m_resources.pAudio.reset();  // implied now
 }
 
 void TreeDisplayManager::Append( pPhysicalDisplay_t pPhysicalDisplay ) {
@@ -1839,7 +1838,7 @@ void TreeDisplayManager::Append( pPhysicalDisplay_t pPhysicalDisplay ) {
   wxTreeItemId id = wxTreeCtrl::AppendItem( idRoot, "Frame " + sId );
   EnsureVisible( id );
   
-  pTreeItemBase_t pTreeItemBase( new TreeItemPhysicalDisplay( this, id, pPhysicalDisplay ) );
+  pTreeItemBase_t pTreeItemBase( new TreeItemPhysicalDisplay( id, m_resources, pPhysicalDisplay ) );
   Add( id, pTreeItemBase );
 }
 
@@ -1876,7 +1875,7 @@ void TreeDisplayManager::Delete( wxTreeItemId id ) {
 }
 
 void TreeDisplayManager::Init() {
-  ::pAudio = 0;
+  //m_resources.pAudio = 0; // implied now
 }
 
 void TreeDisplayManager::CreateControls() {    
@@ -1890,7 +1889,7 @@ void TreeDisplayManager::CreateControls() {
   wxTreeCtrl::Bind( wxEVT_TREE_DELETE_ITEM, &TreeDisplayManager::HandleItemDeleted, this );
   
   wxTreeItemId id = wxTreeCtrl::AddRoot( "Projections" );
-  m_pTreeItemRoot.reset( new TreeItemRoot( this, id ) );
+  m_pTreeItemRoot.reset( new TreeItemRoot( id, m_resources ) );
   m_mapDecoder.insert( mapDecoder_t::value_type( id.GetID(), m_pTreeItemRoot ) );
   
 }
@@ -1953,7 +1952,7 @@ wxIcon TreeDisplayManager::GetIconResource( const wxString& name ) {
 }
 
 void TreeDisplayManager::Add( pAudio_t pAudio_ ) { 
-  pAudio = pAudio_; // global variable
+  m_resources.pAudio = pAudio_; // global variable
 }
 
 void TreeDisplayManager::Save( boost::archive::text_oarchive& oa ) {
@@ -1971,16 +1970,16 @@ void TreeDisplayManager::Load( boost::archive::text_iarchive& ia ) {
 void TreeDisplayManager::HandleBtnEvent( BtnEvent event ) {
   switch ( event ) {
     case BtnPlay:
-      pAudio->Play();
+      m_resources.pAudio->Play();
       break;
     case BtnPause:
       std::cout << "no pause" << std::endl;
       break;
     case BtnStop:
-      pAudio->Stop();
+      m_resources.pAudio->Stop();
       break;
     case BtnAbort:
-      pAudio->Abort();
+      m_resources.pAudio->Abort();
       break;
   }
 }

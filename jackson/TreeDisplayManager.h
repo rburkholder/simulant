@@ -80,6 +80,12 @@ public:
 
   typedef boost::shared_ptr<Audio> pAudio_t;
   
+  struct TreeItemResources {  // used by inheritors of TreeItemBase
+    TreeDisplayManager&  tree;  // used for assigning the popup, plus other base class functions, eg for Bind, etc
+    TreeDisplayManager::pAudio_t pAudio;  // kept in AppProjection
+    TreeItemResources( TreeDisplayManager& tree ): tree( tree ) {}
+  };
+
   TreeDisplayManager();
   TreeDisplayManager( 
           wxWindow* parent, 
@@ -133,6 +139,8 @@ private:
   boost::signals2::connection m_connectionBtnEvent;
   
   wxTreeItemId m_idOld;
+  
+  TreeItemResources m_resources;
   
   pTreeItemBase_t m_pTreeItemRoot; // root item tracked here for serialization root
   
