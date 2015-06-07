@@ -26,7 +26,7 @@ void  callbackTex2(GLenum source,GLenum type, GLuint id,
   std::cout << "gl error:  " << message << std::endl;
 }
 
-tex2::tex2( wxFrame* parent, int* args ): CanvasOpenGL<tex2>( parent, args ) {
+tex2::tex2( wxFrame* parent, int* args ): CanvasOpenGL<tex2>( parent, args ), m_seTexture( "" ) {
 }
 
 tex2::~tex2() {

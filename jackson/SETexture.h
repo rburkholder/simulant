@@ -7,7 +7,7 @@
 
 #pragma once
 
-//SceneElement Texture
+#include <string>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/signals2.hpp>
@@ -25,7 +25,7 @@ public:
   typedef boost::shared_ptr<wxImage> pImage_t;
   typedef RawImage::pRawImage_t pRawImage_t;
   
-  SETexture( );
+  SETexture( const std::string& sPathForShaders );
   virtual ~SETexture( );
   
   virtual void Init( void );
@@ -44,6 +44,8 @@ public:
 protected:
   
 private:
+  
+  std::string m_sPathForShaders;
   
   GLuint m_idVertexArray;
   GLuint m_idTexture;

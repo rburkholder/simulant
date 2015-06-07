@@ -940,7 +940,7 @@ TreeItemImageCommon::TreeItemImageCommon(
   
   //wxImage::AddHandler( new wxJPEGHandler );
 
-  m_pTexture.reset( new SETexture );
+  m_pTexture.reset( new SETexture( m_resources.sCurrentPath ) );
   m_pTexture->SetTransform( InteractiveTransform::m_mat4Transform );
     
 }
@@ -1832,6 +1832,27 @@ TreeDisplayManager::~TreeDisplayManager() {
   // m_resources.pAudio.reset();  // implied now
 }
 
+void TreeDisplayManager::Init() {
+  //m_resources.pAudio = 0; // implied now
+  m_resources.sCurrentPath = std::string( ::wxGetCwd() );
+}
+
+void TreeDisplayManager::CreateControls() {    
+  
+  TreeDisplayManager* item = this;
+  
+  wxTreeCtrl::Bind( wxEVT_TREE_ITEM_MENU, &TreeDisplayManager::HandleContextMenu, this );
+  wxTreeCtrl::Bind( wxEVT_TREE_SEL_CHANGED, &TreeDisplayManager::HandleSelectionChanged, this );
+  wxTreeCtrl::Bind( wxEVT_TREE_SEL_CHANGING, &TreeDisplayManager::HandleSelectionChanging, this );
+  wxTreeCtrl::Bind( wxEVT_TREE_ITEM_ACTIVATED, &TreeDisplayManager::HandleItemActivated, this );
+  wxTreeCtrl::Bind( wxEVT_TREE_DELETE_ITEM, &TreeDisplayManager::HandleItemDeleted, this );
+  
+  wxTreeItemId id = wxTreeCtrl::AddRoot( "Projections" );
+  m_pTreeItemRoot.reset( new TreeItemRoot( id, m_resources ) );
+  m_mapDecoder.insert( mapDecoder_t::value_type( id.GetID(), m_pTreeItemRoot ) );
+  
+}
+
 void TreeDisplayManager::Append( pPhysicalDisplay_t pPhysicalDisplay ) {
   wxTreeItemId idRoot = wxTreeCtrl::GetRootItem();
   std::string sId = boost::lexical_cast<std::string>( pPhysicalDisplay->GetId() );
@@ -1872,26 +1893,6 @@ void TreeDisplayManager::Delete( wxTreeItemId id ) {
   else {
     std::cout << "item has children" << std::endl;
   }
-}
-
-void TreeDisplayManager::Init() {
-  //m_resources.pAudio = 0; // implied now
-}
-
-void TreeDisplayManager::CreateControls() {    
-  
-  TreeDisplayManager* item = this;
-  
-  wxTreeCtrl::Bind( wxEVT_TREE_ITEM_MENU, &TreeDisplayManager::HandleContextMenu, this );
-  wxTreeCtrl::Bind( wxEVT_TREE_SEL_CHANGED, &TreeDisplayManager::HandleSelectionChanged, this );
-  wxTreeCtrl::Bind( wxEVT_TREE_SEL_CHANGING, &TreeDisplayManager::HandleSelectionChanging, this );
-  wxTreeCtrl::Bind( wxEVT_TREE_ITEM_ACTIVATED, &TreeDisplayManager::HandleItemActivated, this );
-  wxTreeCtrl::Bind( wxEVT_TREE_DELETE_ITEM, &TreeDisplayManager::HandleItemDeleted, this );
-  
-  wxTreeItemId id = wxTreeCtrl::AddRoot( "Projections" );
-  m_pTreeItemRoot.reset( new TreeItemRoot( id, m_resources ) );
-  m_mapDecoder.insert( mapDecoder_t::value_type( id.GetID(), m_pTreeItemRoot ) );
-  
 }
 
 void TreeDisplayManager::SetStaticTextInfo( wxStaticText* pstInfo ) {

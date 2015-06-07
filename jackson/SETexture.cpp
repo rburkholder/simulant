@@ -26,8 +26,10 @@
 
 #include "AspectRatio.h"
 
-SETexture::SETexture( ): 
+SETexture::SETexture( const std::string& sPathForShaders ): 
+
   SceneElementOpenGL(), 
+  m_sPathForShaders( sPathForShaders ),
   m_idVertexArray( 0 ), m_idTexture( 0 ), m_idElements( 0 ), 
   m_idVertexBufferForImageCoords( 0 ), m_idVertexBufferForTextureCoords( 0 ), 
   m_idVapImageCoords( 0 ), m_idVapTextureCoords( 0 ), 
@@ -260,14 +262,13 @@ void SETexture::Init( void ) {
   
   SceneElementOpenGL::Init();
 
-  boost::filesystem::path path;
-  wxString cwd = ::wxGetCwd();
-  path = boost::filesystem::current_path();
-  std::cout << "path: " << path << std::endl;
+  //boost::filesystem::path path;
+  //path = boost::filesystem::current_path();
+  std::cout << "path: " << m_sPathForShaders << std::endl;
   
-  std::string prefix( "/home/rpb/projects/simulant/jackson/" );
-  m_managerShader.LoadShader( GL_VERTEX_SHADER, prefix + "tex2.shvert" );
-  m_managerShader.LoadShader( GL_FRAGMENT_SHADER, prefix + "tex2.shfrag" );
+  //std::string prefix( "/home/rpb/projects/simulant/jackson/" );
+  m_managerShader.LoadShader( GL_VERTEX_SHADER, m_sPathForShaders + "/" + "tex2.shvert" );
+  m_managerShader.LoadShader( GL_FRAGMENT_SHADER, m_sPathForShaders + "/" + "tex2.shfrag" );
 	m_managerShader.InitializeProgram( m_idProgram );
   
   glUseProgram(m_idProgram);
