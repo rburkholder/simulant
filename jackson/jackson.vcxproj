@@ -186,6 +186,7 @@
     <ClInclude Include="RawImage.h" />
     <ClInclude Include="ReusableBuffers.h" />
     <ClInclude Include="SceneElement.h" />
+    <ClInclude Include="SceneElementOpenGL.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="SEGrid.h" />
     <ClInclude Include="SETexture.h" />
@@ -228,6 +229,7 @@
     <ClCompile Include="RawImage.cpp" />
     <ClCompile Include="ReusableBuffers.cpp" />
     <ClCompile Include="SceneElement.cpp" />
+    <ClCompile Include="SceneElementOpenGL.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="SEGrid.cpp" />
     <ClCompile Include="SETexture.cpp" />

@@ -261,6 +261,7 @@ void SETexture::Init( void ) {
   SceneElementOpenGL::Init();
 
   boost::filesystem::path path;
+  wxString cwd = ::wxGetCwd();
   path = boost::filesystem::current_path();
   std::cout << "path: " << path << std::endl;
   

@@ -1830,6 +1830,7 @@ bool TreeDisplayManager::Create( wxWindow* parent, wxWindowID id, const wxPoint&
 }
 
 TreeDisplayManager::~TreeDisplayManager() {
+  pAudio.reset();
 }
 
 void TreeDisplayManager::Append( pPhysicalDisplay_t pPhysicalDisplay ) {
