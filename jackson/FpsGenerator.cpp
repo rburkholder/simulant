@@ -108,6 +108,17 @@ FpsGenerator::FpsGenerator()
   }
 
   {
+    FrameRate::vCounts_t v95x4fps; // just under 24fps
+    for (unsigned int ix = 1; ix <= 18; ++ix) {
+      v95x4fps += 42;
+    }
+    v95x4fps += 44; // 19 frames in 800 ms, seen in Guardians of the Galaxy
+    m_mapFrameRate.insert(
+      mapFrameRate_t::value_type( fps95x4, pFrameRate_t( new FrameRate( fps95x4, v95x4fps, 19, 800, 95, 4 ) ) )
+      );
+  }
+
+  {
     FrameRate::vCounts_t v24fps;
     v24fps += 42, 42, 41;  // 3 frames in 125 ms
     m_mapFrameRate.insert( 
