@@ -54,7 +54,10 @@ void PanelSurfaceSources::Init() {
   m_btnUndo = NULL;
 
   m_bInEditMode = false;
-  m_sliderHorizontal = 0;
+  
+  m_sliderSeek = 0;
+  m_sliderFader = NULL;
+  m_sliderZ = NULL;
   
   m_panelWaveforms = 0;
   
@@ -126,9 +129,9 @@ void PanelSurfaceSources::CreateControls() {
   wxBoxSizer* itemBoxSizerForPanel = new wxBoxSizer( wxVERTICAL );
   itemPanel1->SetSizer(itemBoxSizerForPanel);
   
-  m_sliderHorizontal = new wxSlider( itemPanel1, ID_SLIDER_HORIZONTAL, 0, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
-  m_sliderHorizontal->Enable( false );
-  itemBoxSizerForPanel->Add( m_sliderHorizontal, 0, wxALIGN_TOP|wxGROW|wxALL, 1 );
+  m_sliderSeek = new wxSlider( itemPanel1, ID_SLIDER_SEEK, 0, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
+  m_sliderSeek->Enable( false );
+  itemBoxSizerForPanel->Add( m_sliderSeek, 0, wxALIGN_TOP|wxGROW|wxALL, 1 );
   
   wxBoxSizer* itemBoxSizerHorizontal = new wxBoxSizer( wxHORIZONTAL );
   itemBoxSizerForPanel->Add( itemBoxSizerHorizontal, 1, wxALIGN_LEFT|wxGROW|wxALL, 0 );
@@ -169,7 +172,6 @@ void PanelSurfaceSources::CreateControls() {
   m_btnAbort = new wxButton( m_panelRight, ID_BTN_ABORT, _("Abort"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT );
   m_btnAbort->Enable(false);
   itemBoxSizerMediaButtons->Add(m_btnAbort, 0, wxALIGN_CENTER_VERTICAL|wxALL, 2);
-
 
   // Button Columns, are any of the buttons useful?
   wxBoxSizer* itemBoxSizerPanelButtonColumns = new wxBoxSizer( wxHORIZONTAL );
@@ -231,8 +233,14 @@ void PanelSurfaceSources::CreateControls() {
   m_pWaveFormFrontRight->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
   itemBoxSizerWaveforms->Add( m_pWaveFormFrontRight, 1, wxGROW|wxALL, 2 );
 
+  m_sliderFader = new wxSlider( itemPanel1, ID_SLIDER_FADER, 100, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE );
+  itemBoxSizerHorizontal->Add(m_sliderFader, 0, wxGROW|wxALL, 3);
+
+  m_sliderZ = new wxSlider( itemPanel1, ID_SLIDER_Z, 0, -100, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE );
+  itemBoxSizerHorizontal->Add(m_sliderZ, 0, wxGROW|wxALL, 3);
+
   m_treeDisplays->SetStaticTextInfo( m_stInfo );
-  m_treeDisplays->SetSlider( m_sliderHorizontal );
+  m_treeDisplays->SetSliders( m_sliderSeek, m_sliderFader, m_sliderZ );
   m_treeDisplays->SetWaveformViewersFront( m_pWaveFormFrontLeft, m_pWaveFormFrontRight );
   
   m_treeDisplays->SetButtonEvent( &m_signalBtnEvent );

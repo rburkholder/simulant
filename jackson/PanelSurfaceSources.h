@@ -87,7 +87,8 @@ private:
     ID_BTN_EDITMODE, 
     ID_BTN_UNDO, 
     ID_TREE_DISPLAYS,
-    ID_SLIDER_HORIZONTAL,
+    ID_SLIDER_SEEK,
+    ID_SLIDER_FADER, ID_SLIDER_Z,
     ID_SPLITTER_HORIZONTAL,
     ID_PANEL, 
     ID_ST_FRAMECOUNTER, 
@@ -108,8 +109,11 @@ private:
   wxButton* m_btnDisplay;
   wxToggleButton* m_btnEditMode;
   wxButton* m_btnUndo;
-  wxSlider* m_sliderHorizontal;
   wxStaticText* m_stInfo;
+  
+  wxSlider* m_sliderSeek;
+  wxSlider* m_sliderFader;
+  wxSlider* m_sliderZ;
   
   wxButton* m_btnPlay;
   wxButton* m_btnPause;

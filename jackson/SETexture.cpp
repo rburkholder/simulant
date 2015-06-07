@@ -264,7 +264,7 @@ void SETexture::Init( void ) {
 
   //boost::filesystem::path path;
   //path = boost::filesystem::current_path();
-  std::cout << "path: " << m_sPathForShaders << std::endl;
+  std::cout << "SETexture::Init path: " << m_sPathForShaders << std::endl;
   
   //std::string prefix( "/home/rpb/projects/simulant/jackson/" );
   m_managerShader.LoadShader( GL_VERTEX_SHADER, m_sPathForShaders + "/" + "tex2.shvert" );
@@ -297,8 +297,13 @@ void SETexture::Init( void ) {
   glVertexAttribPointer(m_idVapTextureCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
   glDisableVertexAttribArray(m_idVapTextureCoords);
   
+  // related to CanvasOpenGL<CRTP>::HandlePaint glEnable, glDepthFunc
   // http://gamedev.stackexchange.com/questions/13794/how-to-render-a-texture-partly-transparent
+  // "source.color * source.alpha + destination.color * (1-source.alpha)", 
+  //   where "source" is the texture you're currently rendering, and 
+  //   "destination" is the color already in the framebuffer (the landscape)
   // http://stackoverflow.com/questions/721705/how-do-i-set-the-opacity-of-a-vertex-in-opengl
+  // https://www.opengl.org/archives/resources/faq/technical/transparency.htm
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   //glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -317,8 +322,7 @@ void SETexture::Paint( void ) {
   
   SceneElementOpenGL::Paint();
   
-//  if ( 0 != m_pImage.use_count() ) {
-    if ( ( 0 != m_pImage.use_count() ) || ( 0 != m_pRawImage.use_count() ) ) {
+  if ( ( 0 != m_pImage.use_count() ) || ( 0 != m_pRawImage.use_count() ) ) {
   
     glUseProgram(m_idProgram);
 

@@ -5,8 +5,6 @@
  * Created on March 14, 2015, 11:57 PM
  */
 
-//#include <iostream>
-
 #include "EventImage.h"
 
 EventImage::EventImage( wxEventType eventType, int winid, pRawImage_t p, void* user, structTimeSteps ts ) 

@@ -60,6 +60,9 @@ void CanvasOpenGL<CRTP>::HandlePaint( wxPaintEvent& event ) {
   wxGLCanvas::SetCurrent( *m_context );
   wxPaintDC( this ); // only to be used in paint events. use wxClientDC to paint outside the paint event
 
+  // opacity works with these disabled, so need to work with depth buffer to get these back
+  // also need to sort by depth to get best effect
+  // related to SETexture::Init
   // Enable depth test
   glEnable(GL_DEPTH_TEST);
   // Accept fragment if it closer to the camera than the former one

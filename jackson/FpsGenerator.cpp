@@ -108,7 +108,7 @@ FpsGenerator::FpsGenerator()
   }
 
   {
-    FrameRate::vCounts_t v95x4fps; // just under 24fps
+    FrameRate::vCounts_t v95x4fps; // just under 24fps  23.75 fps
     for (unsigned int ix = 1; ix <= 18; ++ix) {
       v95x4fps += 42;
     }

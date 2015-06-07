@@ -1223,28 +1223,28 @@ void TreeItemVideo::SetSelected( CommonGuiElements& elements ) {
   //std::cout << "setting " << this->m_id.GetID() << std::endl;
   TreeItemVisualCommon::SetSelected( elements );
   m_pstInfo = elements.pstInfo;
-  if ( 0 != elements.pSlider ) {
-    elements.pSlider->Bind( wxEVT_SCROLL_THUMBTRACK, &TreeItemVideo::HandleScrollThumbTrack, this );
-    elements.pSlider->Bind( wxEVT_SCROLL_LINEUP, &TreeItemVideo::HandleScrollLineChange, this );
-    elements.pSlider->Bind( wxEVT_SCROLL_LINEDOWN, &TreeItemVideo::HandleScrollLineChange, this );
-    elements.pSlider->Bind( wxEVT_SCROLL_THUMBRELEASE, &TreeItemVideo::HandleScrollThumbRelease, this );
+  if ( 0 != elements.pSliderSeek ) {
+    elements.pSliderSeek->Bind( wxEVT_SCROLL_THUMBTRACK, &TreeItemVideo::HandleScrollThumbTrack, this );
+    elements.pSliderSeek->Bind( wxEVT_SCROLL_LINEUP, &TreeItemVideo::HandleScrollLineChange, this );
+    elements.pSliderSeek->Bind( wxEVT_SCROLL_LINEDOWN, &TreeItemVideo::HandleScrollLineChange, this );
+    elements.pSliderSeek->Bind( wxEVT_SCROLL_THUMBRELEASE, &TreeItemVideo::HandleScrollThumbRelease, this );
     if ( 0 < m_ttlVideoFrames ) {
-      elements.pSlider->SetMin( 1 );
-      elements.pSlider->SetMax( m_ttlVideoFrames );
-      elements.pSlider->Enable( true );
+      elements.pSliderSeek->SetMin( 1 );
+      elements.pSliderSeek->SetMax( m_ttlVideoFrames );
+      elements.pSliderSeek->Enable( true );
     }
     else {
       if ( 0 < m_duration ) {
-        elements.pSlider->SetMin( 1 );
-        elements.pSlider->SetMax( ( m_duration * m_timebase.num ) / m_timebase.den );
-        elements.pSlider->Enable( true );
+        elements.pSliderSeek->SetMin( 1 );
+        elements.pSliderSeek->SetMax( ( m_duration * m_timebase.num ) / m_timebase.den );
+        elements.pSliderSeek->Enable( true );
       }
     }
     if ( 0 == m_nThumbPosition ) {
-      elements.pSlider->SetValue( 1 );
+      elements.pSliderSeek->SetValue( 1 );
     }
     else {
-      elements.pSlider->SetValue( m_nThumbPosition );
+      elements.pSliderSeek->SetValue( m_nThumbPosition );
     }
 
   }
@@ -1256,15 +1256,15 @@ void TreeItemVideo::RemoveSelected( CommonGuiElements& elements ) {
     m_pstInfo->SetLabel( "" );
     m_pstInfo = 0;
   }
-  if ( 0 != elements.pSlider ) {
-    m_nThumbPosition = elements.pSlider->GetValue();
-    elements.pSlider->Enable( false );
-    elements.pSlider->SetMin( 0 );
-    elements.pSlider->SetMax( 100 );
-    elements.pSlider->Unbind( wxEVT_SCROLL_THUMBTRACK, &TreeItemVideo::HandleScrollThumbTrack, this );
-    elements.pSlider->Unbind( wxEVT_SCROLL_LINEUP, &TreeItemVideo::HandleScrollLineChange, this );
-    elements.pSlider->Unbind( wxEVT_SCROLL_LINEDOWN, &TreeItemVideo::HandleScrollLineChange, this );
-    elements.pSlider->Unbind( wxEVT_SCROLL_THUMBRELEASE, &TreeItemVideo::HandleScrollThumbRelease, this );
+  if ( 0 != elements.pSliderSeek ) {
+    m_nThumbPosition = elements.pSliderSeek->GetValue();
+    elements.pSliderSeek->Enable( false );
+    elements.pSliderSeek->SetMin( 0 );
+    elements.pSliderSeek->SetMax( 100 );
+    elements.pSliderSeek->Unbind( wxEVT_SCROLL_THUMBTRACK, &TreeItemVideo::HandleScrollThumbTrack, this );
+    elements.pSliderSeek->Unbind( wxEVT_SCROLL_LINEUP, &TreeItemVideo::HandleScrollLineChange, this );
+    elements.pSliderSeek->Unbind( wxEVT_SCROLL_LINEDOWN, &TreeItemVideo::HandleScrollLineChange, this );
+    elements.pSliderSeek->Unbind( wxEVT_SCROLL_THUMBRELEASE, &TreeItemVideo::HandleScrollThumbRelease, this );
   }
   TreeItemVisualCommon::RemoveSelected( elements );
 }
@@ -1899,8 +1899,10 @@ void TreeDisplayManager::SetStaticTextInfo( wxStaticText* pstInfo ) {
   m_guiElements.pstInfo = pstInfo;
 }
 
-void TreeDisplayManager::SetSlider( wxSlider* pSlider ) {
-  m_guiElements.pSlider = pSlider;
+void TreeDisplayManager::SetSliders( wxSlider* sliderSeek, wxSlider* sliderFader, wxSlider* sliderZ ) {
+  m_guiElements.pSliderSeek = sliderSeek;
+  m_guiElements.pSliderFader = sliderFader;
+  m_guiElements.pSliderZ = sliderZ;
 }
 
 void TreeDisplayManager::SetWaveformViewersFront( WaveformView* pfl, WaveformView* pfr ) {

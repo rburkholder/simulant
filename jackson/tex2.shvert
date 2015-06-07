@@ -1,7 +1,9 @@
 #version 430 core
 
-layout(location=0) in vec2 vImageCoords;
-layout(location=1) in vec2 vTextureCoords;
+// https://www.opengl.org/wiki/Uniform_(GLSL)
+
+layout(location=1) in vec2 vImageCoords;
+layout(location=2) in vec2 vTextureCoords;
 
 uniform mat4 mTransform;
 out vec2 vUV;
