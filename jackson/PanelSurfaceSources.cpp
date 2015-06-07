@@ -233,14 +233,33 @@ void PanelSurfaceSources::CreateControls() {
   m_pWaveFormFrontRight->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
   itemBoxSizerWaveforms->Add( m_pWaveFormFrontRight, 1, wxGROW|wxALL, 2 );
 
-  m_sliderFader = new wxSlider( itemPanel1, ID_SLIDER_FADER, 100, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE );
-  itemBoxSizerHorizontal->Add(m_sliderFader, 0, wxGROW|wxALL, 3);
+  m_sliderZ = new wxSlider( itemPanel1, ID_SLIDER_Z, 0, -100, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE|wxNO_BORDER );
+  if (PanelSurfaceSources::ShowToolTips())
+    m_sliderZ->SetToolTip(_("z"));
+  m_sliderZ->SetForegroundColour(wxColour(165, 42, 42));
+  m_sliderZ->SetBackgroundColour(wxColour(189, 146, 53));
+  itemBoxSizerHorizontal->Add(m_sliderZ, 0, wxGROW|wxALL, 1);
 
-  m_sliderZ = new wxSlider( itemPanel1, ID_SLIDER_Z, 0, -100, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE );
-  itemBoxSizerHorizontal->Add(m_sliderZ, 0, wxGROW|wxALL, 3);
+  m_sliderVolume = new wxSlider( itemPanel1, ID_SLIDER_VOLUME, 100, 0, 130, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE|wxNO_BORDER );
+  if (PanelSurfaceSources::ShowToolTips())
+    m_sliderVolume->SetToolTip(_("volume"));
+  m_sliderVolume->SetBackgroundColour(wxColour(203, 86, 57));
+  itemBoxSizerHorizontal->Add(m_sliderVolume, 0, wxGROW|wxALL, 1);
+
+  m_sliderFader = new wxSlider( itemPanel1, ID_SLIDER_FADER, 100, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE|wxNO_BORDER );
+  if (PanelSurfaceSources::ShowToolTips())
+    m_sliderFader->SetToolTip(_("fader"));
+  m_sliderFader->SetBackgroundColour(wxColour(218, 58, 37));
+  itemBoxSizerHorizontal->Add(m_sliderFader, 0, wxGROW|wxALL, 1);
+
+  m_sliderMaster = new wxSlider( itemPanel1, ID_SLIDER_MASTER, 0, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE|wxNO_BORDER );
+  if (PanelSurfaceSources::ShowToolTips())
+    m_sliderMaster->SetToolTip(_("master"));
+  m_sliderMaster->SetBackgroundColour(wxColour(237, 22, 22));
+  itemBoxSizerHorizontal->Add(m_sliderMaster, 0, wxGROW|wxALL, 1);
 
   m_treeDisplays->SetStaticTextInfo( m_stInfo );
-  m_treeDisplays->SetSliders( m_sliderSeek, m_sliderFader, m_sliderZ );
+  m_treeDisplays->SetSliders( m_sliderSeek, m_sliderZ, m_sliderVolume, m_sliderFader, m_sliderMaster );
   m_treeDisplays->SetWaveformViewersFront( m_pWaveFormFrontLeft, m_pWaveFormFrontRight );
   
   m_treeDisplays->SetButtonEvent( &m_signalBtnEvent );

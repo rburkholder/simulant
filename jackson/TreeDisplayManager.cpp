@@ -1899,10 +1899,12 @@ void TreeDisplayManager::SetStaticTextInfo( wxStaticText* pstInfo ) {
   m_guiElements.pstInfo = pstInfo;
 }
 
-void TreeDisplayManager::SetSliders( wxSlider* sliderSeek, wxSlider* sliderFader, wxSlider* sliderZ ) {
+void TreeDisplayManager::SetSliders( wxSlider* sliderSeek, wxSlider* sliderZ, wxSlider* sliderVolume, wxSlider* sliderFader, wxSlider* sliderMaster ) {
   m_guiElements.pSliderSeek = sliderSeek;
-  m_guiElements.pSliderFader = sliderFader;
   m_guiElements.pSliderZ = sliderZ;
+  m_guiElements.pSliderVolume = sliderVolume;
+  m_guiElements.pSliderFader = sliderFader;
+  m_guiElements.pSliderMaster = sliderMaster;
 }
 
 void TreeDisplayManager::SetWaveformViewersFront( WaveformView* pfl, WaveformView* pfr ) {

@@ -88,7 +88,7 @@ private:
     ID_BTN_UNDO, 
     ID_TREE_DISPLAYS,
     ID_SLIDER_SEEK,
-    ID_SLIDER_FADER, ID_SLIDER_Z,
+    ID_SLIDER_Z, ID_SLIDER_VOLUME, ID_SLIDER_FADER, ID_SLIDER_MASTER,
     ID_SPLITTER_HORIZONTAL,
     ID_PANEL, 
     ID_ST_FRAMECOUNTER, 
@@ -112,8 +112,10 @@ private:
   wxStaticText* m_stInfo;
   
   wxSlider* m_sliderSeek;
-  wxSlider* m_sliderFader;
   wxSlider* m_sliderZ;
+  wxSlider* m_sliderVolume;
+  wxSlider* m_sliderFader;
+  wxSlider* m_sliderMaster;
   
   wxButton* m_btnPlay;
   wxButton* m_btnPause;

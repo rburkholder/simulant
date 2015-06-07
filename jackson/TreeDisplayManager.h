@@ -59,8 +59,10 @@ private:
 struct CommonGuiElements {
   wxStaticText* pstInfo;
   wxSlider* pSliderSeek;
-  wxSlider* pSliderFader;
   wxSlider* pSliderZ;
+  wxSlider* pSliderVolume;
+  wxSlider* pSliderFader;
+  wxSlider* pSliderMaster;
   AudioChannels channels;
   CommonGuiElements( void ): 
   pstInfo( 0 ), pSliderSeek( 0 ), pSliderFader( 0 ), pSliderZ( 0 )
@@ -114,7 +116,7 @@ public:
   void Add( pAudio_t pAudio );
   
   void SetStaticTextInfo( wxStaticText* pstInfo );
-  void SetSliders( wxSlider* sliderSeek, wxSlider* sliderFader, wxSlider* sliderZ );
+  void SetSliders( wxSlider* sliderSeek, wxSlider* sliderZ, wxSlider* sliderVolume, wxSlider* sliderFader, wxSlider* sliderMaster );
   void SetWaveformViewersFront( WaveformView* pfl, WaveformView* pfr );
   void SetWaveformViewersRear( WaveformView* prl, WaveformView* prr );
   void SetButtonEvent( signalBtnEvent_t* signal ) { 
