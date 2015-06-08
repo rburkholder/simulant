@@ -137,6 +137,7 @@ void InteractiveTransform::HandleMouseLeftDown( wxMouseEvent& event ) {
   //std::cout << "left down " << event.GetX() << ", " << event.GetY() << std::endl;
   m_intMouseX = event.GetX();
   m_intMouseY = event.GetY();
+  event.Skip();
 }
 
 void InteractiveTransform::HandleMouseMoved( wxMouseEvent& event ) {
@@ -174,7 +175,8 @@ void InteractiveTransform::HandleMouseMoved( wxMouseEvent& event ) {
   m_intMouseX = event.GetX();
   m_intMouseY = event.GetY();
   
-  event.Skip( false );
+  //event.Skip( false );
+  event.Skip();
 }
 
 void InteractiveTransform::HandleMouseWheel( wxMouseEvent& event ) {
@@ -216,6 +218,7 @@ void InteractiveTransform::HandleMouseWheel( wxMouseEvent& event ) {
     m_mat4Transform = ( ( m_mat4Translation * m_mat4Scale ) * m_mat4Rotation ) * m_matAspectRatio;
     UpdateTransformMatrix( m_mat4Transform );
   }
-  event.Skip( false );
+  //event.Skip( false );
+  event.Skip();
 }
 

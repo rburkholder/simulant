@@ -146,6 +146,8 @@ private:
   
   void HandleKey( wxKeyEvent& event );
 
+  void HandleMouseWheel1( wxMouseEvent& );
+
   void HandleMouseWheelInWaveformsPanel( wxMouseEvent& );
   void HandleMouseMotionInWaveformsPanel( wxMouseEvent& );
   

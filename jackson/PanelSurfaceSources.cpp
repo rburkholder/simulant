@@ -225,11 +225,11 @@ void PanelSurfaceSources::CreateControls() {
   wxBoxSizer* itemBoxSizerWaveforms = new wxBoxSizer(wxVERTICAL);
   m_panelWaveforms->SetSizer(itemBoxSizerWaveforms);
 
-  m_pWaveFormFrontLeft = new WaveformView( m_panelWaveforms, ID_WFV_FRONTLEFT );
+  m_pWaveFormFrontLeft = new WaveformView( m_panelWaveforms, ID_WFV_FRONTLEFT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
   m_pWaveFormFrontLeft->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
   itemBoxSizerWaveforms->Add( m_pWaveFormFrontLeft, 1, wxGROW|wxALL, 2 );
   
-  m_pWaveFormFrontRight = new WaveformView( m_panelWaveforms, ID_WFV_FRONTRIGHT );
+  m_pWaveFormFrontRight = new WaveformView( m_panelWaveforms, ID_WFV_FRONTRIGHT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
   m_pWaveFormFrontRight->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
   itemBoxSizerWaveforms->Add( m_pWaveFormFrontRight, 1, wxGROW|wxALL, 2 );
 
@@ -278,6 +278,9 @@ void PanelSurfaceSources::CreateControls() {
   //m_panelWaveforms->Bind( wxEVT_MOTION, &PanelSurfaceSources::HandleMouseMotionInWaveformsPanel, this );
   //m_panelWaveforms->Bind( wxEVT_ENTER_WINDOW, &PanelSurfaceSources::HandleEnterWindow, this );
   //m_panelWaveforms->Bind( wxEVT_LEAVE_WINDOW, &PanelSurfaceSources::HandleLeaveWindow, this );
+
+  //Bind( wxEVT_MOUSEWHEEL, &PanelSurfaceSources::HandleMouseWheel1, this );
+  //m_panelWaveforms->Bind( wxEVT_MOUSEWHEEL, &PanelSurfaceSources::HandleMouseWheel1, this );
   
   m_pWaveFormFrontLeft->Bind( wxEVT_MOTION, &PanelSurfaceSources::HandleMouseMotionInWaveform, this );
   m_pWaveFormFrontRight->Bind( wxEVT_MOTION, &PanelSurfaceSources::HandleMouseMotionInWaveform, this );
@@ -291,12 +294,22 @@ void PanelSurfaceSources::CreateControls() {
   m_pWaveFormFrontLeft->Bind( wxEVT_LEFT_UP, &PanelSurfaceSources::HandleMouseLeftUpInWaveform, this );
   m_pWaveFormFrontRight->Bind( wxEVT_LEFT_UP, &PanelSurfaceSources::HandleMouseLeftUpInWaveform, this );
   
+  //m_pWaveFormFrontLeft->Bind( wxEVT_ENTER_WINDOW, &PanelSurfaceSources::HandleEnterWindow, this );
+  //m_pWaveFormFrontRight->Bind( wxEVT_ENTER_WINDOW, &PanelSurfaceSources::HandleEnterWindow, this );
+
+  //m_pWaveFormFrontLeft->Bind( wxEVT_LEAVE_WINDOW, &PanelSurfaceSources::HandleLeaveWindow, this );
+  //m_pWaveFormFrontRight->Bind( wxEVT_LEAVE_WINDOW, &PanelSurfaceSources::HandleLeaveWindow, this );
+
   Bind( wxEVT_CHAR, &PanelSurfaceSources::HandleKey, this );
   
   //Bind( wxEVT_SCROLL_THUMBTRACK, &PanelSurfaceSources::HandleScrollThumbTrack, this, ID_SLIDER_HORIZONTAL );
   //Bind( wxEVT_SCROLL_LINEUP, &PanelSurfaceSources::HandleScrollLineChange, this, ID_SLIDER_HORIZONTAL );
   //Bind( wxEVT_SCROLL_LINEDOWN, &PanelSurfaceSources::HandleScrollLineChange, this, ID_SLIDER_HORIZONTAL );
   //Bind( wxEVT_SCROLL_THUMBRELEASE, &PanelSurfaceSources::HandleScrollThumbRelease, this, ID_SLIDER_HORIZONTAL );
+}
+
+void PanelSurfaceSources::HandleMouseWheel1(wxMouseEvent& event) {
+  std::cout << "basic panel wheel" << std::endl;
 }
 
 void PanelSurfaceSources::HandleKey( wxKeyEvent& event ) {
@@ -319,6 +332,7 @@ void PanelSurfaceSources::HandleMouseMotionInWaveformsPanel( wxMouseEvent& event
   //m_pWaveFormFrontLeft->HitTest()
   //m_posMouse = event.GetPosition();
   //std::cout << "1 motion: " << m_posMouse.x << "," << m_posMouse.y << std::endl;
+  event.Skip();
 }
 
 void PanelSurfaceSources::HandleMouseWheelInWaveform( wxMouseEvent& event ) {
@@ -338,6 +352,8 @@ void PanelSurfaceSources::HandleMouseWheelInWaveform( wxMouseEvent& event ) {
   }
   m_pWaveFormFrontLeft->Refresh();
   m_pWaveFormFrontRight->Refresh();
+
+  event.Skip();
 }
 
 void PanelSurfaceSources::HandleMouseMotionInWaveform( wxMouseEvent& event ) {
@@ -358,10 +374,11 @@ void PanelSurfaceSources::HandleMouseMotionInWaveform( wxMouseEvent& event ) {
 
 void PanelSurfaceSources::HandleMouseLeftDownInWaveform( wxMouseEvent& event ) {
   m_posMouseOnLeftDown = event.GetPosition();
+  event.Skip();
 }
 
 void PanelSurfaceSources::HandleMouseLeftUpInWaveform( wxMouseEvent& event ) {
-  
+  event.Skip();
 }
 
 void PanelSurfaceSources::HandleUndo( wxCommandEvent& event ) {

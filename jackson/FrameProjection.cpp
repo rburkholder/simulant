@@ -65,6 +65,7 @@ void FrameProjection::HandleMouseMoved( wxMouseEvent& event ) {
     wxCursor cursor = m_pOutline->TrackMouse( event.GetPosition(), m_bMouseDown, dc );
     this->SetCursor( cursor );
   }
+  event.Skip();
 }
 
 void FrameProjection::HandleMouseLeftDown( wxMouseEvent& event ) {
