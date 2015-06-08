@@ -17,7 +17,7 @@
 class SceneElementOpenGL: public SceneElement {
 public:
   
-  SceneElementOpenGL( );
+  SceneElementOpenGL( const std::string& sPathForShaders );
   virtual ~SceneElementOpenGL( );
   
   virtual void Init( void ) { assert( false == m_bHadInit ); m_bHadInit = true; };
@@ -28,6 +28,8 @@ public:
   virtual void OnFrameTrigger( void ) {};
   
 protected:
+  
+  std::string m_sPathForShaders;
   
   GLuint m_idProgram;
   

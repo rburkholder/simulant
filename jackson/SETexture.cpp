@@ -28,13 +28,13 @@
 
 SETexture::SETexture( const std::string& sPathForShaders ): 
 
-  SceneElementOpenGL(), 
-  m_sPathForShaders( sPathForShaders ),
+  SceneElementOpenGL( sPathForShaders ), 
   m_idVertexArray( 0 ), m_idTexture( 0 ), m_idElements( 0 ), 
   m_idVertexBufferForImageCoords( 0 ), m_idVertexBufferForTextureCoords( 0 ), 
   m_idVapImageCoords( 0 ), m_idVapTextureCoords( 0 ), 
-  m_idUniformTransform( 0 ), 
-  m_bNewImageAvailable( false ), m_bNewRawImageAvailable( false )
+  m_idUniformTransform( 0 ), m_idUniformAlpha( 0 ),
+  m_bNewImageAvailable( false ), m_bNewRawImageAvailable( false ),
+  m_fltAlpha( 1.0f )
 {
   
   using namespace boost::assign;
@@ -126,6 +126,10 @@ void SETexture::SetBasicTransform( void ) {
 void SETexture::SetTransform( const glm::mat4& mat4Transform ) { 
   m_mat4SuppliedTransform = mat4Transform; 
   m_mat4FinalTransform = m_mat4SuppliedTransform * m_mat4BasicTransform;
+}
+
+void SETexture::SetAlpha( float alpha ) {
+  m_fltAlpha = alpha;
 }
 
 void SETexture::SetImage( pImage_t pImage ) {
@@ -278,6 +282,7 @@ void SETexture::Init( void ) {
   glBindVertexArray(m_idVertexArray);
 
   m_idUniformTransform = glGetUniformLocation( m_idProgram, "mTransform" );
+  m_idUniformAlpha = glGetUniformLocation( m_idProgram, "fltAlpha" );
 
   // Create a Vertex Buffer Object and copy the vertex data to it
   SetImageCoords();
@@ -337,7 +342,8 @@ void SETexture::Paint( void ) {
 
     SetImage();
 
-    glUniformMatrix4fv(m_idUniformTransform, 1, GL_FALSE, &m_mat4FinalTransform[0][0]);
+    glUniformMatrix4fv( m_idUniformTransform, 1, GL_FALSE, &m_mat4FinalTransform[0][0]);
+    glUniform1f( m_idUniformAlpha, m_fltAlpha );
 
     glDrawElements(GL_TRIANGLES, m_vElements.size(), GL_UNSIGNED_INT, 0);
 

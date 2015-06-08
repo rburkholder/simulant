@@ -11,8 +11,8 @@
 
 #include <GL/glext.h>
 
-SceneElementOpenGL::SceneElementOpenGL( ): 
-SceneElement(), m_bHadInit( false ), m_idProgram( 0 )  
+SceneElementOpenGL::SceneElementOpenGL( const std::string& sPathForShaders ): 
+SceneElement(), m_bHadInit( false ), m_idProgram( 0 ), m_sPathForShaders( sPathForShaders )
 {
 }
 

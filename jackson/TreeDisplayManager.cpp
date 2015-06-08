@@ -759,7 +759,7 @@ public:
     return m_signalTransformUpdated.connect( slot );
   }
   
-  void GetTransformMatrix( glm::mat4& matrix ) const { matrix = m_mat4Transform; };
+  //void GetTransformMatrix( glm::mat4& matrix ) { matrix = InteractiveTransform::GetTransformMatrix(); };
   
   void HandleDelete( wxCommandEvent& event );  // compiler doesn't like in protected
   void HandleReset( wxCommandEvent& event );  // compiler doesn't like in protected
@@ -771,7 +771,7 @@ protected:
   pPhysicalDisplay_t m_pPhysicalDisplay;
   pSceneManager_t m_pSceneManager;
   
-  virtual void UpdateTransformMatrix( void ) {};
+  //virtual void UpdateTransformMatrix( const glm::mat4& ) {};  // originates in InteractiveTransform inheritance
 
   void SetSelected( CommonGuiElements& );  // from tree menu
   void RemoveSelected( CommonGuiElements& );  // from tree menu
@@ -799,11 +799,11 @@ void TreeItemVisualCommon::HandleDelete( wxCommandEvent& event ) {
 void TreeItemVisualCommon::HandleReset( wxCommandEvent& event ) {
   std::cout << "Reset" << std::endl;
   ResetTransformMatrix();
-  UpdateTransformMatrix();
+  //UpdateTransformMatrix();  // already called in ResetTransformMatrix
 }
 
 void TreeItemVisualCommon::SetSelected( CommonGuiElements& cge ) {
-  InteractiveTransform::Activate( m_pSceneManager.get(), cge.pSliderZ );
+  InteractiveTransform::Activate( m_pSceneManager.get(), cge.pSliderZ, cge.pSliderFader );
 }
 
 void TreeItemVisualCommon::RemoveSelected( CommonGuiElements& cge ) {
@@ -838,7 +838,7 @@ private:
   pSEGrid_t m_pGrid;
   key_t m_keyGrid;
   
-  virtual void UpdateTransformMatrix( void );
+  virtual void UpdateTransformMatrix( const glm::mat4& );
   
 };
 
@@ -851,13 +851,11 @@ TreeItemGrid::TreeItemGrid(
   
   std::cout << "Tree Item Add Grid" << std::endl;
   
-  //wxImage::AddHandler( new wxJPEGHandler );
-
-  m_pGrid.reset( new SEGrid );
+  m_pGrid.reset( new SEGrid(  m_resources.sCurrentPath ) );
   m_keyGrid = m_pSceneManager->Add( FpsGenerator::fps24, m_pGrid );
  
   ResetTransformMatrix();
-  UpdateTransformMatrix();
+  //UpdateTransformMatrix();
   
 }
 
@@ -866,9 +864,9 @@ TreeItemGrid::~TreeItemGrid( void ) {
     m_pSceneManager->Delete( m_keyGrid );
 }
 
-void TreeItemGrid::UpdateTransformMatrix( void ) {
-  m_pGrid->UpdateTransform( m_mat4Transform );
-  m_signalTransformUpdated( m_mat4Transform );
+void TreeItemGrid::UpdateTransformMatrix( const glm::mat4& matrix ) {
+  m_pGrid->UpdateTransform( matrix );
+  m_signalTransformUpdated( matrix );
 }
 
 void TreeItemGrid::ShowContextMenu( void ) {
@@ -919,7 +917,8 @@ protected:
   void SetImage( pImage_t pImage );
   void SetImage( pRawImage_t pRawImage );
   
-  virtual void UpdateTransformMatrix( void );
+  virtual void UpdateTransformMatrix( const glm::mat4& );
+  virtual void UpdateFade( float fade );
   
 private:
   
@@ -941,7 +940,7 @@ TreeItemImageCommon::TreeItemImageCommon(
   //wxImage::AddHandler( new wxJPEGHandler );
 
   m_pTexture.reset( new SETexture( m_resources.sCurrentPath ) );
-  m_pTexture->SetTransform( InteractiveTransform::m_mat4Transform );
+  m_pTexture->SetTransform( InteractiveTransform::GetTransformMatrix() );
     
 }
 
@@ -971,7 +970,7 @@ void TreeItemImageCommon::SetImage( pImage_t pImage ) {  // load picture and cre
   assert( 0 != pImage.use_count() );
   if ( pImage->IsOk() ) {
     m_pTexture->SetImage( pImage );
-    UpdateTransformMatrix();
+    InteractiveTransform::UpdateTransformMatrix();
   }
   // some old remnants for posterity's reference
 //    FrameProjection* pfp = m_pPhysicalDisplay->GetFrame();
@@ -984,14 +983,20 @@ void TreeItemImageCommon::SetImage( pRawImage_t pRawImage ) {  // load picture a
   assert( 0 != m_pTexture.use_count() );
   assert( 0 != pRawImage.use_count() );
   m_pTexture->SetImage( pRawImage );
-  UpdateTransformMatrix();
+  InteractiveTransform::UpdateTransformMatrix();
 }
 
-void TreeItemImageCommon::UpdateTransformMatrix( void ) {
+void TreeItemImageCommon::UpdateTransformMatrix( const glm::mat4& matrix ) {
   if ( 0 != m_pTexture.get() ) {
-    m_pTexture->SetTransform( m_mat4Transform );
+    m_pTexture->SetTransform( matrix );
   }
-  m_signalTransformUpdated( m_mat4Transform );
+  m_signalTransformUpdated( matrix );
+}
+
+void TreeItemImageCommon::UpdateFade(float fade) {
+  if ( 0 != m_pTexture.get() ) {
+    m_pTexture->SetAlpha( fade );
+  }
 }
 
 // ================
@@ -1035,7 +1040,7 @@ TreeItemImage::TreeItemImage(
   
   LoadImage();
   
-  UpdateTransformMatrix();
+  InteractiveTransform::UpdateTransformMatrix();
   
   TreeItemImageCommon::Enable( FpsGenerator::fps24 );
   
@@ -1205,7 +1210,7 @@ TreeItemVideo::TreeItemVideo(
   
   LoadVideo();
   
-  UpdateTransformMatrix();  // probably won't have coordinates at this time, so may not be necessary
+  InteractiveTransform::UpdateTransformMatrix();  // probably won't have coordinates at this time, so may not be necessary
   
 }
 

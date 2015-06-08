@@ -34,6 +34,7 @@ public:
   void SetWindowCoords( std::vector<glm::vec4>&  vCoords );  // to be deprecated
   
   void SetTransform( const glm::mat4& mat4Transform );
+  void SetAlpha( float alpha );
   
   void SetImage( pImage_t pImage );
   void SetImage( pRawImage_t pRawImage );
@@ -45,8 +46,6 @@ protected:
   
 private:
   
-  std::string m_sPathForShaders;
-  
   GLuint m_idVertexArray;
   GLuint m_idTexture;
   GLuint m_idElements;
@@ -57,6 +56,7 @@ private:
   GLuint m_idVapTextureCoords;
   
   GLuint m_idUniformTransform;
+  GLuint m_idUniformAlpha;
   
   pImage_t m_pImage;
   bool m_bNewImageAvailable;
@@ -69,6 +69,8 @@ private:
   glm::mat4 m_mat4BasicTransform;
   glm::mat4 m_mat4SuppliedTransform;
   glm::mat4 m_mat4FinalTransform;
+  
+  float m_fltAlpha; // aka fade
   
   std::vector<glm::vec2> m_vtxImageCoords;
   std::vector<glm::vec2> m_vtxTextureCoords;

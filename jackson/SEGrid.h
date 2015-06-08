@@ -18,7 +18,7 @@
 class SEGrid: public SceneElementOpenGL {
 public:
   
-  SEGrid( );
+  SEGrid( const std::string& sPathForShaders );
   virtual ~SEGrid( );
   
   void UpdateTransform( const glm::mat4& mat4Transform );

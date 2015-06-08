@@ -19,18 +19,21 @@ public:
   virtual ~InteractiveTransform( );
 protected:
   
-  glm::mat4 m_mat4Transform;
-  
-  void Activate( wxWindow*, wxSlider* );
+  void Activate( wxWindow* win, wxSlider* z, wxSlider* fader );
   void DeActivate( void );
   
   void ResetTransformMatrix( void );
   void HandleMouseWheel( wxMouseEvent& event );
   void HandleMouseMoved( wxMouseEvent& event );
   void HandleMouseLeftDown( wxMouseEvent& event );
-  void HandleScrollChanged( wxScrollEvent& event );
+  void HandleScrollChangedZ( wxScrollEvent& event );
+  void HandleScrollChangedFader( wxScrollEvent& event );
   
-  virtual void UpdateTransformMatrix( void ) {};
+  void UpdateTransformMatrix( void ) { UpdateTransformMatrix( m_mat4Transform ); }
+  virtual void UpdateTransformMatrix( const glm::mat4& ) {};
+  const glm::mat4& GetTransformMatrix( void ) const { return m_mat4Transform; }
+  
+  virtual void UpdateFade( float ) {};
   
 private:
   
@@ -49,9 +52,17 @@ private:
   glm::mat4 m_mat4Scale;
   glm::mat4 m_mat4Translation;
   
-  int m_zOld;  // previous z
+  glm::mat4 m_mat4Transform;
+  
+  int m_oldZ;  // previous z
+  int m_oldFader; // previous fader
   
   wxWindow* m_pWin;
   wxSlider* m_pSliderZ;
+  wxSlider* m_pSliderFader;
+  
+  void UpdateSliderZ( void );
+  void UpdateSliderFader( void );
+  
   
 };

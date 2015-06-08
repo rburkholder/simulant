@@ -13,8 +13,10 @@
 #include "InteractiveTransform.h"
 
 InteractiveTransform::InteractiveTransform( int width, int height ) 
-: m_floatFactor( 1.0f ), m_bReceivingEvents( false ), m_pWin( 0 ),
-  m_fWidth( width ), m_fHeight( height ), m_zOld( 0.0f )
+: m_floatFactor( 1.0f ), m_bReceivingEvents( false ), 
+  m_pWin( 0 ), m_pSliderZ( 0 ), m_pSliderFader( 0 ),
+                  m_oldZ( 0 ), m_oldFader( 100 ),
+  m_fWidth( width ), m_fHeight( height )
 {
   ResetTransformMatrix();
 }
@@ -23,21 +25,29 @@ InteractiveTransform::~InteractiveTransform( ) {
   if ( m_bReceivingEvents ) DeActivate();
 }
 
-void InteractiveTransform::Activate( wxWindow* win, wxSlider* sliderZ ) {
+void InteractiveTransform::Activate( wxWindow* win, wxSlider* sliderZ, wxSlider* sliderFader ) {
   if ( !m_bReceivingEvents ) {
     m_pWin = win;
-    m_pSliderZ = sliderZ;
     m_pWin->Bind( wxEVT_MOUSEWHEEL, &InteractiveTransform::HandleMouseWheel, this );
     m_pWin->Bind( wxEVT_MOTION, &InteractiveTransform::HandleMouseMoved, this );
     m_pWin->Bind( wxEVT_LEFT_DOWN, &InteractiveTransform::HandleMouseLeftDown, this );
+
+    m_pSliderZ = sliderZ;
+    m_pSliderZ->SetValue( m_oldZ );
+    UpdateSliderZ();
     //sliderZ->wxEVT_SCROLL_CHANGED, wxEVT_SCROLL_THUMBTRACK,  wxEVT_SCROLL_THUMBRELEASE
-    m_pSliderZ->SetValue( m_zOld );
-    std::string s( boost::lexical_cast<std::string>( m_zOld ) );
-    std::string s1( "z=" + s );
-    m_pSliderZ->SetToolTip( s1 );
-    m_pSliderZ->Bind( wxEVT_SCROLL_CHANGED, &InteractiveTransform::HandleScrollChanged, this );
-    m_pSliderZ->Bind( wxEVT_SCROLL_THUMBTRACK, &InteractiveTransform::HandleScrollChanged, this );
+    m_pSliderZ->Bind( wxEVT_SCROLL_CHANGED, &InteractiveTransform::HandleScrollChangedZ, this );
+    m_pSliderZ->Bind( wxEVT_SCROLL_THUMBTRACK, &InteractiveTransform::HandleScrollChangedZ, this );
     m_pSliderZ->Enable();
+    
+    m_pSliderFader = sliderFader;
+    m_pSliderFader->SetValue( m_oldFader );
+    UpdateSliderFader();
+    //sliderZ->wxEVT_SCROLL_CHANGED, wxEVT_SCROLL_THUMBTRACK,  wxEVT_SCROLL_THUMBRELEASE
+    m_pSliderFader->Bind( wxEVT_SCROLL_CHANGED, &InteractiveTransform::HandleScrollChangedFader, this );
+    m_pSliderFader->Bind( wxEVT_SCROLL_THUMBTRACK, &InteractiveTransform::HandleScrollChangedFader, this );
+    m_pSliderFader->Enable();
+    
     m_bReceivingEvents = true;
   }
 }
@@ -45,39 +55,81 @@ void InteractiveTransform::Activate( wxWindow* win, wxSlider* sliderZ ) {
 void InteractiveTransform::DeActivate( void ) {
   assert( 0 != m_pWin );
   if ( m_bReceivingEvents ) {
+    m_pSliderFader->Enable( false );
+    m_pSliderFader->Unbind( wxEVT_SCROLL_THUMBTRACK, &InteractiveTransform::HandleScrollChangedFader, this );
+    m_pSliderFader->Unbind( wxEVT_SCROLL_CHANGED, &InteractiveTransform::HandleScrollChangedFader, this );
+    m_pSliderFader = 0;
+    
     m_pSliderZ->Enable( false );
-    m_pSliderZ->Unbind( wxEVT_SCROLL_THUMBTRACK, &InteractiveTransform::HandleScrollChanged, this );
-    m_pSliderZ->Unbind( wxEVT_SCROLL_CHANGED, &InteractiveTransform::HandleScrollChanged, this );
+    m_pSliderZ->Unbind( wxEVT_SCROLL_THUMBTRACK, &InteractiveTransform::HandleScrollChangedZ, this );
+    m_pSliderZ->Unbind( wxEVT_SCROLL_CHANGED, &InteractiveTransform::HandleScrollChangedZ, this );
+    m_pSliderZ = 0;
+    
     m_pWin->Unbind( wxEVT_MOUSEWHEEL, &InteractiveTransform::HandleMouseWheel, this );
     m_pWin->Unbind( wxEVT_MOTION, &InteractiveTransform::HandleMouseMoved, this );
     m_pWin->Unbind( wxEVT_LEFT_DOWN, &InteractiveTransform::HandleMouseLeftDown, this );
     m_pWin = 0;
-    m_pSliderZ = 0;
+    
     m_bReceivingEvents = false;
   }
 }
 
 void InteractiveTransform::ResetTransformMatrix( void ) {
+  m_oldZ = 0;
+  m_oldFader = 100;
   m_mat4Rotation = glm::mat4( 1.0f );
   m_mat4Scale = glm::mat4( 1.0f );
   m_mat4Translation = glm::mat4( 1.0f );
   m_matAspectRatio = AspectRatioWindow( m_fHeight, m_fWidth );
   m_mat4Transform = glm::mat4( 1.0f ) * m_matAspectRatio;
+  //m_mat4Transform = ( ( m_mat4Translation * m_mat4Scale ) * m_mat4Rotation ) * m_matAspectRatio;
+  if ( 0 != m_pSliderZ ) m_pSliderZ->SetValue( m_oldZ );
+  if ( 0 != m_pSliderFader ) m_pSliderFader->SetValue( m_oldFader );
+
+  UpdateSliderZ();
+  UpdateSliderFader();
+  
+  UpdateTransformMatrix( m_mat4Transform );
+  UpdateFade( 100.0f );
 }
 
-void InteractiveTransform::HandleScrollChanged( wxScrollEvent& event ) {
+void InteractiveTransform::UpdateSliderZ( void ) {
+  if ( 0 != m_pSliderZ ) {
+    std::string sSliderZ0( boost::lexical_cast<std::string>( m_oldZ ) );
+    std::string sSliderZ1( "z=" + sSliderZ0 );
+    m_pSliderZ->SetToolTip( sSliderZ1 );
+  }
+}
+
+void InteractiveTransform::UpdateSliderFader( void ) {
+  if ( 0 != m_pSliderFader ) {
+    std::string sSliderFader0( boost::lexical_cast<std::string>( m_oldFader ) );
+    std::string sSliderFader1( "fade=" + sSliderFader0 );
+    m_pSliderFader->SetToolTip( sSliderFader1 );
+  }
+}
+
+void InteractiveTransform::HandleScrollChangedZ( wxScrollEvent& event ) {
   int z = event.GetPosition();  // -z is out of window
-  float zNew = z / 100.0f;
-  float zOld = m_zOld / 100.0f;
+  float zNew = (float)z / 100.0f;
+  float zOld = (float)m_oldZ / 100.0f;
   glm::vec3 vTranslateOld = glm::vec3( 0.0f, 0.0f,  zOld );  // - for screen to window conversion
   glm::vec3 vTranslateNew = glm::vec3( 0.0f, 0.0f, -zNew );  // - for screen to window conversion
   m_mat4Translation *= glm::translate( vTranslateNew ) * glm::translate( vTranslateOld );
-  m_zOld = z;
-  std::string s( boost::lexical_cast<std::string>( m_zOld ) );
-  std::string s1( "z=" + s );
-  m_pSliderZ->SetToolTip( s1 );
+  m_oldZ = z;
+  UpdateSliderZ();
   m_mat4Transform = ( ( m_mat4Translation * m_mat4Scale ) * m_mat4Rotation ) * m_matAspectRatio;
-  UpdateTransformMatrix();
+  UpdateTransformMatrix( m_mat4Transform );
+  event.Skip( false );
+}
+
+void InteractiveTransform::HandleScrollChangedFader( wxScrollEvent& event ) {
+  int fader = event.GetPosition(); 
+  float faderNew = (float)fader / 100.0f;
+  float faderOld = (float)m_oldFader / 100.0f;
+  m_oldFader = fader;
+  UpdateSliderFader();
+  UpdateFade( faderNew );
   event.Skip( false );
 }
 
@@ -116,7 +168,7 @@ void InteractiveTransform::HandleMouseMoved( wxMouseEvent& event ) {
     }
     //m_mat4Transform = ( ( glm::mat4( 1.0f ) * m_mat4Translation ) * m_mat4Scale ) * m_mat4Rotation;
     m_mat4Transform = ( ( m_mat4Translation * m_mat4Scale ) * m_mat4Rotation ) * m_matAspectRatio;
-    UpdateTransformMatrix();
+    UpdateTransformMatrix( m_mat4Transform );
   }
   
   m_intMouseX = event.GetX();
@@ -162,7 +214,7 @@ void InteractiveTransform::HandleMouseWheel( wxMouseEvent& event ) {
     }
     //m_mat4Transform = ( ( glm::mat4( 1.0f ) * m_mat4Translation ) * m_mat4Scale ) * m_mat4Rotation;
     m_mat4Transform = ( ( m_mat4Translation * m_mat4Scale ) * m_mat4Rotation ) * m_matAspectRatio;
-    UpdateTransformMatrix();
+    UpdateTransformMatrix( m_mat4Transform );
   }
   event.Skip( false );
 }

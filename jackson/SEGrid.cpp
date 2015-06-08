@@ -17,7 +17,9 @@
 
 // NDS Normalized Device Space: x,y: -1.0,-1.0 -> 1.0, 1.0 ; depth: 0.0 -> 1.0  pg 39
 
-SEGrid::SEGrid( ): SceneElementOpenGL() {
+SEGrid::SEGrid( const std::string& sPathForShaders ): 
+  SceneElementOpenGL( sPathForShaders )
+ {
 
   const GLuint nCols( 10 );  // but will n + 1, iterate 0 .. n
   const GLuint nRows( 10 );  // but will n + 1, iterate 0 .. n
@@ -70,9 +72,11 @@ void SEGrid::Init( void ) {
   
   SceneElementOpenGL::Init();
   
-  std::string prefix( "/home/rpb/projects/simulant/jackson/" );
-  m_managerShader.LoadShader( GL_VERTEX_SHADER, prefix + "oglGrid.shvert" );
-  m_managerShader.LoadShader( GL_FRAGMENT_SHADER, prefix + "oglGrid.shfrag" );
+  std::cout << "SEGrid::Init path: " << m_sPathForShaders << std::endl;
+  
+  //std::string prefix( "/home/rpb/projects/simulant/jackson/" );
+  m_managerShader.LoadShader( GL_VERTEX_SHADER, m_sPathForShaders + "/" + "oglGrid.shvert" );
+  m_managerShader.LoadShader( GL_FRAGMENT_SHADER, m_sPathForShaders + "/" + "oglGrid.shfrag" );
 	m_managerShader.InitializeProgram( m_idProgram );
   
   glUseProgram(m_idProgram);
