@@ -97,7 +97,8 @@ class Audio {
 public:
   
   typedef int16_t SampleType;
-  typedef int32_t OutputType;
+  //typedef int32_t OutputType;
+  typedef float OutputType;
   typedef ChannelMixer<SampleType,OutputType> ChannelMixer_t;  // needs to be more flexible when more types are available
   typedef ChannelMixer_t::pAudioQueue_t pAudioQueue_t;
   

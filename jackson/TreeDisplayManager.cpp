@@ -458,11 +458,12 @@ void TreeItemMusic::HandleSendBuffer( wxCommandEvent& event ) {
       std::cout << "nothing to play" << std::endl;
     }
     else {
-      std::cout << "stuff to play" << std::endl;
+      std::cout << "stuffing buffers to play ..." << std::endl;
       boost::strict_lock<AudioQueue<int16_t> > guardLeft( *m_pAudioQueueLeft );
       m_pAudioQueueLeft->AddSamples( m_vSamplesLeft.size(), &(m_vSamplesLeft[0]), guardLeft );
       boost::strict_lock<AudioQueue<int16_t> > guardRight( *m_pAudioQueueRight );
       m_pAudioQueueRight->AddSamples( m_vSamplesLeft.size(), &(m_vSamplesRight[0]), guardRight );
+      std::cout << "ready to play" << std::endl;
       //pAudio->Play();
     }
 //  }
