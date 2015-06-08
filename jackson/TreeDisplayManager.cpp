@@ -1555,23 +1555,24 @@ private:
   //typedef SceneManager::pSceneElementOpenGL_t pSceneElementOpenGL_t;
   typedef boost::signals2::connection connection;
   
-  // note:  no way to delete this yet, may need a signal for it
-  struct SceneElementInfo {
-    //key_t m_key;
-    //pSceneElement_t m_pSceneElement;
-    connection m_connectTransformSupplier;
-    glm::mat4 m_mat4Transform;  // The transformation matrix built by Grid
-    SceneElementInfo( void ): m_mat4Transform( 1.0f ) {};
-    //structSceneElement( key_t key, pSceneElement_t pSceneElement, connection connectGrid, glm::mat4 mat4Transform )
-    //  : m_key( key ), m_pSceneElement( pSceneElement ), m_connectGrid( connectGrid ), m_mat4Transform( mat4Transform ) {}
-    SceneElementInfo( connection connectTransformSupplier, glm::mat4 mat4Transform )
-      : m_connectTransformSupplier( connectTransformSupplier ), m_mat4Transform( mat4Transform ) {}
+  class SceneElementInfo {
+  public:
+    //SceneElementInfo( void ): m_mat4Transform( 1.0f ) {};
+    SceneElementInfo( void ) {};
+    //SceneElementInfo( connection connectTransformSupplier, glm::mat4 mat4Transform )
+    //  : m_connectTransformSupplier( connectTransformSupplier ), m_mat4Transform( mat4Transform ) {}
     ~SceneElementInfo( void ) {
       m_connectTransformSupplier.disconnect();
     }
-    void HandleUpdateTransform( const glm::mat4& matrix ) {
-      m_mat4Transform = matrix;
-    }
+    //void HandleUpdateTransform( const glm::mat4& matrix ) {
+    //  m_mat4Transform = matrix;
+    //}
+    void Connection( connection c ) { m_connectTransformSupplier = c; }
+    void Disconnect( void ) { m_connectTransformSupplier.disconnect(); }
+    //glm::mat4& GetTransform( void ) { return m_mat4Transform; }
+  private:
+    connection m_connectTransformSupplier;
+    //glm::mat4 m_mat4Transform;  // is this actually used?
   };
   
   typedef boost::shared_ptr<SceneElementInfo> pSceneElementInfo_t;
@@ -1586,7 +1587,7 @@ private:
   pOutline_t m_pOutline;
   pSceneManager_t m_pSceneManager;
   
-  mapSceneElementInfo_t m_mapSceneElementInfo;
+  //mapSceneElementInfo_t m_mapSceneElementInfo;
   
   void SetSelected( CommonGuiElements& );
   void RemoveSelected( CommonGuiElements& );
@@ -1642,10 +1643,10 @@ void TreeItemPlaceHolder::RemoveSelected( CommonGuiElements& ) {  // should happ
 }
 
 void TreeItemPlaceHolder::DeletingChild( wxTreeItemId id ) {
-  mapSceneElementInfo_t::iterator iter = m_mapSceneElementInfo.find( id );
-  assert( m_mapSceneElementInfo.end() != iter );
-  iter->second->m_connectTransformSupplier.disconnect();
-  m_mapSceneElementInfo.erase( iter );
+  //mapSceneElementInfo_t::iterator iter = m_mapSceneElementInfo.find( id );
+  //assert( m_mapSceneElementInfo.end() != iter );
+  //iter->second->Disconnect();
+  //m_mapSceneElementInfo.erase( iter );
 }
 
 void TreeItemPlaceHolder::HandleAddGrid( wxCommandEvent& event ) {
@@ -1657,12 +1658,12 @@ void TreeItemPlaceHolder::HandleAddGrid( wxCommandEvent& event ) {
   pTreeItemBase_t pTreeItemBase( pGrid );
   m_resources.tree.Add( id, pTreeItemBase );
   
-  pSceneElementInfo_t pInfo( new SceneElementInfo );
-  m_mapSceneElementInfo.insert( mapSceneElementInfo_t::value_type( id, pInfo ) );
+  //pSceneElementInfo_t pInfo( new SceneElementInfo );
+  //m_mapSceneElementInfo.insert( mapSceneElementInfo_t::value_type( id, pInfo ) );
   
-  namespace args = boost::phoenix::arg_names;
-  pInfo->m_connectTransformSupplier = pGrid->ConnectTransformUpdated( boost::phoenix::bind( &SceneElementInfo::HandleUpdateTransform, pInfo.get(), args::arg1 ) );
-  pGrid->GetTransformMatrix( pInfo->m_mat4Transform );
+  //namespace args = boost::phoenix::arg_names;
+  //pInfo->Connection( pGrid->ConnectTransformUpdated( boost::phoenix::bind( &SceneElementInfo::HandleUpdateTransform, pInfo.get(), args::arg1 ) ) );
+  //pGrid->GetTransformMatrix( pInfo->GetTransform() );
   
 }
 
@@ -1675,12 +1676,12 @@ void TreeItemPlaceHolder::HandleAddPicture( wxCommandEvent& event ) {
   pTreeItemBase_t pTreeItemBase( pImage );
   m_resources.tree.Add( id, pTreeItemBase );
   
-  pSceneElementInfo_t pInfo( new SceneElementInfo );
-  m_mapSceneElementInfo.insert( mapSceneElementInfo_t::value_type( id, pInfo ) );
+  //pSceneElementInfo_t pInfo( new SceneElementInfo );
+  //m_mapSceneElementInfo.insert( mapSceneElementInfo_t::value_type( id, pInfo ) );
   
-  namespace args = boost::phoenix::arg_names;
-  pInfo->m_connectTransformSupplier = pImage->ConnectTransformUpdated( boost::phoenix::bind( &SceneElementInfo::HandleUpdateTransform, pInfo.get(), args::arg1 ) );
-  pImage->GetTransformMatrix( pInfo->m_mat4Transform );
+  //namespace args = boost::phoenix::arg_names;
+  //pInfo->Connection( pImage->ConnectTransformUpdated( boost::phoenix::bind( &SceneElementInfo::HandleUpdateTransform, pInfo.get(), args::arg1 ) ) );
+  //pImage->GetTransformMatrix( pInfo->GetTransform() );
   
 }
 
@@ -1693,17 +1694,17 @@ void TreeItemPlaceHolder::HandleAddVideo( wxCommandEvent& event ) {
   pTreeItemBase_t pTreeItemBase( pVideo );
   m_resources.tree.Add( id, pTreeItemBase );
   
-  pSceneElementInfo_t pInfo( new SceneElementInfo );
-  m_mapSceneElementInfo.insert( mapSceneElementInfo_t::value_type( id, pInfo ) );
+  //pSceneElementInfo_t pInfo( new SceneElementInfo );
+  //m_mapSceneElementInfo.insert( mapSceneElementInfo_t::value_type( id, pInfo ) );
   
-  namespace args = boost::phoenix::arg_names;
-  pInfo->m_connectTransformSupplier = pVideo->ConnectTransformUpdated( boost::phoenix::bind( &SceneElementInfo::HandleUpdateTransform, pInfo.get(), args::arg1 ) );
-  pVideo->GetTransformMatrix( pInfo->m_mat4Transform );
+  //namespace args = boost::phoenix::arg_names;
+  //pInfo->Connection( pVideo->ConnectTransformUpdated( boost::phoenix::bind( &SceneElementInfo::HandleUpdateTransform, pInfo.get(), args::arg1 ) ) );
+  //pVideo->GetTransformMatrix( pInfo->GetTransform() );
   
 }
 
 void TreeItemPlaceHolder::HandleDelete( wxCommandEvent& event ) {
-  std::cout << "Tree Item Delete" << std::endl;
+  std::cout << "TreeItemPlaceHolder Delete" << std::endl;
   m_resources.tree.Delete( this->m_id );
 }
 

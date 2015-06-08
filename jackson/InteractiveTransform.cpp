@@ -66,16 +66,17 @@ void InteractiveTransform::ResetTransformMatrix( void ) {
 }
 
 void InteractiveTransform::HandleScrollChanged( wxScrollEvent& event ) {
-  int z = event.GetPosition();
+  int z = event.GetPosition();  // -z is out of window
   float zNew = z / 100.0f;
   float zOld = m_zOld / 100.0f;
-  glm::vec3 vTranslateOld = glm::vec3( 0.0f, 0.0f, -zOld );  // - for screen to window conversion
-  glm::vec3 vTranslateNew = glm::vec3( 0.0f, 0.0f,  zNew );  // - for screen to window conversion
+  glm::vec3 vTranslateOld = glm::vec3( 0.0f, 0.0f,  zOld );  // - for screen to window conversion
+  glm::vec3 vTranslateNew = glm::vec3( 0.0f, 0.0f, -zNew );  // - for screen to window conversion
   m_mat4Translation *= glm::translate( vTranslateNew ) * glm::translate( vTranslateOld );
   m_zOld = z;
   std::string s( boost::lexical_cast<std::string>( m_zOld ) );
   std::string s1( "z=" + s );
   m_pSliderZ->SetToolTip( s1 );
+  m_mat4Transform = ( ( m_mat4Translation * m_mat4Scale ) * m_mat4Rotation ) * m_matAspectRatio;
   UpdateTransformMatrix();
   event.Skip( false );
 }
