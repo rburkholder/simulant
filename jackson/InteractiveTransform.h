@@ -17,6 +17,7 @@ class InteractiveTransform {
 public:
   InteractiveTransform( int width, int height );
   virtual ~InteractiveTransform( );
+  void Set( int width, int height );
 protected:
   
   void Activate( wxWindow* win, wxSlider* z, wxSlider* fader );

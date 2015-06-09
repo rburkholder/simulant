@@ -25,6 +25,12 @@ InteractiveTransform::~InteractiveTransform( ) {
   if ( m_bReceivingEvents ) DeActivate();
 }
 
+void InteractiveTransform::Set(int width, int height) {
+  m_fWidth = width;
+  m_fHeight = height;
+  ResetTransformMatrix();
+}
+
 void InteractiveTransform::Activate( wxWindow* win, wxSlider* sliderZ, wxSlider* sliderFader ) {
   if ( !m_bReceivingEvents ) {
     m_pWin = win;

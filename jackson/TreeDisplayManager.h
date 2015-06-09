@@ -48,15 +48,6 @@ struct CommonGuiElements {
   wxSlider* pSliderFader;
   wxSlider* pSliderMaster;
 
-  // may deprecate this list in favor of a SceneManager list
-  typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
-  typedef std::vector<pPhysicalDisplay_t> vpPhysicalDisplay_t;
-  vpPhysicalDisplay_t vpPhysicalDisplay;
-
-  typedef SceneManager::pSceneManager_t pSceneManager_t;
-  typedef std::vector<pSceneManager_t> vpSceneManager_t;
-  vpSceneManager_t vpSceneManager;
-
   CommonGuiElements( void ): 
   pstInfo( 0 ), pSliderSeek( 0 ), pSliderFader( 0 ), pSliderZ( 0 )
   {}
@@ -85,9 +76,20 @@ public:
   typedef boost::shared_ptr<Audio> pAudio_t;
   
   struct TreeItemResources {  // used by inheritors of TreeItemBase
-    TreeDisplayManager&  tree;  // used for assigning the popup, plus other base class functions, eg for Bind, etc
+
+    TreeDisplayManager&  tree;  // used for assigning the popup, plus other base class functions, eg for binding, etc
     std::string sCurrentPath;
     TreeDisplayManager::pAudio_t pAudio;  // kept in AppProjection
+
+    // may deprecate this list in favor of a SceneManager list
+    typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
+    typedef std::vector<pPhysicalDisplay_t> vpPhysicalDisplay_t;
+    vpPhysicalDisplay_t vpPhysicalDisplay;
+
+    typedef SceneManager::pSceneManager_t pSceneManager_t;
+    typedef std::vector<pSceneManager_t> vpSceneManager_t;
+    vpSceneManager_t vpSceneManager;
+
     TreeItemResources( TreeDisplayManager& tree ): tree( tree ) {}
   };
 
