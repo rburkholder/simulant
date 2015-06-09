@@ -59,7 +59,7 @@ void PanelSurfaceSources::Init() {
   m_sliderFader = NULL;
   m_sliderZ = NULL;
   
-  m_panelWaveforms = 0;
+  m_panelScene = 0;
   
   m_pWaveFormFrontLeft = 0;
   m_pWaveFormFrontRight = 0;
@@ -217,23 +217,31 @@ void PanelSurfaceSources::CreateControls() {
   itemBoxSizerVertColumn3->Add(m_btnUndo, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 3);
 
   // Waveform Panels
-  wxBoxSizer* itemBoxSizerWaveformPanelH = new wxBoxSizer(wxHORIZONTAL);
-  itemBoxSizerPanelVertical->Add(itemBoxSizerWaveformPanelH, 1, wxGROW|wxALL, 2);
-  m_panelWaveforms = new wxPanel( m_panelRight, ID_PANEL_WAVEFORMS, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-  m_panelWaveforms->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
-  itemBoxSizerWaveformPanelH->Add(m_panelWaveforms, 1, wxGROW|wxALL, 1);
-  wxBoxSizer* itemBoxSizerWaveforms = new wxBoxSizer(wxVERTICAL);
-  m_panelWaveforms->SetSizer(itemBoxSizerWaveforms);
+  wxBoxSizer* itemBoxSizerScenePanelH = new wxBoxSizer(wxHORIZONTAL);
+  itemBoxSizerPanelVertical->Add(itemBoxSizerScenePanelH, 1, wxGROW|wxALL, 2);
+  m_panelScene = new wxPanel( m_panelRight, ID_PANEL_SCENE, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+  m_panelScene->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
+  itemBoxSizerScenePanelH->Add(m_panelScene, 1, wxGROW|wxALL, 1);
+  m_itemBoxSizerSceneElements = new wxBoxSizer(wxVERTICAL);
+  m_panelScene->SetSizer(m_itemBoxSizerSceneElements);
 
-  m_pWaveFormFrontLeft = new WaveformView( m_panelWaveforms, ID_WFV_FRONTLEFT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-  m_pWaveFormFrontLeft->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
-  itemBoxSizerWaveforms->Add( m_pWaveFormFrontLeft, 1, wxGROW|wxALL, 2 );
+  //m_pWaveFormFrontLeft = new WaveformView( m_panelScene, ID_WFV_FRONTLEFT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+  //m_pWaveFormFrontLeft->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
+  //itemBoxSizerSceneElements->Add( m_pWaveFormFrontLeft, 1, wxGROW|wxALL, 2 );
   
-  m_pWaveFormFrontRight = new WaveformView( m_panelWaveforms, ID_WFV_FRONTRIGHT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-  m_pWaveFormFrontRight->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
-  itemBoxSizerWaveforms->Add( m_pWaveFormFrontRight, 1, wxGROW|wxALL, 2 );
+  //m_pWaveFormFrontRight = new WaveformView( m_panelScene, ID_WFV_FRONTRIGHT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+  //m_pWaveFormFrontRight->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
+  //itemBoxSizerSceneElements->Add( m_pWaveFormFrontRight, 1, wxGROW|wxALL, 2 );
 
-  m_sliderZ = new wxSlider( itemPanel1, ID_SLIDER_Z, 0, -100, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_RIGHT|wxSL_INVERSE|wxNO_BORDER );
+  //m_pWaveFormBackLeft = new WaveformView( m_panelWaveforms, ID_WFV_BACKLEFT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+  //m_pWaveFormBackLeft->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
+  //itemBoxSizerWaveforms->Add( m_pWaveFormBackLeft, 1, wxGROW|wxALL, 2 );
+  
+  //m_pWaveFormBackRight = new WaveformView( m_panelWaveforms, ID_WFV_BACKRIGHT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+  //m_pWaveFormBackRight->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
+  //itemBoxSizerWaveforms->Add( m_pWaveFormBackRight, 1, wxGROW|wxALL, 2 );
+
+  m_sliderZ = new wxSlider( itemPanel1, ID_SLIDER_Z, 0, -100, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE|wxNO_BORDER );
   if (PanelSurfaceSources::ShowToolTips())
     m_sliderZ->SetToolTip(_("z"));
   m_sliderZ->SetForegroundColour(wxColour(165, 42, 42));
@@ -241,21 +249,21 @@ void PanelSurfaceSources::CreateControls() {
   m_sliderZ->Enable(false);
   itemBoxSizerHorizontal->Add(m_sliderZ, 0, wxGROW|wxALL, 1);
 
-  m_sliderVolume = new wxSlider( itemPanel1, ID_SLIDER_VOLUME, 0, -18, 4, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_RIGHT|wxSL_INVERSE|wxNO_BORDER );
+  m_sliderVolume = new wxSlider( itemPanel1, ID_SLIDER_VOLUME, 0, -18, 4, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE|wxNO_BORDER );
   if (PanelSurfaceSources::ShowToolTips())
     m_sliderVolume->SetToolTip(_("volume"));
   m_sliderVolume->SetBackgroundColour(wxColour(203, 86, 57));
   m_sliderVolume->Enable(false);
   itemBoxSizerHorizontal->Add(m_sliderVolume, 0, wxGROW|wxALL, 1);
 
-  m_sliderFader = new wxSlider( itemPanel1, ID_SLIDER_FADER, 100, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_RIGHT|wxSL_INVERSE|wxNO_BORDER );
+  m_sliderFader = new wxSlider( itemPanel1, ID_SLIDER_FADER, 100, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE|wxNO_BORDER );
   if (PanelSurfaceSources::ShowToolTips())
     m_sliderFader->SetToolTip(_("fader"));
   m_sliderFader->SetBackgroundColour(wxColour(218, 58, 37));
   m_sliderFader->Enable(false);
   itemBoxSizerHorizontal->Add(m_sliderFader, 0, wxGROW|wxALL, 1);
 
-  m_sliderMaster = new wxSlider( itemPanel1, ID_SLIDER_MASTER, 0, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_RIGHT|wxSL_INVERSE|wxNO_BORDER );
+  m_sliderMaster = new wxSlider( itemPanel1, ID_SLIDER_MASTER, 0, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE|wxNO_BORDER );
   if (PanelSurfaceSources::ShowToolTips())
     m_sliderMaster->SetToolTip(_("master"));
   m_sliderMaster->SetBackgroundColour(wxColour(237, 22, 22));
@@ -264,6 +272,10 @@ void PanelSurfaceSources::CreateControls() {
   m_treeDisplays->SetStaticTextInfo( m_stInfo );
   m_treeDisplays->SetSliders( m_sliderSeek, m_sliderZ, m_sliderVolume, m_sliderFader, m_sliderMaster );
   m_treeDisplays->SetWaveformViewersFront( m_pWaveFormFrontLeft, m_pWaveFormFrontRight );
+  m_connectionAppendKeyFrameView 
+    = m_treeDisplays->m_signalAppendKeyframeView.connect( boost::phoenix::bind( &PanelSurfaceSources::AppendKeyFrameView, this ) );
+  m_connectionAppendWaveformView
+    = m_treeDisplays->m_signalAppendWaveformView.connect( boost::phoenix::bind( &PanelSurfaceSources::AppendWaveformView, this ) );
   
   m_treeDisplays->SetButtonEvent( &m_signalBtnEvent );
   
@@ -282,18 +294,22 @@ void PanelSurfaceSources::CreateControls() {
   //Bind( wxEVT_MOUSEWHEEL, &PanelSurfaceSources::HandleMouseWheel1, this );
   //m_panelWaveforms->Bind( wxEVT_MOUSEWHEEL, &PanelSurfaceSources::HandleMouseWheel1, this );
   
-  m_pWaveFormFrontLeft->Bind( wxEVT_MOTION, &PanelSurfaceSources::HandleMouseMotionInWaveform, this );
-  m_pWaveFormFrontRight->Bind( wxEVT_MOTION, &PanelSurfaceSources::HandleMouseMotionInWaveform, this );
+// ******   
+  // these neede to go to the scene, which will then replicate to the scene elements.
+  // therefore scene controls the scene panel
+//  m_pWaveFormFrontLeft->Bind( wxEVT_MOTION, &PanelSurfaceSources::HandleMouseMotionInWaveform, this );
+//  m_pWaveFormFrontRight->Bind( wxEVT_MOTION, &PanelSurfaceSources::HandleMouseMotionInWaveform, this );
   
-  m_pWaveFormFrontLeft->Bind( wxEVT_MOUSEWHEEL, &PanelSurfaceSources::HandleMouseWheelInWaveform, this );
-  m_pWaveFormFrontRight->Bind( wxEVT_MOUSEWHEEL, &PanelSurfaceSources::HandleMouseWheelInWaveform, this );
+//  m_pWaveFormFrontLeft->Bind( wxEVT_MOUSEWHEEL, &PanelSurfaceSources::HandleMouseWheelInWaveform, this );
+//  m_pWaveFormFrontRight->Bind( wxEVT_MOUSEWHEEL, &PanelSurfaceSources::HandleMouseWheelInWaveform, this );
   
-  m_pWaveFormFrontLeft->Bind( wxEVT_LEFT_DOWN, &PanelSurfaceSources::HandleMouseLeftDownInWaveform, this );
-  m_pWaveFormFrontRight->Bind( wxEVT_LEFT_DOWN, &PanelSurfaceSources::HandleMouseLeftDownInWaveform, this );
+//  m_pWaveFormFrontLeft->Bind( wxEVT_LEFT_DOWN, &PanelSurfaceSources::HandleMouseLeftDownInWaveform, this );
+//  m_pWaveFormFrontRight->Bind( wxEVT_LEFT_DOWN, &PanelSurfaceSources::HandleMouseLeftDownInWaveform, this );
   
-  m_pWaveFormFrontLeft->Bind( wxEVT_LEFT_UP, &PanelSurfaceSources::HandleMouseLeftUpInWaveform, this );
-  m_pWaveFormFrontRight->Bind( wxEVT_LEFT_UP, &PanelSurfaceSources::HandleMouseLeftUpInWaveform, this );
+//  m_pWaveFormFrontLeft->Bind( wxEVT_LEFT_UP, &PanelSurfaceSources::HandleMouseLeftUpInWaveform, this );
+//  m_pWaveFormFrontRight->Bind( wxEVT_LEFT_UP, &PanelSurfaceSources::HandleMouseLeftUpInWaveform, this );
   
+  // ignore
   //m_pWaveFormFrontLeft->Bind( wxEVT_ENTER_WINDOW, &PanelSurfaceSources::HandleEnterWindow, this );
   //m_pWaveFormFrontRight->Bind( wxEVT_ENTER_WINDOW, &PanelSurfaceSources::HandleEnterWindow, this );
 
@@ -302,10 +318,36 @@ void PanelSurfaceSources::CreateControls() {
 
   Bind( wxEVT_CHAR, &PanelSurfaceSources::HandleKey, this );
   
+  Bind( wxEVT_CLOSE_WINDOW, &PanelSurfaceSources::HandleClose, this );
+  
   //Bind( wxEVT_SCROLL_THUMBTRACK, &PanelSurfaceSources::HandleScrollThumbTrack, this, ID_SLIDER_HORIZONTAL );
   //Bind( wxEVT_SCROLL_LINEUP, &PanelSurfaceSources::HandleScrollLineChange, this, ID_SLIDER_HORIZONTAL );
   //Bind( wxEVT_SCROLL_LINEDOWN, &PanelSurfaceSources::HandleScrollLineChange, this, ID_SLIDER_HORIZONTAL );
   //Bind( wxEVT_SCROLL_THUMBRELEASE, &PanelSurfaceSources::HandleScrollThumbRelease, this, ID_SLIDER_HORIZONTAL );
+}
+
+void PanelSurfaceSources::HandleClose( wxCloseEvent& event ) {
+  m_connectionAppendKeyFrameView.disconnect();
+  m_connectionAppendWaveformView.disconnect();
+  Unbind( wxEVT_CHAR, &PanelSurfaceSources::HandleKey, this );
+}
+
+void PanelSurfaceSources::ClearScene( void ) {
+  m_panelScene->DestroyChildren();
+}
+
+WaveformView* PanelSurfaceSources::AppendWaveformView( void ) {
+  WaveformView* p = new WaveformView( m_panelScene, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+  p->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
+  m_itemBoxSizerSceneElements->Add( p, 1, wxGROW|wxALL, 1 );
+  return p;
+}
+
+KeyFrameView* PanelSurfaceSources::AppendKeyFrameView( void ) {
+  KeyFrameView* p = new KeyFrameView( m_panelScene, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+  p->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
+  m_itemBoxSizerSceneElements->Add( p, 1, wxGROW|wxALL, 1 );
+  return p;
 }
 
 void PanelSurfaceSources::HandleMouseWheel1(wxMouseEvent& event) {

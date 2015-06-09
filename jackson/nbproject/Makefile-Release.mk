@@ -55,6 +55,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/FrameProjection.o \
 	${OBJECTDIR}/InteractiveTransform.o \
 	${OBJECTDIR}/KeyFrameDiamond.o \
+	${OBJECTDIR}/KeyFrameView.o \
 	${OBJECTDIR}/MediaStreamDecode.o \
 	${OBJECTDIR}/Outline.o \
 	${OBJECTDIR}/PanelLogging.o \
@@ -201,6 +202,11 @@ ${OBJECTDIR}/KeyFrameDiamond.o: KeyFrameDiamond.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/KeyFrameDiamond.o KeyFrameDiamond.cpp
+
+${OBJECTDIR}/KeyFrameView.o: KeyFrameView.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/KeyFrameView.o KeyFrameView.cpp
 
 ${OBJECTDIR}/MediaStreamDecode.o: MediaStreamDecode.cpp 
 	${MKDIR} -p ${OBJECTDIR}

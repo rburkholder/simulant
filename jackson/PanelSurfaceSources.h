@@ -18,6 +18,7 @@
 #include <wx/slider.h>
 
 #include "WaveformView.h"
+#include "KeyFrameView.h"
 
 #include "TreeDisplayManager.h"
 
@@ -66,6 +67,11 @@ public:
   
   void ResetButtons( void );
   
+  void ClearScene( void );
+  WaveformView* AppendWaveformView( void );
+  KeyFrameView* AppendKeyFrameView( void );
+  
+  
   // when range is 0, should disable the control
   //void SetScrollMin( int min ) { assert( 0 != m_sliderHorizontal ); m_sliderHorizontal->SetMin( min ); }  // defaults to 0..100
   //void SetScrollMax( int max ) { assert( 0 != m_sliderHorizontal ); m_sliderHorizontal->SetMax( max ); }  // defaults to 0..100
@@ -92,7 +98,7 @@ private:
     ID_SPLITTER_HORIZONTAL,
     ID_PANEL, 
     ID_ST_FRAMECOUNTER, 
-    ID_PANEL_WAVEFORMS,
+    ID_PANEL_SCENE,
     ID_WFV_FRONTLEFT,
     ID_WFV_FRONTRIGHT,
     ID_WFV_BACKLEFT, 
@@ -102,6 +108,9 @@ private:
   
   BtnEvent m_BtnEvent;
   signalBtnEvent_t m_signalBtnEvent;
+  
+  boost::signals2::connection m_connectionAppendKeyFrameView;
+  boost::signals2::connection m_connectionAppendWaveformView;
   
   bool m_bInEditMode;
   
@@ -122,7 +131,8 @@ private:
   wxButton* m_btnStop;
   wxButton* m_btnAbort;  
   
-  wxPanel* m_panelWaveforms; // handles mouse events
+  wxPanel* m_panelScene; // handles mouse events
+  wxBoxSizer* m_itemBoxSizerSceneElements;
   
   wxPoint m_posMouseOnLeftDown;
   
@@ -158,6 +168,8 @@ private:
   
   void HandleEnterWindow( wxMouseEvent& );
   void HandleLeaveWindow( wxMouseEvent& );
+  
+  void HandleClose( wxCloseEvent& event );
   
   
   void Init();

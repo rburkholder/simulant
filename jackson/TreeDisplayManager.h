@@ -25,6 +25,7 @@
 #include "Audio.h"
 #include "PhysicalDisplay.h"
 #include "WaveformView.h"
+#include "KeyFrameView.h"
 
 #define SYMBOL_TREEDISPLAYMANAGER_STYLE wxTR_HAS_BUTTONS | wxTR_SINGLE
 #define SYMBOL_TREEDISPLAYMANAGER_TITLE _("Displays")
@@ -33,6 +34,7 @@
 #define SYMBOL_TREEDISPLAYMANAGER_POSITION wxDefaultPosition
 
 class TreeItemBase;
+
 
 class AudioChannels {
 public:
@@ -44,16 +46,16 @@ public:
   };
   
   AudioChannels( void ) {
-    for ( int ix = MonoFrontLeft; ix < MonoCount; ++ix ) {
-      m_rpWaveformView[ ix ] = 0;
-    }
+    //for ( int ix = MonoFrontLeft; ix < MonoCount; ++ix ) {
+      //m_rpWaveformView[ ix ] = 0;
+    //}
   }
-  void SetChannel( Mono channel, WaveformView* p ) { m_rpWaveformView[ channel ] = p;}
-  WaveformView* GetChannel( Mono channel ) { return m_rpWaveformView[ channel ]; }
+  //void SetChannel( Mono channel, WaveformView* p ) { m_rpWaveformView[ channel ] = p;}
+  //WaveformView* GetChannel( Mono channel ) { return m_rpWaveformView[ channel ]; }
   
 protected:
 private:
-  std::array<WaveformView*,MonoCount> m_rpWaveformView;
+  //std::array<WaveformView*,MonoCount> m_rpWaveformView;
 };
   
 struct CommonGuiElements {
@@ -63,7 +65,7 @@ struct CommonGuiElements {
   wxSlider* pSliderVolume;
   wxSlider* pSliderFader;
   wxSlider* pSliderMaster;
-  AudioChannels channels;
+  //AudioChannels channels;
   CommonGuiElements( void ): 
   pstInfo( 0 ), pSliderSeek( 0 ), pSliderFader( 0 ), pSliderZ( 0 )
   {}
@@ -78,6 +80,12 @@ public:
   
   typedef boost::signals2::signal<void (BtnEvent)> signalBtnEvent_t;
   typedef signalBtnEvent_t::slot_type slotBtnEvent_t;
+  
+  typedef boost::signals2::signal<WaveformView* (void)> signalAppendWaveformView_t;
+  typedef signalAppendWaveformView_t::slot_type slotAppendWaveformView_t;
+  
+  typedef boost::signals2::signal<KeyFrameView* (void)> signalAppendKeyFrameView_t;
+  typedef signalAppendKeyFrameView_t::slot_type slotAppendKeyFrameView_t;
   
   typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
   typedef boost::shared_ptr<TreeItemBase> pTreeItemBase_t;
@@ -128,6 +136,9 @@ public:
   boost::signals2::connection ConnectSignalBtnEvent( const slotBtnEvent_t& slot ) {
     return m_psignalBtnEvent->connect( slot );
   }
+  
+  signalAppendWaveformView_t m_signalAppendWaveformView;
+  signalAppendKeyFrameView_t m_signalAppendKeyframeView;
 
   void Save( boost::archive::text_oarchive& oa);
   void Load( boost::archive::text_iarchive& ia);

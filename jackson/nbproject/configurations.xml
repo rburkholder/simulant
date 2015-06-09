@@ -24,6 +24,7 @@
       <itemPath>FrameProjection.h</itemPath>
       <itemPath>InteractiveTransform.h</itemPath>
       <itemPath>KeyFrameDiamond.h</itemPath>
+      <itemPath>KeyFrameView.h</itemPath>
       <itemPath>MediaStreamDecode.h</itemPath>
       <itemPath>Network.h</itemPath>
       <itemPath>Outline.h</itemPath>
@@ -81,6 +82,7 @@
       <itemPath>FrameProjection.cpp</itemPath>
       <itemPath>InteractiveTransform.cpp</itemPath>
       <itemPath>KeyFrameDiamond.cpp</itemPath>
+      <itemPath>KeyFrameView.cpp</itemPath>
       <itemPath>MediaStreamDecode.cpp</itemPath>
       <itemPath>Outline.cpp</itemPath>
       <itemPath>PanelLogging.cpp</itemPath>
@@ -242,6 +244,10 @@
       <item path="KeyFrameDiamond.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="KeyFrameDiamond.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="KeyFrameView.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="KeyFrameView.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="MediaStreamDecode.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -478,6 +484,10 @@
       <item path="KeyFrameDiamond.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="KeyFrameDiamond.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="KeyFrameView.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="KeyFrameView.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="MediaStreamDecode.cpp" ex="false" tool="1" flavor2="0">
       </item>

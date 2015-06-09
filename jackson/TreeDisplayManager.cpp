@@ -218,8 +218,8 @@ private:
   boost::signals2::connection m_connectionAudioReady;
   boost::signals2::connection m_connectionDecodeComplete;
   
-  boost::signals2::connection m_connectAudioFrontLeft;
-  boost::signals2::connection m_connectAudioFrontRight;
+  boost::signals2::connection m_connectAudioLeft;
+  boost::signals2::connection m_connectAudioRight;
   
   MediaStreamDecode m_player;
   
@@ -230,10 +230,11 @@ private:
   Audio::pAudioQueue_t m_pAudioQueueLeft;
   Audio::pAudioQueue_t m_pAudioQueueRight;
   
-  WaveformView* m_pwfvFrontLeft;  // make this more generic later, maybe stereo vs mono as well
-  WaveformView* m_pwfvFrontRight;
+  WaveformView* m_pwfvLeft;  // make this more generic later, maybe stereo vs mono as well
+  WaveformView* m_pwfvRight;
   
-  int m_intOldVolume;
+  int m_intOldVolumeLeft; 
+  int m_intOldVolumeRight; 
   
   void HandleSelectMusic( wxCommandEvent& event );
   
@@ -257,7 +258,8 @@ private:
     ar & boost::serialization::base_object<const TreeItemBase>(*this);
     ar & m_sMusicDirectory;
     ar & m_sFilePath;
-    ar & m_intOldVolume;
+    ar & m_intOldVolumeLeft;
+    ar & m_intOldVolumeRight;
   }
   
   template<typename Archive>
@@ -265,10 +267,11 @@ private:
     ar & boost::serialization::base_object<TreeItemBase>(*this);
     ar & m_sMusicDirectory;
     ar & m_sFilePath;  // will this work with an empty string?
-    ar & m_intOldVolume;
+    ar & m_intOldVolumeLeft;
+    ar & m_intOldVolumeRight;
      
-    m_pAudioQueueLeft->SetAttenuator( m_intOldVolume );
-    m_pAudioQueueRight->SetAttenuator( m_intOldVolume );    
+    m_pAudioQueueLeft->SetAttenuator( m_intOldVolumeLeft );
+    m_pAudioQueueRight->SetAttenuator( m_intOldVolumeRight );    
   }
   
   BOOST_SERIALIZATION_SPLIT_MEMBER()
@@ -276,14 +279,21 @@ private:
 };
 
 TreeItemMusic::TreeItemMusic( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources )
-: TreeItemBase( id, resources ), m_pwfvFrontLeft( 0 ), m_pwfvFrontRight( 0 ), m_intOldVolume( 0 )
+: TreeItemBase( id, resources ), m_pwfvLeft( 0 ), m_pwfvRight( 0 ), m_intOldVolumeLeft( 0 ), m_intOldVolumeRight( 0 )
 {
   m_sMusicDirectory = "~/Music/";
 
   m_pAudioQueueLeft.reset( new AudioQueue<int16_t> );
   m_resources.pAudio->Attach( 0, m_pAudioQueueLeft );
+  m_pwfvLeft = *m_resources.tree.m_signalAppendWaveformView();
+  assert( 0 != m_pwfvLeft );
+  m_pwfvLeft->SetSamples( &m_vSamplesLeft );
+  
   m_pAudioQueueRight.reset( new AudioQueue<int16_t> );
   m_resources.pAudio->Attach( 1, m_pAudioQueueRight );
+  m_pwfvRight = *m_resources.tree.m_signalAppendWaveformView();
+  assert( 0 != m_pwfvRight );
+  m_pwfvRight->SetSamples( &m_vSamplesRight );
   
   namespace args = boost::phoenix::arg_names;
   m_connectionAudioReady = m_player.ConnectAudioReady( boost::phoenix::bind( &TreeItemMusic::HandleAudioForBuffer, this, args::arg1, args::arg2, args::arg3, args::arg4 ) );
@@ -293,8 +303,12 @@ TreeItemMusic::TreeItemMusic( wxTreeItemId id, TreeDisplayManager::TreeItemResou
 
 TreeItemMusic::~TreeItemMusic( void ) {
   
+  m_pwfvLeft = 0;
+  m_pwfvRight = 0;
+  
   m_resources.pAudio->Detach( 0, m_pAudioQueueLeft );
   m_pAudioQueueLeft.reset();
+  
   m_resources.pAudio->Detach( 1, m_pAudioQueueRight );
   m_pAudioQueueRight.reset();
   
@@ -304,46 +318,32 @@ TreeItemMusic::~TreeItemMusic( void ) {
 }
 
 void TreeItemMusic::SetSelected( CommonGuiElements& elements ) {
-  // may need to be more flexible as more waveforms are brought in
-  // may be reverse the approach and display our own waveform in the case of multichannel overlaps
-  m_pwfvFrontLeft = elements.channels.GetChannel( AudioChannels::MonoFrontLeft );
-  m_pwfvFrontLeft->SetSamples( &m_vSamplesLeft );
-  
-  m_pwfvFrontRight = elements.channels.GetChannel( AudioChannels::MonoFrontRight );
-  m_pwfvFrontRight->SetSamples( &m_vSamplesRight );
-  
   namespace args = boost::phoenix::arg_names;
-  m_connectAudioFrontLeft = m_resources.pAudio->m_signalFramesProcessed.connect( boost::phoenix::bind( &WaveformView::UpdatePlayCursor, m_pwfvFrontLeft, args::arg1 ) );
-  m_connectAudioFrontRight = m_resources.pAudio->m_signalFramesProcessed.connect( boost::phoenix::bind( &WaveformView::UpdatePlayCursor, m_pwfvFrontRight, args::arg1 ) );
+  m_connectAudioLeft = m_resources.pAudio->m_signalFramesProcessed.connect( boost::phoenix::bind( &WaveformView::UpdatePlayCursor, m_pwfvLeft, args::arg1 ) );
+  m_connectAudioRight = m_resources.pAudio->m_signalFramesProcessed.connect( boost::phoenix::bind( &WaveformView::UpdatePlayCursor, m_pwfvRight, args::arg1 ) );
   
   elements.pSliderVolume->Bind( wxEVT_SCROLL_CHANGED, &TreeItemMusic::HandleScrollChangedVolume, this );
   elements.pSliderVolume->Bind( wxEVT_SCROLL_THUMBTRACK, &TreeItemMusic::HandleScrollChangedVolume, this );
-  elements.pSliderVolume->SetValue( m_intOldVolume );
+  elements.pSliderVolume->SetValue( m_intOldVolumeLeft );
   elements.pSliderVolume->Enable();
 }
 
 void TreeItemMusic::RemoveSelected( CommonGuiElements& elements ) {
-  
   elements.pSliderVolume->Enable( false );
   elements.pSliderVolume->Unbind( wxEVT_SCROLL_CHANGED, &TreeItemMusic::HandleScrollChangedVolume, this );
   elements.pSliderVolume->Unbind( wxEVT_SCROLL_THUMBTRACK, &TreeItemMusic::HandleScrollChangedVolume, this );
   
-  m_connectAudioFrontLeft.disconnect();
-  m_connectAudioFrontRight.disconnect();
-  
-  m_pwfvFrontLeft->SetSamples( 0 );
-  m_pwfvFrontLeft = 0;
-  m_pwfvFrontRight->SetSamples( 0 );
-  m_pwfvFrontRight = 0;
-  
-  //m_connectionBtnEvent.disconnect();
+  m_connectAudioLeft.disconnect();
+  m_connectAudioRight.disconnect();
 }
 
+// need a separate one for each waveform
 void TreeItemMusic::HandleScrollChangedVolume( wxScrollEvent& event ) {
   int val = event.GetPosition();
   m_pAudioQueueLeft->SetAttenuator( val );
   m_pAudioQueueRight->SetAttenuator( val );
-  m_intOldVolume = val;
+  m_intOldVolumeLeft = val;
+  m_intOldVolumeRight = val;
 }
 
 void TreeItemMusic::ShowContextMenu( void ) {
@@ -495,8 +495,8 @@ void TreeItemMusic::HandleSendBuffer( wxCommandEvent& event ) {
 
 void TreeItemMusic::HandleDecodeComplete( void ) {
   std::cout << "Audio Decode Complete: " << m_vSamplesLeft.size() << ", " << m_vSamplesRight.size() << " samples" << std::endl;
-  if ( 0 != m_pwfvFrontLeft )  m_pwfvFrontLeft->SetSamples( &m_vSamplesLeft );  //m_pwfvFrontLeft->Refresh();
-  if ( 0 != m_pwfvFrontRight ) m_pwfvFrontRight->SetSamples( &m_vSamplesRight ); //m_pwfvFrontRight->Refresh();
+  if ( 0 != m_pwfvLeft )  m_pwfvLeft->SetSamples( &m_vSamplesLeft );  //m_pwfvFrontLeft->Refresh();
+  if ( 0 != m_pwfvRight ) m_pwfvRight->SetSamples( &m_vSamplesRight ); //m_pwfvFrontRight->Refresh();
 }
 
 // ================
@@ -1939,13 +1939,13 @@ void TreeDisplayManager::SetSliders( wxSlider* sliderSeek, wxSlider* sliderZ, wx
 }
 
 void TreeDisplayManager::SetWaveformViewersFront( WaveformView* pfl, WaveformView* pfr ) {
-  m_guiElements.channels.SetChannel( AudioChannels::MonoFrontLeft, pfl );
-  m_guiElements.channels.SetChannel( AudioChannels::MonoFrontRight, pfr );
+  //m_guiElements.channels.SetChannel( AudioChannels::MonoFrontLeft, pfl );
+  //m_guiElements.channels.SetChannel( AudioChannels::MonoFrontRight, pfr );
 }
 
 void TreeDisplayManager::SetWaveformViewersRear( WaveformView* prl, WaveformView* prr ) {
-  m_guiElements.channels.SetChannel( AudioChannels::MonoRearLeft, prl );
-  m_guiElements.channels.SetChannel( AudioChannels::MonoRearRight, prr );
+  //m_guiElements.channels.SetChannel( AudioChannels::MonoRearLeft, prl );
+  //m_guiElements.channels.SetChannel( AudioChannels::MonoRearRight, prr );
 }
 
 void TreeDisplayManager::HandleContextMenu( wxTreeEvent& event ) {
