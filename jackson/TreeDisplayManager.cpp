@@ -51,10 +51,15 @@
 
 #include "SceneElement.h"
 #include "SEGrid.h"
-#include "SceneManager.h"
 
 #include "InteractiveTransform.h"
 #include "TreeDisplayManager.h"
+
+/*
+  scenemanager inherits from openglcanvas, 
+  and has a parent of physicaldisplay
+  physicaldisplay contains FrameProjection
+*/
 
 IMPLEMENT_DYNAMIC_CLASS( TreeDisplayManager, wxTreeCtrl )
 
@@ -1926,10 +1931,12 @@ public:
   
   typedef boost::shared_ptr<PhysicalDisplay> pPhysicalDisplay_t;
   typedef Outline::pOutline_t pOutline_t;
-  typedef boost::shared_ptr<SceneManager> pSceneManager_t;
+  //typedef boost::shared_ptr<SceneManager> pSceneManager_t;
+  typedef SceneManager::pSceneManager_t pSceneManager_t;
   
   TreeItemPlaceHolder( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, 
-              pPhysicalDisplay_t pScreenFrame, pOutline_t pOutline, pSceneManager_t pSceneManager );
+//              pPhysicalDisplay_t pScreenFrame, pOutline_t pOutline, pSceneManager_t pSceneManager );
+                pOutline_t pOutline, pSceneManager_t pSceneManager );
   ~TreeItemPlaceHolder( void );
   
   virtual void ShowContextMenu( void );
@@ -1946,6 +1953,7 @@ private:
   //typedef SceneManager::pSceneElementOpenGL_t pSceneElementOpenGL_t;
   typedef boost::signals2::connection connection;
   
+  // does this do anything?
   class SceneElementInfo {
   public:
     //SceneElementInfo( void ): m_mat4Transform( 1.0f ) {};
@@ -1974,7 +1982,7 @@ private:
   // unless the outline is read only, and used only as a starting point
   // will allow multiple objects on the canvas, so may not need m_bHasGrid
   
-  pPhysicalDisplay_t m_pPhysicalDisplay;
+  //pPhysicalDisplay_t m_pPhysicalDisplay;
   pOutline_t m_pOutline;
   pSceneManager_t m_pSceneManager;
   
@@ -1992,8 +2000,11 @@ private:
 };
 
 TreeItemPlaceHolder::TreeItemPlaceHolder( 
-  wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pOutline_t pOutline, pSceneManager_t pSceneManager )
-: TreeItemBase( id, resources ), m_pPhysicalDisplay( pPhysicalDisplay ), 
+  //wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pOutline_t pOutline, pSceneManager_t pSceneManager )
+  wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pOutline_t pOutline, pSceneManager_t pSceneManager )
+: 
+  //TreeItemBase( id, resources ), m_pPhysicalDisplay( pPhysicalDisplay ), 
+  TreeItemBase( id, resources ), 
   m_pOutline( pOutline ), m_pSceneManager( pSceneManager ), m_bHasGrid( false ) {
   //m_mat4Transform = glm::mat4( 1.0f );  // identity matrix to start
 }
@@ -2023,14 +2034,14 @@ void TreeItemPlaceHolder::ShowContextMenu( void ) {
 
 void TreeItemPlaceHolder::SetSelected( CommonGuiElements& ) {
   //std::cout << "Tree Item Canvas Selected" << std::endl;
-  m_pPhysicalDisplay->GetFrame()->SetOutline( m_pOutline );
-  m_pPhysicalDisplay->GetFrame()->Refresh();
+  //m_pPhysicalDisplay->GetFrame()->SetOutline( m_pOutline );
+  //m_pPhysicalDisplay->GetFrame()->Refresh();
 }
 
 void TreeItemPlaceHolder::RemoveSelected( CommonGuiElements& ) {  // should happen before delete
-  pOutline_t pOutline;
-  m_pPhysicalDisplay->GetFrame()->SetOutline( pOutline );
-  m_pPhysicalDisplay->GetFrame()->Refresh();
+  //pOutline_t pOutline;
+  //m_pPhysicalDisplay->GetFrame()->SetOutline( pOutline );
+  //m_pPhysicalDisplay->GetFrame()->Refresh();
 }
 
 void TreeItemPlaceHolder::DeletingChild( wxTreeItemId id ) {
@@ -2109,8 +2120,10 @@ class TreeItemPhysicalDisplay: public TreeItemBase {
 public:
   
   typedef boost::shared_ptr<PhysicalDisplay> pPhysicalDisplay_t;
+  typedef SceneManager::pSceneManager_t pSceneManager_t;
   
-  TreeItemPhysicalDisplay( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pScreenFrame );
+  //TreeItemPhysicalDisplay( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pScreenFrame );
+  TreeItemPhysicalDisplay( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pSceneManager_t pSceneManager );
   ~TreeItemPhysicalDisplay( void );
   
   virtual void ShowContextMenu( void );
@@ -2126,32 +2139,35 @@ private:
   };
   
   typedef Outline::pOutline_t pOutline_t;
-  typedef boost::shared_ptr<SceneManager> pSceneManager_t;
+  //typedef boost::shared_ptr<SceneManager> pSceneManager_t;
   
   pSceneManager_t m_pSceneManager;
   
-  pPhysicalDisplay_t m_pPhysicalDisplay;
+  //pPhysicalDisplay_t m_pPhysicalDisplay;
   
   void HandleAddOutline( wxCommandEvent& event );
   void HandleAddPlaceHolder( wxCommandEvent& event );
   
-  void HandleLoadVideo( wxCommandEvent& event );
+  //void HandleLoadVideo( wxCommandEvent& event );
   
 };
 
-TreeItemPhysicalDisplay::TreeItemPhysicalDisplay( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay )
-: TreeItemBase( id, resources ), m_pPhysicalDisplay( pPhysicalDisplay ) {
+//TreeItemPhysicalDisplay::TreeItemPhysicalDisplay( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay )
+TreeItemPhysicalDisplay::TreeItemPhysicalDisplay( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pSceneManager_t pSceneManager )
+: 
+  TreeItemBase( id, resources ), m_pSceneManager( pSceneManager ) {
   
   // add a right click pop up to add displayable objects and surfaces
   // which are then serialized for session persistence
   // use text or enum keys to register objects, for subsequent re-creation
 
-  int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };  // WX_GL_CORE_PROFILE deprecated I think
-  m_pSceneManager.reset( new SceneManager( m_pPhysicalDisplay->GetFrame(), argsCanvas ) );
-  wxRect rect( 10, 10, 10, 10 );
-  rect = m_pPhysicalDisplay->GetFrame()->GetClientRect();
-  m_pSceneManager->SetSize( rect.GetSize() );
-  m_pSceneManager->Move( rect.GetTopLeft() );
+  // obsolete now, SceneManager created in caller
+  //int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };  // WX_GL_CORE_PROFILE deprecated I think
+  //m_pSceneManager.reset( new SceneManager( m_pPhysicalDisplay->GetFrame(), argsCanvas ) );
+  //wxRect rect( 10, 10, 10, 10 );
+  //rect = m_pPhysicalDisplay->GetFrame()->GetClientRect();
+  //m_pSceneManager->SetSize( rect.GetSize() );
+  //m_pSceneManager->Move( rect.GetTopLeft() );
 }
 
 TreeItemPhysicalDisplay::~TreeItemPhysicalDisplay( void ) {
@@ -2160,8 +2176,9 @@ TreeItemPhysicalDisplay::~TreeItemPhysicalDisplay( void ) {
 void TreeItemPhysicalDisplay::HandleAddOutline(  wxCommandEvent& event  ) {  // for remote displays, will use wizard dialog
   std::cout << "Add Outline" << std::endl;  
   pOutline_t m_pOutline( new Outline( wxRect( 300, 300, 600, 600 ) ) );
-  m_pPhysicalDisplay->GetFrame()->SetOutline( m_pOutline );
-  m_pPhysicalDisplay->GetFrame()->Refresh();
+  // no longer visible, will need to draw in opengl instead
+  //m_pPhysicalDisplay->GetFrame()->SetOutline( m_pOutline );
+  //m_pPhysicalDisplay->GetFrame()->Refresh();
 }
 
 void TreeItemPhysicalDisplay::HandleAddPlaceHolder( wxCommandEvent& event ) {
@@ -2174,14 +2191,15 @@ void TreeItemPhysicalDisplay::HandleAddPlaceHolder( wxCommandEvent& event ) {
   //   4) handle selection event to turn outline back on for resizing events - done
   //   5) add menu items to add pictures or movies - done 
   //   6) create the canvas? - done
-  //   7) handle events from outline to adjust canvas
+  //   7) handle events from outline to adjust canvas - obsolete
   
   wxTreeItemId id = m_resources.tree.AppendItem( m_id, "PlaceHolder" );
   m_resources.tree.EnsureVisible( id );
   
   pOutline_t pOutline( new Outline( wxRect( 300, 300, 600, 600 ), true, false ) );  // instead, use some ratio of the main window
 
-  pTreeItemBase_t pTreeItemBase( new TreeItemPlaceHolder( id, m_resources, m_pPhysicalDisplay, pOutline, m_pSceneManager ) );
+  //pTreeItemBase_t pTreeItemBase( new TreeItemPlaceHolder( id, m_resources, m_pPhysicalDisplay, pOutline, m_pSceneManager ) );
+  pTreeItemBase_t pTreeItemBase( new TreeItemPlaceHolder( id, m_resources, pOutline, m_pSceneManager ) );
   m_resources.tree.Add( id, pTreeItemBase );
 }
 
@@ -2250,17 +2268,28 @@ void TreeDisplayManager::CreateControls() {
 
 void TreeDisplayManager::Append( pPhysicalDisplay_t pPhysicalDisplay ) {
 
+  // 2015/06/09 migrate to using as a resource instead
+  m_guiElements.vpPhysicalDisplay.push_back( pPhysicalDisplay );
+
+  // from the creation of a TreeItemPhysicalDisplay - with TreeItemPhysicalDisplay being deprecated or changed
+  typedef SceneManager::pSceneManager_t pSceneManager_t;
+  int argsCanvas[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0 };  // WX_GL_CORE_PROFILE deprecated I think
+  pSceneManager_t pSceneManager( new SceneManager( pPhysicalDisplay->GetFrame(), argsCanvas ) );
+  wxRect rect( 10, 10, 10, 10 );
+  rect = pPhysicalDisplay->GetFrame()->GetClientRect();
+  pSceneManager->SetSize( rect.GetSize() );
+  pSceneManager->Move( rect.GetTopLeft() );
+
   // get rid of adding to tree once everything is handled by scene lists
   wxTreeItemId idRoot = wxTreeCtrl::GetRootItem();
   std::string sId = boost::lexical_cast<std::string>( pPhysicalDisplay->GetId() );
   wxTreeItemId id = wxTreeCtrl::AppendItem( idRoot, "Frame " + sId );
   EnsureVisible( id );
-  
-  pTreeItemBase_t pTreeItemBase( new TreeItemPhysicalDisplay( id, m_resources, pPhysicalDisplay ) );
+
+  //pTreeItemBase_t pTreeItemBase( new TreeItemPhysicalDisplay( id, m_resources, pPhysicalDisplay ) );
+  pTreeItemBase_t pTreeItemBase( new TreeItemPhysicalDisplay( id, m_resources, pSceneManager ) );
   Add( id, pTreeItemBase );
 
-  // 2015/06/09 migrate to using as a resource instead
-  m_guiElements.vpPhysicalDisplay.push_back( pPhysicalDisplay );
 }
 
 void TreeDisplayManager::Add( const wxTreeItemId& id, pTreeItemBase_t pTreeItemBase ) {

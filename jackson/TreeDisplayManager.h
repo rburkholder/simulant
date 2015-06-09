@@ -23,8 +23,10 @@
 #include <wx/wx.h>
 #include <wx/treectrl.h>
 
-#include "Audio.h"
 #include "PhysicalDisplay.h"
+#include "SceneManager.h"
+
+#include "Audio.h"
 #include "WaveformView.h"
 #include "KeyFrameView.h"
 
@@ -46,9 +48,14 @@ struct CommonGuiElements {
   wxSlider* pSliderFader;
   wxSlider* pSliderMaster;
 
+  // may deprecate this list in favor of a SceneManager list
   typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
   typedef std::vector<pPhysicalDisplay_t> vpPhysicalDisplay_t;
   vpPhysicalDisplay_t vpPhysicalDisplay;
+
+  typedef SceneManager::pSceneManager_t pSceneManager_t;
+  typedef std::vector<pSceneManager_t> vpSceneManager_t;
+  vpSceneManager_t vpSceneManager;
 
   CommonGuiElements( void ): 
   pstInfo( 0 ), pSliderSeek( 0 ), pSliderFader( 0 ), pSliderZ( 0 )

@@ -25,6 +25,8 @@ public:
   
   typedef size_t key_t;
   typedef FpsGenerator::FPS FPS;
+
+  typedef boost::shared_ptr<SceneManager> pSceneManager_t;
   typedef boost::shared_ptr<SceneElementOpenGL> pSceneElementOpenGL_t;
   
   SceneManager( wxFrame* parent, int* args );
