@@ -13,12 +13,12 @@
 #include "Audio.h"
 
 struct UpdateOutputBuffer {
-  void operator()( int32_t value ) {  // converts 32 back to 16
-    **pOutput = (int16_t) value;
+  void operator()( Audio::OutputType value ) {  // converts 32 back to 16
+    **pOutput = (Audio::OutputType) value;
     ++(*pOutput);
   }
-  UpdateOutputBuffer( int16_t** pOutput_ ): pOutput( pOutput_ ) {}
-  int16_t** pOutput;
+  UpdateOutputBuffer( Audio::OutputType** pOutput_ ): pOutput( pOutput_ ) {}
+  Audio::OutputType** pOutput;
 };
 
 int Audio::HandleSampleRequest( void* pOutput, void* pInput, unsigned int nFrames, double streamTime, RtAudioStreamStatus status, void* pThis ) {
@@ -32,7 +32,7 @@ int Audio::HandleSampleRequest( void* pOutput, void* pInput, unsigned int nFrame
   if ( RTAUDIO_OUTPUT_UNDERFLOW == status ) std::cout << "audio stream underflow" << std::endl;
   
   Audio* pAudio( reinterpret_cast<Audio*>( pThis ) );
-  int16_t* pSamples( reinterpret_cast<int16_t*>( pOutput ) );
+  OutputType* pSamples( reinterpret_cast<OutputType*>( pOutput ) );
   
   for ( vChannelMixer_t::iterator iter = pAudio->m_vcm.begin(); iter != pAudio->m_vcm.end(); ++iter ) {
     //namespace args = boost::phoenix::arg_names;
@@ -76,12 +76,12 @@ Audio::Audio( void ): m_nActiveChannels( 2 ) {
         << " maximum output channels = " << info.outputChannels 
         << ", is default = " << info.isDefaultOutput
         << ", output = ";
-      if ( RTAUDIO_SINT8 == info.nativeFormats ) std::cout << "SINT8 ";
-      if ( RTAUDIO_SINT16 == info.nativeFormats ) std::cout << "SINT16 ";
-      if ( RTAUDIO_SINT24 == info.nativeFormats ) std::cout << "SINT24 ";
-      if ( RTAUDIO_SINT32 == info.nativeFormats ) std::cout << "SINT32 ";
-      if ( RTAUDIO_FLOAT32 == info.nativeFormats ) std::cout << "FLT32 ";
-      if ( RTAUDIO_FLOAT64 == info.nativeFormats ) std::cout << "FLT64 ";
+      if ( RTAUDIO_SINT8 & info.nativeFormats ) std::cout << "SINT8 ";  // = 0x1;  // 8-bit signed integer.
+      if ( RTAUDIO_SINT16 & info.nativeFormats ) std::cout << "SINT16 ";// = 0x2;  // 16-bit signed integer.
+      if ( RTAUDIO_SINT24 & info.nativeFormats ) std::cout << "SINT24 ";// = 0x4;  // 24-bit signed integer.
+      if ( RTAUDIO_SINT32 & info.nativeFormats ) std::cout << "SINT32 ";// = 0x8;  // 32-bit signed integer.
+      if ( RTAUDIO_FLOAT32 & info.nativeFormats ) std::cout << "FLT32 ";// = 0x10; // Normalized between plus/minus 1.0.
+      if ( RTAUDIO_FLOAT64 & info.nativeFormats ) std::cout << "FLT64 ";// = 0x20; // Normalized between plus/minus 1.0
       ;
       if (!bDeviceAvailable && info.probed ) {
         bDeviceAvailable = true;
@@ -92,19 +92,6 @@ Audio::Audio( void ): m_nActiveChannels( 2 ) {
     //}
   }
 
-  //static const RtAudioFormat RTAUDIO_SINT8 = 0x1;    // 8-bit signed integer.
-  //static const RtAudioFormat RTAUDIO_SINT16 = 0x2;   // 16-bit signed integer.
-  //static const RtAudioFormat RTAUDIO_SINT24 = 0x4;   // 24-bit signed integer.
-  //static const RtAudioFormat RTAUDIO_SINT32 = 0x8;   // 32-bit signed integer.
-  //static const RtAudioFormat RTAUDIO_FLOAT32 = 0x10; // Normalized between plus/minus 1.0.
-  //static const RtAudioFormat RTAUDIO_FLOAT64 = 0x20; // Normalized between plus/minus 1.0
-
-  //1 device 0: Default Device maximum output channels = 2, is default = 1, output = 3 << to be opened
-  //1 device 1: Speakers (Realtek High Definition Audio) maximum output channels = 2, is default = 0, output = 3
-  //1 device 2: DELL U2415 (2- Intel(R) Display Audio) maximum output channels = 2, is default = 0, output = 3
-  //1 device 3: Realtek Digital Output (Realtek High Definition Audio) maximum output channels = 2, is default = 0, output = 3
-  //1 device 4: Microphone (Realtek High Definition Audio) maximum output channels = 0, is default = 0, output = 3
-  
   // RTAUDIO_SINT16 | RTAUDIO_SINT32 | RTAUDIO_FLOAT32
   RtAudio::StreamParameters parameters;
   //parameters.deviceId = dac.getDefaultOutputDevice();
@@ -131,9 +118,10 @@ Audio::Audio( void ): m_nActiveChannels( 2 ) {
   else {
     try {
       std::cout << "Audio Opening" << std::endl;
+      //m_audio.openStream(&parameters, 0, RTAUDIO_SINT32, sampleRate, &bufferSamples, &HandleSampleRequest, this, &options);
       m_audio.openStream(&parameters, 0, RTAUDIO_SINT16, sampleRate, &bufferSamples, &HandleSampleRequest, this, &options);
       //m_audio.openStream(&parameters, 0, RTAUDIO_FLOAT32, sampleRate, &bufferSamples, &HandleSampleRequest, this, &options);
-      std::cout << "Audio Opened" << std::endl;
+      std::cout << "Audio Opened with buffer size: " << bufferSamples << std::endl;
     }
     catch (RtAudioError& e) {
       std::cout << "Audio Error on Open:  " << e.getMessage() << std::endl;

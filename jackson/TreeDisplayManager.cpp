@@ -213,24 +213,27 @@ private:
   std::string m_sMusicDirectory;
   std::string m_sFilePath;
   
-  MediaStreamDecode m_player;
-  
-  Audio::pAudioQueue_t m_pAudioQueueLeft;
-  Audio::pAudioQueue_t m_pAudioQueueRight;
-  
-  typedef std::vector<int16_t> vSamples_t;
-  vSamples_t m_vSamplesLeft;
-  vSamples_t m_vSamplesRight;
-  WaveformView* m_pwfvFrontLeft;  // make this more generic later, maybe stereo vs mono as well
-  WaveformView* m_pwfvFrontRight;
+  boost::signals2::connection m_connectionBtnEvent;
   
   boost::signals2::connection m_connectionAudioReady;
   boost::signals2::connection m_connectionDecodeComplete;
   
-  boost::signals2::connection m_connectionBtnEvent;
-  
   boost::signals2::connection m_connectAudioFrontLeft;
   boost::signals2::connection m_connectAudioFrontRight;
+  
+  MediaStreamDecode m_player;
+  
+  typedef std::vector<int16_t> vSamples_t;
+  vSamples_t m_vSamplesLeft;
+  vSamples_t m_vSamplesRight;
+  
+  Audio::pAudioQueue_t m_pAudioQueueLeft;
+  Audio::pAudioQueue_t m_pAudioQueueRight;
+  
+  WaveformView* m_pwfvFrontLeft;  // make this more generic later, maybe stereo vs mono as well
+  WaveformView* m_pwfvFrontRight;
+  
+  int m_intOldVolume;
   
   void HandleSelectMusic( wxCommandEvent& event );
   
@@ -245,6 +248,8 @@ private:
   void HandleSendBuffer( wxCommandEvent& event );
   void HandleStop( wxCommandEvent& event );
   
+  void HandleScrollChangedVolume( wxScrollEvent& event );
+  
   //void HandlePlayBuffer( TreeDisplayManager::BtnEvent event );
   
   template<typename Archive>
@@ -252,6 +257,7 @@ private:
     ar & boost::serialization::base_object<const TreeItemBase>(*this);
     ar & m_sMusicDirectory;
     ar & m_sFilePath;
+    ar & m_intOldVolume;
   }
   
   template<typename Archive>
@@ -259,6 +265,10 @@ private:
     ar & boost::serialization::base_object<TreeItemBase>(*this);
     ar & m_sMusicDirectory;
     ar & m_sFilePath;  // will this work with an empty string?
+    ar & m_intOldVolume;
+     
+    m_pAudioQueueLeft->SetAttenuator( m_intOldVolume );
+    m_pAudioQueueRight->SetAttenuator( m_intOldVolume );    
   }
   
   BOOST_SERIALIZATION_SPLIT_MEMBER()
@@ -266,7 +276,7 @@ private:
 };
 
 TreeItemMusic::TreeItemMusic( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources )
-: TreeItemBase( id, resources ), m_pwfvFrontLeft( 0 ), m_pwfvFrontRight( 0 )
+: TreeItemBase( id, resources ), m_pwfvFrontLeft( 0 ), m_pwfvFrontRight( 0 ), m_intOldVolume( 0 )
 {
   m_sMusicDirectory = "~/Music/";
 
@@ -305,9 +315,19 @@ void TreeItemMusic::SetSelected( CommonGuiElements& elements ) {
   namespace args = boost::phoenix::arg_names;
   m_connectAudioFrontLeft = m_resources.pAudio->m_signalFramesProcessed.connect( boost::phoenix::bind( &WaveformView::UpdatePlayCursor, m_pwfvFrontLeft, args::arg1 ) );
   m_connectAudioFrontRight = m_resources.pAudio->m_signalFramesProcessed.connect( boost::phoenix::bind( &WaveformView::UpdatePlayCursor, m_pwfvFrontRight, args::arg1 ) );
+  
+  elements.pSliderVolume->Bind( wxEVT_SCROLL_CHANGED, &TreeItemMusic::HandleScrollChangedVolume, this );
+  elements.pSliderVolume->Bind( wxEVT_SCROLL_THUMBTRACK, &TreeItemMusic::HandleScrollChangedVolume, this );
+  elements.pSliderVolume->SetValue( m_intOldVolume );
+  elements.pSliderVolume->Enable();
 }
 
 void TreeItemMusic::RemoveSelected( CommonGuiElements& elements ) {
+  
+  elements.pSliderVolume->Enable( false );
+  elements.pSliderVolume->Unbind( wxEVT_SCROLL_CHANGED, &TreeItemMusic::HandleScrollChangedVolume, this );
+  elements.pSliderVolume->Unbind( wxEVT_SCROLL_THUMBTRACK, &TreeItemMusic::HandleScrollChangedVolume, this );
+  
   m_connectAudioFrontLeft.disconnect();
   m_connectAudioFrontRight.disconnect();
   
@@ -317,6 +337,13 @@ void TreeItemMusic::RemoveSelected( CommonGuiElements& elements ) {
   m_pwfvFrontRight = 0;
   
   //m_connectionBtnEvent.disconnect();
+}
+
+void TreeItemMusic::HandleScrollChangedVolume( wxScrollEvent& event ) {
+  int val = event.GetPosition();
+  m_pAudioQueueLeft->SetAttenuator( val );
+  m_pAudioQueueRight->SetAttenuator( val );
+  m_intOldVolume = val;
 }
 
 void TreeItemMusic::ShowContextMenu( void ) {
@@ -411,7 +438,7 @@ void TreeItemMusic::SelectMusic( void ) {
 }
 
 void TreeItemMusic::HandleAudioForPlay( AVSampleFormat format, void* buffers, int nChannels, int nSamples ) {
-  //std::cout << "TreeItemMusic::HandleAudio" << std::endl;
+  std::cout << "TreeItemMusic::HandleAudio" << std::endl;
   assert( 2 == nChannels );
   assert( AV_SAMPLE_FMT_S16P == format );
   const int16_t** pSamples( reinterpret_cast<const int16_t**>( buffers ) );
@@ -421,10 +448,11 @@ void TreeItemMusic::HandleAudioForPlay( AVSampleFormat format, void* buffers, in
   m_pAudioQueueRight->AddSamples( nSamples, pSamples[1], guardRight );
 }
 
+// audio buffers coming from libav decoder
 void TreeItemMusic::HandleAudioForBuffer( AVSampleFormat format, void* buffers, int nChannels, int nSamples ) {
   assert( 2 == nChannels );
   switch ( format ) {
-    case AV_SAMPLE_FMT_S16P:
+    case AV_SAMPLE_FMT_S16P: // multiple buffers
     {
       const int16_t** pSamples( reinterpret_cast<const int16_t**>( buffers ) );
       const int16_t* pLeft = pSamples[0];
@@ -435,7 +463,7 @@ void TreeItemMusic::HandleAudioForBuffer( AVSampleFormat format, void* buffers, 
       }
     }
       break;
-    case AV_SAMPLE_FMT_S16:
+    case AV_SAMPLE_FMT_S16:   // interleaved
     {
       const int16_t** pSamples( reinterpret_cast<const int16_t**>( buffers ) );
       const int16_t* p = pSamples[0];
@@ -452,21 +480,17 @@ void TreeItemMusic::HandleAudioForBuffer( AVSampleFormat format, void* buffers, 
 }
 
 void TreeItemMusic::HandleSendBuffer( wxCommandEvent& event ) {
-//void TreeItemMusic::HandlePlayBuffer( TreeDisplayManager::BtnEvent event ) {
-//  if ( TreeDisplayManager::BtnPlay == event ) {
-    if ( 0 == m_vSamplesLeft.size() && 0 == m_vSamplesLeft.size() ) {
-      std::cout << "nothing to play" << std::endl;
-    }
-    else {
-      std::cout << "stuffing buffers to play ..." << std::endl;
-      boost::strict_lock<AudioQueue<int16_t> > guardLeft( *m_pAudioQueueLeft );
-      m_pAudioQueueLeft->AddSamples( m_vSamplesLeft.size(), &(m_vSamplesLeft[0]), guardLeft );
-      boost::strict_lock<AudioQueue<int16_t> > guardRight( *m_pAudioQueueRight );
-      m_pAudioQueueRight->AddSamples( m_vSamplesLeft.size(), &(m_vSamplesRight[0]), guardRight );
-      std::cout << "ready to play" << std::endl;
-      //pAudio->Play();
-    }
-//  }
+  if ( 0 == m_vSamplesLeft.size() && 0 == m_vSamplesLeft.size() ) {
+    std::cout << "nothing to play" << std::endl;
+  }
+  else {
+    std::cout << "stuffing buffers to play ..." << std::endl;
+    boost::strict_lock<AudioQueue<int16_t> > guardLeft( *m_pAudioQueueLeft );
+    m_pAudioQueueLeft->AddSamples( m_vSamplesLeft.size(), &(m_vSamplesLeft[0]), guardLeft );
+    boost::strict_lock<AudioQueue<int16_t> > guardRight( *m_pAudioQueueRight );
+    m_pAudioQueueRight->AddSamples( m_vSamplesLeft.size(), &(m_vSamplesRight[0]), guardRight );
+    std::cout << "ready to play" << std::endl;
+  }
 }
 
 void TreeItemMusic::HandleDecodeComplete( void ) {

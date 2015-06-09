@@ -62,7 +62,8 @@ public:
       else {
         typename vpLock_t::iterator iterLocks = vpLocks.begin();
         for ( typename vpAudioQueue_t::iterator iterQueues = m_vpAudioQueue.begin(); iterQueues != m_vpAudioQueue.end(); ++iterQueues ) {
-          value += (*iterQueues)->RemoveSampleAsyncChecked( (*iterLocks)->guard );
+          //value += ( ( 1 << 8 ) * (SampleType)(*iterQueues)->RemoveSampleAsyncChecked( (*iterLocks)->guard ));
+          value += (SampleType)(*iterQueues)->RemoveSampleAsyncChecked( (*iterLocks)->guard );
           ++iterLocks;
         }
         //function( value / (OutputType)m_vpAudioQueue.size() );
@@ -97,8 +98,10 @@ class Audio {
 public:
   
   typedef int16_t SampleType;
+  //typedef float ComputeType;
+  typedef int16_t OutputType;
   //typedef int32_t OutputType;
-  typedef float OutputType;
+  //typedef float OutputType;
   typedef ChannelMixer<SampleType,OutputType> ChannelMixer_t;  // needs to be more flexible when more types are available
   typedef ChannelMixer_t::pAudioQueue_t pAudioQueue_t;
   

@@ -8,11 +8,14 @@
 #pragma once
 
 #include <deque>
+#include <vector>
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/lockable_adapter.hpp>
 #include <boost/thread/strict_lock.hpp>
+
+#include <boost/assign/std/vector.hpp>
 
 #include <boost/shared_ptr.hpp>
 
@@ -27,6 +30,14 @@ public:
   
   AudioQueue( void );
   virtual ~AudioQueue( );
+  
+  // attenuator is range of -15 to 4 (buck / boost)
+  void SetAttenuator( int st ) { 
+    assert( -18 <= st );  assert( 4 >= st );  
+    m_ixAttenuator = 4 - st; 
+    m_attenuator = m_vAttenuator[ m_ixAttenuator ];
+  }
+  SampleType GetAttenuator( void ) const { return m_ixAttenuator; }
   
   void AddSamples( const uint64_t n, const SampleType*, boost::strict_lock<AudioQueue<SampleType> >& ); 
   void AddSamples( const uint64_t n, const SampleType* );
@@ -54,20 +65,41 @@ public:
   
 protected:
 private:
+  
   bool m_bDone;
   boost::condition_variable m_condQueueHasData;
   deque_t m_dequeSamples;
+
+  size_t m_ixAttenuator;  
+  std::vector<SampleType> m_vAttenuator;
+  SampleType m_attenuator;
   
   inline SampleType RemoveSample( void ) {
     SampleType sample = m_dequeSamples.front();
     m_dequeSamples.pop_front();
-    return sample;
+    if ( 1 == m_attenuator ) {
+      return sample;
+    }
+    else {
+      if ( 0 < m_attenuator ) {
+        return ( (int32_t)sample * (int32_t)m_attenuator ) / 4;
+      }
+      else {
+        return ( (int32_t)sample * 2 ) / -m_attenuator;
+      }
+    }
+    
   }
+  
 
 };
 
 template <typename SampleType>
-AudioQueue<SampleType>::AudioQueue( ): m_bDone( false ) {
+AudioQueue<SampleType>::AudioQueue( ): m_bDone( false ), m_ixAttenuator( 4 ), m_attenuator( (SampleType) 1 ) {
+  using namespace boost::assign;
+  m_vAttenuator += 8, 7, 6, 5, 1, -2, -3, -4, -5, -6, -7, -10, -12, -16, -22, -40, -80, -200, -480, -1024, -2048, -4096, -8192, -16384, -32768;
+  m_attenuator = m_vAttenuator[ m_ixAttenuator ];
+  assert( (SampleType) 1 == m_attenuator );
 }
 
 template <typename SampleType>
