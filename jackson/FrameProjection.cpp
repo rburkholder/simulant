@@ -83,7 +83,7 @@ void FrameProjection::HandleMouseLeftUp( wxMouseEvent& event ) {
 void FrameProjection::HandleEraseBackground( wxEraseEvent& event ) {
 //  wxPaintDC dc( this );
  // if ( 0 != m_pOutline ) m_pOutline->Erase( dc );
- // event.Skip();
+  event.Skip();
 }
 
 void FrameProjection::HandlePaint( wxPaintEvent& event ) {

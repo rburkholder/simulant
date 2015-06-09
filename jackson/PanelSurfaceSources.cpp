@@ -271,7 +271,6 @@ void PanelSurfaceSources::CreateControls() {
 
   m_treeDisplays->SetStaticTextInfo( m_stInfo );
   m_treeDisplays->SetSliders( m_sliderSeek, m_sliderZ, m_sliderVolume, m_sliderFader, m_sliderMaster );
-  m_treeDisplays->SetWaveformViewersFront( m_pWaveFormFrontLeft, m_pWaveFormFrontRight );
   m_connectionAppendKeyFrameView 
     = m_treeDisplays->m_signalAppendKeyframeView.connect( boost::phoenix::bind( &PanelSurfaceSources::AppendKeyFrameView, this ) );
   m_connectionAppendWaveformView

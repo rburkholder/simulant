@@ -10,6 +10,7 @@
 
 #include <map>
 #include <array>
+#include <vector>
 
 #include <boost/shared_ptr.hpp>
 
@@ -35,37 +36,20 @@
 
 class TreeItemBase;
 
-
-class AudioChannels {
-public:
-  enum Mono {
-    MonoFrontLeft, MonoFrontRight,
-    MonoRearLeft, MonoRearRight,
-    MonoWoofer, MonoFrontCenter,
-    MonoCount
-  };
-  
-  AudioChannels( void ) {
-    //for ( int ix = MonoFrontLeft; ix < MonoCount; ++ix ) {
-      //m_rpWaveformView[ ix ] = 0;
-    //}
-  }
-  //void SetChannel( Mono channel, WaveformView* p ) { m_rpWaveformView[ channel ] = p;}
-  //WaveformView* GetChannel( Mono channel ) { return m_rpWaveformView[ channel ]; }
-  
-protected:
-private:
-  //std::array<WaveformView*,MonoCount> m_rpWaveformView;
-};
-  
 struct CommonGuiElements {
+
   wxStaticText* pstInfo;
+
   wxSlider* pSliderSeek;
   wxSlider* pSliderZ;
   wxSlider* pSliderVolume;
   wxSlider* pSliderFader;
   wxSlider* pSliderMaster;
-  //AudioChannels channels;
+
+  typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
+  typedef std::vector<pPhysicalDisplay_t> vpPhysicalDisplay_t;
+  vpPhysicalDisplay_t vpPhysicalDisplay;
+
   CommonGuiElements( void ): 
   pstInfo( 0 ), pSliderSeek( 0 ), pSliderFader( 0 ), pSliderZ( 0 )
   {}
@@ -88,6 +72,7 @@ public:
   typedef signalAppendKeyFrameView_t::slot_type slotAppendKeyFrameView_t;
   
   typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
+
   typedef boost::shared_ptr<TreeItemBase> pTreeItemBase_t;
 
   typedef boost::shared_ptr<Audio> pAudio_t;
@@ -125,8 +110,6 @@ public:
   
   void SetStaticTextInfo( wxStaticText* pstInfo );
   void SetSliders( wxSlider* sliderSeek, wxSlider* sliderZ, wxSlider* sliderVolume, wxSlider* sliderFader, wxSlider* sliderMaster );
-  void SetWaveformViewersFront( WaveformView* pfl, WaveformView* pfr );
-  void SetWaveformViewersRear( WaveformView* prl, WaveformView* prr );
   void SetButtonEvent( signalBtnEvent_t* signal ) { 
     m_psignalBtnEvent = signal; 
     namespace args = boost::phoenix::arg_names;

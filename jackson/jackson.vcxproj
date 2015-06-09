@@ -199,7 +199,6 @@
     <ClInclude Include="SEGrid.h" />
     <ClInclude Include="SETexture.h" />
     <ClInclude Include="ShaderManager.h" />
-    <ClInclude Include="stdafx.h" />
     <ClInclude Include="structures.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="tex1.h" />
@@ -243,7 +242,6 @@
     <ClCompile Include="SEGrid.cpp" />
     <ClCompile Include="SETexture.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
-    <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="tex1.cpp" />
     <ClCompile Include="tex2.cpp" />
     <ClCompile Include="TimeLine.cpp" />

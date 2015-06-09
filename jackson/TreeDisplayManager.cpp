@@ -5,8 +5,8 @@
  * Created on April 5, 2015, 10:11 PM
  */
 
-#include <map>
-#include <vector>
+//#include <map>
+//#include <vector>
 //#include <list>
 #include <algorithm> 
 
@@ -39,7 +39,6 @@
 #include "common.h"
 #include "MediaStreamDecode.h"
 
-//#include "tut1.h"
 #include "tex2.h"
 
 #include "RawImage.h"
@@ -750,13 +749,14 @@ void TreeItemMidi::ShowContextMenu( void ) {
 class TreeItemVisualCommon: public TreeItemSceneElementBase, public InteractiveTransform {
 public:
   
-  typedef boost::shared_ptr<PhysicalDisplay> pPhysicalDisplay_t;
+  //typedef boost::shared_ptr<PhysicalDisplay> pPhysicalDisplay_t;
   typedef boost::shared_ptr<SceneManager> pSceneManager_t;
   
   typedef boost::signals2::signal<void ( const glm::mat4& )> signalTransformUpdated_t;
   typedef signalTransformUpdated_t::slot_type slotTransformUpdated_t;
   
-  TreeItemVisualCommon( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
+  //TreeItemVisualCommon( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
+  TreeItemVisualCommon( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pSceneManager_t pSceneManager );
   virtual ~TreeItemVisualCommon( void );
   
   boost::signals2::connection ConnectTransformUpdated( const slotTransformUpdated_t& slot ) {
@@ -772,7 +772,7 @@ protected:
   
   signalTransformUpdated_t m_signalTransformUpdated;
   
-  pPhysicalDisplay_t m_pPhysicalDisplay;
+  //pPhysicalDisplay_t m_pPhysicalDisplay;
   pSceneManager_t m_pSceneManager;
   
   //virtual void UpdateTransformMatrix( const glm::mat4& ) {};  // originates in InteractiveTransform inheritance
@@ -783,27 +783,19 @@ protected:
 private:
 };
 
-TreeItemVisualCommon::TreeItemVisualCommon( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager ) 
+//TreeItemVisualCommon::TreeItemVisualCommon( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager ) 
+TreeItemVisualCommon::TreeItemVisualCommon( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pSceneManager_t pSceneManager ) 
 : TreeItemSceneElementBase( id, resources ), 
-  InteractiveTransform( pPhysicalDisplay->GetFrame()->GetClientSize().GetWidth(), pPhysicalDisplay->GetFrame()->GetClientSize().GetHeight() ), 
+  //InteractiveTransform( pPhysicalDisplay->GetFrame()->GetClientSize().GetWidth(), pPhysicalDisplay->GetFrame()->GetClientSize().GetHeight() ), 
+  InteractiveTransform( pSceneManager->GetClientSize().GetWidth(), pSceneManager->GetClientSize().GetHeight() ),
   //m_bActive( false ), 
-  m_pPhysicalDisplay( pPhysicalDisplay ), m_pSceneManager( pSceneManager )
+  //m_pPhysicalDisplay( pPhysicalDisplay ), 
+  m_pSceneManager( pSceneManager )
 {
   
 }
 
 TreeItemVisualCommon::~TreeItemVisualCommon( void ) {
-}
-
-void TreeItemVisualCommon::HandleDelete( wxCommandEvent& event ) {
-  std::cout << "Tree Item Delete" << std::endl;
-  m_resources.tree.Delete( this->m_id );
-}
-
-void TreeItemVisualCommon::HandleReset( wxCommandEvent& event ) {
-  std::cout << "Reset" << std::endl;
-  ResetTransformMatrix();
-  //UpdateTransformMatrix();  // already called in ResetTransformMatrix
 }
 
 void TreeItemVisualCommon::SetSelected( CommonGuiElements& cge ) {
@@ -814,16 +806,27 @@ void TreeItemVisualCommon::RemoveSelected( CommonGuiElements& cge ) {
   InteractiveTransform::DeActivate();
 }
 
+void TreeItemVisualCommon::HandleReset( wxCommandEvent& event ) {
+  std::cout << "Reset" << std::endl;
+  ResetTransformMatrix();
+}
+
+void TreeItemVisualCommon::HandleDelete( wxCommandEvent& event ) {
+  std::cout << "Tree Item Delete" << std::endl;
+  m_resources.tree.Delete( this->m_id );
+}
+
 // ================
 
 class TreeItemGrid: public TreeItemVisualCommon {
 public:
   
-  typedef TreeItemVisualCommon::pPhysicalDisplay_t pPhysicalDisplay_t;
+  //typedef TreeItemVisualCommon::pPhysicalDisplay_t pPhysicalDisplay_t;
   typedef TreeItemVisualCommon::pSceneManager_t pSceneManager_t;
   
   TreeItemGrid( 
-    wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
+    //wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
+    wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pSceneManager_t pSceneManager );
   virtual ~TreeItemGrid( void );
   
   virtual void ShowContextMenu( void );
@@ -847,9 +850,11 @@ private:
 };
 
 TreeItemGrid::TreeItemGrid( 
-  wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager)
+  //wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager)
+  wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pSceneManager_t pSceneManager)
 : 
-  TreeItemVisualCommon( id, resources, pPhysicalDisplay, pSceneManager ),
+  //TreeItemVisualCommon( id, resources, pPhysicalDisplay, pSceneManager ),
+  TreeItemVisualCommon( id, resources, pSceneManager ),
   m_keyGrid( 0 )
 {
   
@@ -859,7 +864,6 @@ TreeItemGrid::TreeItemGrid(
   m_keyGrid = m_pSceneManager->Add( FpsGenerator::fps24, m_pGrid );
  
   ResetTransformMatrix();
-  //UpdateTransformMatrix();
   
 }
 
@@ -891,10 +895,11 @@ void TreeItemGrid::ShowContextMenu( void ) {
 class TreeItemImageCommon: public TreeItemVisualCommon {
 public:
   
-  typedef TreeItemVisualCommon::pPhysicalDisplay_t pPhysicalDisplay_t;
+  //typedef TreeItemVisualCommon::pPhysicalDisplay_t pPhysicalDisplay_t;
   typedef TreeItemVisualCommon::pSceneManager_t pSceneManager_t;
   
-  TreeItemImageCommon( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
+  //TreeItemImageCommon( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
+  TreeItemImageCommon( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pSceneManager_t pSceneManager );
   virtual ~TreeItemImageCommon( void );
   
   boost::signals2::connection ConnectFrameTrigger( const SETexture::slotFrame_t& slot ) { return m_pTexture->Connect( slot ); }
@@ -934,15 +939,16 @@ wxString TreeItemImageCommon::m_sPictureDirectory( wxT( "~/Pictures/" ) );
 wxString TreeItemImageCommon::m_sVideoDirectory( wxT( "~/Videos/") );
 
 TreeItemImageCommon::TreeItemImageCommon( 
-  wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager )
-: TreeItemVisualCommon( id, resources, pPhysicalDisplay, pSceneManager ),
+  //wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager )
+  wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pSceneManager_t pSceneManager )
+: 
+  //TreeItemVisualCommon( id, resources, pPhysicalDisplay, pSceneManager ),
+  TreeItemVisualCommon( id, resources, pSceneManager ),
   m_keyTexture( 0 )
 {
   
   std::cout << "Tree Item Add Image Common" << std::endl;
   
-  //wxImage::AddHandler( new wxJPEGHandler );
-
   m_pTexture.reset( new SETexture( m_resources.sCurrentPath ) );
   m_pTexture->SetTransform( InteractiveTransform::GetTransformMatrix() );
     
@@ -1008,10 +1014,11 @@ void TreeItemImageCommon::UpdateFade(float fade) {
 class TreeItemImage: public TreeItemImageCommon {
 public:
   
-  typedef TreeItemVisualCommon::pPhysicalDisplay_t pPhysicalDisplay_t;
+  //typedef TreeItemVisualCommon::pPhysicalDisplay_t pPhysicalDisplay_t;
   typedef TreeItemVisualCommon::pSceneManager_t pSceneManager_t;
   
-  TreeItemImage( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
+  //TreeItemImage( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
+  TreeItemImage( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pSceneManager_t pSceneManager );
   virtual ~TreeItemImage( void );
   
   virtual void ShowContextMenu( void );
@@ -1034,8 +1041,11 @@ private:
 };
 
 TreeItemImage::TreeItemImage( 
-  wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager )
-: TreeItemImageCommon( id, resources, pPhysicalDisplay, pSceneManager )
+  //wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager )
+  wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pSceneManager_t pSceneManager )
+: 
+  //TreeItemImageCommon( id, resources, pPhysicalDisplay, pSceneManager )
+  TreeItemImageCommon( id, resources, pSceneManager )
 {
   
   std::cout << "Tree Item Add Image" << std::endl;
@@ -1071,7 +1081,9 @@ void TreeItemImage::LoadImageCommon( pImage_t pImage ) {
   std::cout << "TreeItemCanvasGrid LoadImage" << std::endl;  
   
   wxFileDialog dialogOpenFile( 
-    m_pPhysicalDisplay->GetFrame(), wxT("Select Image" ), m_sPictureDirectory, "", 
+    m_resources.tree.GetParent(),
+    //m_pPhysicalDisplay->GetFrame(), 
+    wxT("Select Image" ), m_sPictureDirectory, "", 
     //"JPG Files (*.jpg)|*.jpg", 
     _("Image Files ") + wxImage::GetImageExtWildcard(),
     wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_CHANGE_DIR );
@@ -1107,10 +1119,11 @@ void TreeItemImage::ShowContextMenu( void ) {
 class TreeItemVideo: public TreeItemImageCommon {
 public:
   
-  typedef TreeItemVisualCommon::pPhysicalDisplay_t pPhysicalDisplay_t;
+  //typedef TreeItemVisualCommon::pPhysicalDisplay_t pPhysicalDisplay_t;
   typedef TreeItemVisualCommon::pSceneManager_t pSceneManager_t;
   
-  TreeItemVideo( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
+  //TreeItemVideo( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager );
+  TreeItemVideo( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pSceneManager_t pSceneManager );
   virtual ~TreeItemVideo( void );
   
   virtual void ShowContextMenu( void );
@@ -1183,8 +1196,11 @@ private:
 };
 
 TreeItemVideo::TreeItemVideo( 
-  wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager )
-: TreeItemImageCommon( id, resources, pPhysicalDisplay, pSceneManager ),
+  //wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pPhysicalDisplay_t pPhysicalDisplay, pSceneManager_t pSceneManager )
+  wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources, pSceneManager_t pSceneManager )
+: 
+  //TreeItemImageCommon( id, resources, pPhysicalDisplay, pSceneManager ),
+  TreeItemImageCommon( id, resources, pSceneManager ),
   m_ttlVideoFrames( 0 ), m_ttlAudioFrames( 0 ),
   m_ixvRawImage( 0 ), m_bResumed( true ),
   m_pstInfo( 0 ), m_nThumbPosition( 0 )
@@ -1192,8 +1208,6 @@ TreeItemVideo::TreeItemVideo(
   
   std::cout << "Tree Item Add Video" << std::endl; 
   
-  //wxImage::AddHandler( new wxJPEGHandler );
-
   m_sPictureDirectory = wxT( "~/Pictures/");
   m_sVideoDirectory = wxT( "~/Videos/");
 
@@ -1379,7 +1393,9 @@ void TreeItemVideo::LoadVideo( void ) {
   
   std::cout << "LoadPicture" << std::endl;  
   wxFileDialog dialogOpenFile( 
-    m_pPhysicalDisplay->GetFrame(), wxT("Select Video" ), m_sVideoDirectory, "", 
+    m_resources.tree.GetParent(),
+    //m_pPhysicalDisplay->GetFrame(), 
+    wxT("Select Video" ), m_sVideoDirectory, "", 
     //"Video Files (*.ts)|*.ts", 
     //"Video Files (*.h264)|*.h264", 
     "",
@@ -2029,7 +2045,8 @@ void TreeItemPlaceHolder::HandleAddGrid( wxCommandEvent& event ) {
   wxTreeItemId id = m_resources.tree.AppendItem( m_id, "Grid" );
   m_resources.tree.EnsureVisible( id );
   
-  TreeItemGrid* pGrid = new TreeItemGrid( id, m_resources, m_pPhysicalDisplay, m_pSceneManager );
+  //TreeItemGrid* pGrid = new TreeItemGrid( id, m_resources, m_pPhysicalDisplay, m_pSceneManager );
+  TreeItemGrid* pGrid = new TreeItemGrid( id, m_resources, m_pSceneManager );
   pTreeItemBase_t pTreeItemBase( pGrid );
   m_resources.tree.Add( id, pTreeItemBase );
   
@@ -2047,7 +2064,8 @@ void TreeItemPlaceHolder::HandleAddPicture( wxCommandEvent& event ) {
   wxTreeItemId id = m_resources.tree.AppendItem( m_id, "Image" );
   m_resources.tree.EnsureVisible( id );
   
-  TreeItemImage* pImage = new TreeItemImage( id, m_resources, m_pPhysicalDisplay, m_pSceneManager );
+  //TreeItemImage* pImage = new TreeItemImage( id, m_resources, m_pPhysicalDisplay, m_pSceneManager );
+  TreeItemImage* pImage = new TreeItemImage( id, m_resources, m_pSceneManager );
   pTreeItemBase_t pTreeItemBase( pImage );
   m_resources.tree.Add( id, pTreeItemBase );
   
@@ -2065,7 +2083,8 @@ void TreeItemPlaceHolder::HandleAddVideo( wxCommandEvent& event ) {
   wxTreeItemId id = m_resources.tree.AppendItem( m_id, "Video" );
   m_resources.tree.EnsureVisible( id );
   
-  TreeItemVideo* pVideo = new TreeItemVideo( id, m_resources, m_pPhysicalDisplay, m_pSceneManager );
+  //TreeItemVideo* pVideo = new TreeItemVideo( id, m_resources, m_pPhysicalDisplay, m_pSceneManager );
+  TreeItemVideo* pVideo = new TreeItemVideo( id, m_resources, m_pSceneManager );
   pTreeItemBase_t pTreeItemBase( pVideo );
   m_resources.tree.Add( id, pTreeItemBase );
   
@@ -2230,6 +2249,8 @@ void TreeDisplayManager::CreateControls() {
 }
 
 void TreeDisplayManager::Append( pPhysicalDisplay_t pPhysicalDisplay ) {
+
+  // get rid of adding to tree once everything is handled by scene lists
   wxTreeItemId idRoot = wxTreeCtrl::GetRootItem();
   std::string sId = boost::lexical_cast<std::string>( pPhysicalDisplay->GetId() );
   wxTreeItemId id = wxTreeCtrl::AppendItem( idRoot, "Frame " + sId );
@@ -2237,6 +2258,9 @@ void TreeDisplayManager::Append( pPhysicalDisplay_t pPhysicalDisplay ) {
   
   pTreeItemBase_t pTreeItemBase( new TreeItemPhysicalDisplay( id, m_resources, pPhysicalDisplay ) );
   Add( id, pTreeItemBase );
+
+  // 2015/06/09 migrate to using as a resource instead
+  m_guiElements.vpPhysicalDisplay.push_back( pPhysicalDisplay );
 }
 
 void TreeDisplayManager::Add( const wxTreeItemId& id, pTreeItemBase_t pTreeItemBase ) {
@@ -2281,16 +2305,6 @@ void TreeDisplayManager::SetSliders( wxSlider* sliderSeek, wxSlider* sliderZ, wx
   m_guiElements.pSliderVolume = sliderVolume;
   m_guiElements.pSliderFader = sliderFader;
   m_guiElements.pSliderMaster = sliderMaster;
-}
-
-void TreeDisplayManager::SetWaveformViewersFront( WaveformView* pfl, WaveformView* pfr ) {
-  //m_guiElements.channels.SetChannel( AudioChannels::MonoFrontLeft, pfl );
-  //m_guiElements.channels.SetChannel( AudioChannels::MonoFrontRight, pfr );
-}
-
-void TreeDisplayManager::SetWaveformViewersRear( WaveformView* prl, WaveformView* prr ) {
-  //m_guiElements.channels.SetChannel( AudioChannels::MonoRearLeft, prl );
-  //m_guiElements.channels.SetChannel( AudioChannels::MonoRearRight, prr );
 }
 
 void TreeDisplayManager::HandleContextMenu( wxTreeEvent& event ) {

@@ -40,11 +40,9 @@ SceneManager::SceneManager( wxFrame* parent, int* args ):
   m_bActive( false ), 
   CanvasOpenGL<SceneManager>( parent, args ), m_cntMapSceneElement( 0 ) 
 {
+  // need a unique id so that multiple calls aren't encountered
   wxApp::GetInstance()->Bind( EVENT_GENERATEFRAME, &SceneManager::HandleRefresh, this ); 
-  //m_pScreenFrame->GetFrame()->Bind( EVENT_GENERATEFRAME, &TreeItemCanvasGrid::HandleRefresh, this );  // doesn't propagate properly
-  
   m_bActive = true;
-  
 }
 
 SceneManager::~SceneManager( ) {
@@ -130,8 +128,6 @@ void SceneManager::OnPaintInit( void ) {
 void SceneManager::OnPaint( void ) {
   
   //std::cout << "paint start" << std::endl;
-  
-  // stuff goes here
   
   // Clear the screen to black
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
