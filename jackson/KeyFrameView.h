@@ -12,7 +12,7 @@
 #define SYMBOL_CONTROLKEYFRAMEVIEW_STYLE wxTAB_TRAVERSAL
 #define SYMBOL_CONTROLKEYFRAMEVIEW_TITLE _("KeyFrameView")
 #define SYMBOL_CONTROLKEYFRAMEVIEW_IDNAME ID_CONTROLKEYFRAMEVIEW
-#define SYMBOL_CONTROLKEYFRAMEVIEW_SIZE wxSize(-1, 20)
+#define SYMBOL_CONTROLKEYFRAMEVIEW_SIZE wxSize(100, 20)
 #define SYMBOL_CONTROLKEYFRAMEVIEW_POSITION wxDefaultPosition
 
 class KeyFrameView: public wxPanel {
@@ -44,6 +44,12 @@ private:
 
   };
   
+  wxColour m_colourBackground;
+
+  void HandlePaint( wxPaintEvent& );
+  void HandleEraseBackground( wxEraseEvent& );
+  void HandleSize( wxSizeEvent& );
+
   void Init();
   void CreateControls();
   wxBitmap GetBitmapResource( const wxString& name );

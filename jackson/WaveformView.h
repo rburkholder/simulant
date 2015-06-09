@@ -16,7 +16,7 @@
 #define SYMBOL_CONTROLWAVEFORMVIEW_STYLE wxTAB_TRAVERSAL
 #define SYMBOL_CONTROLWAVEFORMVIEW_TITLE _("WaveFormView")
 #define SYMBOL_CONTROLWAVEFORMVIEW_IDNAME ID_CONTROLWAVEFORMVIEW
-#define SYMBOL_CONTROLWAVEFORMVIEW_SIZE wxSize(100, 20)
+#define SYMBOL_CONTROLWAVEFORMVIEW_SIZE wxSize(100, 50)
 #define SYMBOL_CONTROLWAVEFORMVIEW_POSITION wxDefaultPosition
 
 // may turn this into a template to handle various sample types, or settle on one or two samples types and specialize

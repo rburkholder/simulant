@@ -21,6 +21,9 @@ KeyFrameView::KeyFrameView( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 }
 
 void KeyFrameView::Init() {
+
+  m_colourBackground = wxColour( 100, 100, 100 );
+
 }
 
 bool KeyFrameView::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) {
@@ -42,9 +45,9 @@ bool KeyFrameView::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, 
 }
 
 void KeyFrameView::CreateControls() {
-  //Bind( wxEVT_PAINT, &WaveformView::HandlePaint, this );
-  //Bind( wxEVT_ERASE_BACKGROUND, &WaveformView::HandleEraseBackground, this );
-  //Bind( wxEVT_SIZE, &WaveformView::HandleSize, this );
+  Bind( wxEVT_PAINT, &KeyFrameView::HandlePaint, this );
+  Bind( wxEVT_ERASE_BACKGROUND, &KeyFrameView::HandleEraseBackground, this );
+  Bind( wxEVT_SIZE, &KeyFrameView::HandleSize, this );
   //Bind( wxEVT_SIZING, &WaveformView::HandleSizing, this );
   //Bind( wxEVT_LEFT_DOWN, &WaveformView::HandleMouseLeftDown, this );
   //Bind( wxEVT_LEFT_UP, &WaveformView::HandleMouseLeftUp, this );
@@ -56,6 +59,28 @@ void KeyFrameView::CreateControls() {
 }
 
 KeyFrameView::~KeyFrameView( ) {
+}
+
+void KeyFrameView::HandleEraseBackground( wxEraseEvent& event ) {
+  event.Skip();
+}
+
+void KeyFrameView::HandlePaint( wxPaintEvent& event ) {
+
+  wxPaintDC dc(this);
+  wxRect rectClientArea( this->GetClientRect() );
+  int width( rectClientArea.GetWidth() );
+  int height( rectClientArea.GetHeight() );
+  wxBrush brush( dc.GetBrush() );
+  brush.SetColour( m_colourBackground );
+  dc.SetBrush( brush );
+  dc.DrawRectangle( rectClientArea );  // blank out background
+
+}
+
+void KeyFrameView::HandleSize( wxSizeEvent& event ) {
+  //std::cout << "sized" << std::endl;
+  Refresh();
 }
 
 wxBitmap KeyFrameView::GetBitmapResource( const wxString& name ) {
