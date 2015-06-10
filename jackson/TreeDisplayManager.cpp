@@ -355,9 +355,10 @@ void MonoAudioChannel::Clear( void ) {
 }
 
 void MonoAudioChannel::SetChannel( unsigned int ix) {
-  if ( ix != m_nChannel ) {
+  // because constructor attaches, always do a detach
+  //if ( ix != m_nChannel ) {
     m_resources.pAudio->Detach( m_nChannel, m_pAudioQueue );
-  }
+  //}
   m_nChannel = ix;
   m_resources.pAudio->Attach( m_nChannel, m_pAudioQueue );
 }
