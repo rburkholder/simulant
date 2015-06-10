@@ -48,7 +48,7 @@ int Audio::HandleSampleRequest( void* pOutput, void* pInput, unsigned int nFrame
   //return 2; // abort 
 }
 
-Audio::Audio( void ): m_nActiveChannels( 2 ) {
+Audio::Audio( void ): m_nActiveChannels( 0 ) {
   
   unsigned int nDevices = m_audio.getDeviceCount();
   assert( 0 != nDevices );
@@ -95,9 +95,10 @@ Audio::Audio( void ): m_nActiveChannels( 2 ) {
   // RTAUDIO_SINT16 | RTAUDIO_SINT32 | RTAUDIO_FLOAT32
   RtAudio::StreamParameters parameters;
   //parameters.deviceId = dac.getDefaultOutputDevice();
+  info = m_audio.getDeviceInfo( ixFirstAvailableDevice );
   parameters.deviceId = ixFirstAvailableDevice; // based on text output above, may need to change
   //parameters.deviceId = 1; // based on text output above, may need to change
-  parameters.nChannels = m_nActiveChannels;
+  parameters.nChannels = info.outputChannels;
   
   unsigned int sampleRate = 44100;
   unsigned int bufferSamples = 256; // 256 sample frames
@@ -121,7 +122,8 @@ Audio::Audio( void ): m_nActiveChannels( 2 ) {
       //m_audio.openStream(&parameters, 0, RTAUDIO_SINT32, sampleRate, &bufferSamples, &HandleSampleRequest, this, &options);
       m_audio.openStream(&parameters, 0, RTAUDIO_SINT16, sampleRate, &bufferSamples, &HandleSampleRequest, this, &options);
       //m_audio.openStream(&parameters, 0, RTAUDIO_FLOAT32, sampleRate, &bufferSamples, &HandleSampleRequest, this, &options);
-      std::cout << "Audio Opened with buffer size: " << bufferSamples << std::endl;
+      m_nActiveChannels = info.outputChannels;
+      std::cout << "Audio Opened with " << m_nActiveChannels << " channels, " << bufferSamples << " sample buffer" << std::endl;
     }
     catch (RtAudioError& e) {
       std::cout << "Audio Error on Open:  " << e.getMessage() << std::endl;

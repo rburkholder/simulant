@@ -236,6 +236,357 @@ void TreeItemSceneElementBase::HandleDelete( wxCommandEvent& event ) {
 
 // ================
 
+class TreeItemMonoAudio: public TreeItemSceneElementBase {
+  friend class boost::serialization::access;
+public:
+
+  TreeItemMonoAudio( wxTreeItemId id_, TreeDisplayManager::TreeItemResources& resources );
+  virtual ~TreeItemMonoAudio( void );
+
+  void SetChannel( unsigned int ix );
+  unsigned int GetChannel( void ) const { return m_nChannel; }
+
+  virtual void ShowContextMenu( void );
+
+  void BrowseForAudio( void );
+  void SelectAudio( void );
+
+  void SetSelected( CommonGuiElements& elements );
+  void RemoveSelected( CommonGuiElements& elements );
+
+  virtual void AppendToScenePanel( void );
+  virtual void DetachFromScenePanel( void );
+
+protected:
+private:
+  enum {
+    ID_Null = wxID_HIGHEST,
+    MISelectAudio, MIAudioSeek, MIAudioLoadBuffer, MIAudioStop, MIAudioStats, MIAudioSendBuffer, MIAudioSetChannel,
+    MIDelete, MIRename
+  };
+
+  struct ChannelId: public wxObject {
+    unsigned int nChannel;
+    ChannelId( unsigned int nChannel_ ): nChannel( nChannel_ ) {};
+  };
+
+  std::string m_sAudioDirectory;
+  std::string m_sFilePath;
+
+  boost::signals2::connection m_connectionBtnEvent;
+
+  boost::signals2::connection m_connectionAudioReady;
+  boost::signals2::connection m_connectionDecodeComplete;
+
+  boost::signals2::connection m_connectAudio;
+
+  MediaStreamDecode m_player;
+
+  typedef std::vector<int16_t> vSamples_t;
+  vSamples_t m_vSamples;
+
+  Audio::pAudioQueue_t m_pAudioQueue;
+  unsigned int m_nChannel;
+
+  WaveformView* m_pwfv;
+
+  KeyFrameView* m_pkfv;
+
+  int m_intOldVolume; 
+
+  void HandleSelectAudio( wxCommandEvent& event );
+  void HandleSetChannel( wxCommandEvent& event );
+
+  //void HandleAudioForPlay( AVSampleFormat format, void* buffers, int nChannels, int nSamples );
+  void HandleAudioForBuffer( AVSampleFormat format, void* buffers, int nChannels, int nSamples, int offset );
+
+  void HandleDecodeComplete( void );
+
+  void HandleStats( wxCommandEvent& event );
+  void HandleSeek( wxCommandEvent& event );
+  void HandleLoadBuffer( wxCommandEvent& event );
+  void HandleSendBuffer( wxCommandEvent& event );
+  void HandleStop( wxCommandEvent& event );
+
+  void HandleScrollChangedVolume( wxScrollEvent& event );
+
+  //void HandlePlayBuffer( TreeDisplayManager::BtnEvent event );
+
+  template<typename Archive>
+  void save( Archive& ar, const unsigned int version ) const {
+    ar & boost::serialization::base_object<const TreeItemSceneElementBase>(*this);
+    ar & m_sAudioDirectory;
+    ar & m_sFilePath;
+    ar & m_intOldVolume;
+    ar & m_nChannel;
+  }
+
+  template<typename Archive>
+  void load( Archive& ar, const unsigned int version ) {
+    ar & boost::serialization::base_object<TreeItemSceneElementBase>(*this);
+    ar & m_sAudioDirectory;
+    ar & m_sFilePath;  // will this work with an empty string?
+    ar & m_intOldVolume;  // need to set something?
+
+    unsigned int nChannel;
+    ar & nChannel;
+    SetChannel( nChannel );
+
+    m_pAudioQueue->SetAttenuator( m_intOldVolume );
+  }
+
+  BOOST_SERIALIZATION_SPLIT_MEMBER()
+
+};
+
+TreeItemMonoAudio::TreeItemMonoAudio( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources )
+  : TreeItemSceneElementBase( id, resources ), m_pwfv( 0 ), m_pkfv( 0 ), m_intOldVolume( 0 ), m_nChannel( 0 )
+{
+#ifdef __WXMSW__
+  m_sAudioDirectory = "D:\\Data\\Projects\\Jackson 2015\\Emily\\dance\\Bounced Files";
+#else
+  m_sAudioDirectory = "~/Music/";
+#endif
+
+  m_pAudioQueue.reset( new AudioQueue<int16_t> );
+  m_resources.pAudio->Attach( m_nChannel, m_pAudioQueue );
+
+  // will need intermediate receiver to demux the channels
+  // so may be a call rather than an event namespace args = boost::phoenix::arg_names;
+  //m_connectionAudioReady = m_player.ConnectAudioReady( boost::phoenix::bind( &TreeItemMonoAudio::HandleAudioForBuffer, this, args::arg1, args::arg2, args::arg3, args::arg4, args::arg5 ) );
+  m_connectionDecodeComplete = m_player.ConnectDecodeDone( boost::phoenix::bind( &TreeItemMonoAudio::HandleDecodeComplete, this ) );
+
+}
+
+TreeItemMonoAudio::~TreeItemMonoAudio( void ) {
+
+  m_pwfv = 0;
+  m_pkfv = 0;
+
+  m_resources.pAudio->Detach( m_nChannel, m_pAudioQueue );
+  m_pAudioQueue.reset();
+
+  m_connectionDecodeComplete.disconnect();
+  m_connectionAudioReady.disconnect();
+
+}
+
+void TreeItemMonoAudio::SetChannel( unsigned int ix) {
+  if ( ix != m_nChannel ) {
+    m_resources.pAudio->Detach( m_nChannel, m_pAudioQueue );
+  }
+  m_nChannel = ix;
+  m_resources.pAudio->Attach( m_nChannel, m_pAudioQueue );
+}
+
+void TreeItemMonoAudio::AppendToScenePanel( void ) {
+
+  m_pwfv = *m_resources.tree.m_signalAppendWaveformView();
+  assert( 0 != m_pwfv );
+  m_pwfv->SetSamples( &m_vSamples );
+  m_pkfv = *m_resources.tree.m_signalAppendKeyframeView();
+  assert( 0 != m_pkfv );
+
+}
+
+void TreeItemMonoAudio::DetachFromScenePanel( void ) {
+  m_pwfv = 0;
+  m_pwfv = 0;
+}
+
+void TreeItemMonoAudio::SetSelected( CommonGuiElements& elements ) {
+  namespace args = boost::phoenix::arg_names;
+  m_connectAudio = m_resources.pAudio->m_signalFramesProcessed.connect( boost::phoenix::bind( &WaveformView::UpdatePlayCursor, m_pwfv, args::arg1 ) );
+
+  elements.pSliderVolume->Bind( wxEVT_SCROLL_CHANGED, &TreeItemMonoAudio::HandleScrollChangedVolume, this );
+  elements.pSliderVolume->Bind( wxEVT_SCROLL_THUMBTRACK, &TreeItemMonoAudio::HandleScrollChangedVolume, this );
+  elements.pSliderVolume->SetValue( m_intOldVolume );
+  elements.pSliderVolume->Enable();
+}
+
+void TreeItemMonoAudio::RemoveSelected( CommonGuiElements& elements ) {
+  elements.pSliderVolume->Enable( false );
+  elements.pSliderVolume->Unbind( wxEVT_SCROLL_CHANGED, &TreeItemMonoAudio::HandleScrollChangedVolume, this );
+  elements.pSliderVolume->Unbind( wxEVT_SCROLL_THUMBTRACK, &TreeItemMonoAudio::HandleScrollChangedVolume, this );
+
+  m_connectAudio.disconnect();
+}
+
+// need a separate one for each waveform
+void TreeItemMonoAudio::HandleScrollChangedVolume( wxScrollEvent& event ) {
+  int val = event.GetPosition();
+  m_pAudioQueue->SetAttenuator( val );
+  m_intOldVolume = val;
+}
+
+void TreeItemMonoAudio::ShowContextMenu( void ) {
+
+  wxMenu* pMenu = new wxMenu();
+  
+  pMenu->Append( MISelectAudio, "Select Audio" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMonoAudio::HandleSelectAudio, this, MISelectAudio );
+
+  for ( unsigned int cnt = 0; cnt < m_resources.pAudio->GetChannelCount(); ++cnt ) {
+    std::string s( "mono channel " );
+    s += boost::lexical_cast<std::string>( cnt );
+    pMenu->Append( MIAudioSetChannel, s ); 
+    ChannelId* p = new ChannelId( cnt );
+    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMonoAudio::HandleSetChannel, this, MIAudioSetChannel, MIAudioSetChannel, (wxObject*) p );
+  }
+
+  //  pMenu->Append( MIReset, "Reset" );
+  //  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVisualCommon::HandleReset, this, MIReset );
+
+  //  pMenu->Append( MIVideoPause, "Pause" );
+  //  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVideo::HandlePause, this, MIVideoPause );
+
+  //  pMenu->Append( MIVideoResume, "Resume" );
+  //  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVideo::HandleResume, this, MIVideoResume );
+
+  //pMenu->Append( MIMusicSeek, "Seek" );
+  //pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleSeek, this, MIMusicSeek );
+
+  pMenu->Append( MIAudioStats, "Stats" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMonoAudio::HandleStats, this, MIAudioStats );
+
+  pMenu->Append( MIAudioLoadBuffer, "Load Buffer" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMonoAudio::HandleLoadBuffer, this, MIAudioLoadBuffer );
+
+  pMenu->Append( MIAudioSendBuffer, "Send Buffer" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMonoAudio::HandleSendBuffer, this, MIAudioSendBuffer );
+
+  pMenu->Append( MIRename, "Rename" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemBase::HandleRename, this, MIRename );
+
+  pMenu->Append( MIDelete, "Delete" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemSceneElementBase::HandleDelete, this, MIDelete );
+
+  m_resources.tree.PopupMenu( pMenu );
+}
+
+void TreeItemMonoAudio::HandleStats( wxCommandEvent& event ) {
+  m_player.EmitStats();
+}
+
+void TreeItemMonoAudio::HandleLoadBuffer( wxCommandEvent& event ) {
+  // need to test that the file is open
+  //std::cout << "play start" << std::endl;
+  m_player.Play();
+}
+
+void TreeItemMonoAudio::HandleStop( wxCommandEvent& event ) {
+  m_player.Stop();  // should actually coordinate through local state machine
+}
+
+void TreeItemMonoAudio::HandleSelectAudio( wxCommandEvent& event ) {
+  BrowseForAudio();
+}
+
+void TreeItemMonoAudio::HandleSetChannel( wxCommandEvent& event ) {
+  ChannelId* p = (ChannelId*)event.GetEventUserData();
+  unsigned int ix = p->nChannel;
+  assert( ix < m_resources.pAudio->GetChannelCount() );
+  SetChannel( ix );
+  std::cout << "Set Channel to " << ix << std::endl;
+}
+
+// todo:  need to confirm is mono, or choose a specific channel
+void TreeItemMonoAudio::BrowseForAudio( void ) {
+
+  //std::cout << "LoadMusic" << std::endl;  
+  wxFileDialog dialogOpenFile( 
+    m_resources.tree.GetParent(),
+    //m_pPhysicalDisplay->GetFrame(), 
+    wxT("Select Mono Audio" ), m_sAudioDirectory, "", 
+    //"Video Files (*.ts)|*.ts", 
+    //"Video Files (*.h264)|*.h264", 
+    "",
+    //_(" Files ") + wxImage::GetImageExtWildcard(),
+    wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_CHANGE_DIR );
+  if (dialogOpenFile.ShowModal() == wxID_OK) {
+    m_sAudioDirectory = dialogOpenFile.GetDirectory();
+
+    m_sFilePath = dialogOpenFile.GetPath(); 
+
+    SelectAudio();
+
+    Rename( "Button Label:", dialogOpenFile.GetFilename() );
+
+  }
+}
+
+void TreeItemMonoAudio::SelectAudio( void ) {
+  m_vSamples.clear();
+  m_player.Close();
+  if ( m_player.Open( m_sFilePath ) ) {  // means it needs to be closed manually or automatically
+    if ( m_player.GetBestAudioStreamFound() ) {
+      assert( 44100 == m_player.GetAudioSampleRate() );  // need to be a bit more flexible
+    }
+    //m_player.Play();  // get the stream into our local buffer, may have issue with premature closure
+  }
+}
+
+//void TreeItemMonoAudio::HandleAudioForPlay( AVSampleFormat format, void* buffers, int nChannels, int nSamples ) {
+//  std::cout << "TreeItemMusic::HandleAudio" << std::endl;
+//  assert( 2 == nChannels );
+//  assert( AV_SAMPLE_FMT_S16P == format );
+//  const int16_t** pSamples( reinterpret_cast<const int16_t**>( buffers ) );
+//  boost::strict_lock<AudioQueue<int16_t> > guardLeft( *m_pAudioQueueLeft );
+//  m_pAudioQueueLeft->AddSamples( nSamples, pSamples[0], guardLeft );
+//  boost::strict_lock<AudioQueue<int16_t> > guardRight( *m_pAudioQueueRight );
+//  m_pAudioQueueRight->AddSamples( nSamples, pSamples[1], guardRight );
+//}
+
+// audio buffers coming from libav decoder
+// going to be difficult to deal with on a stereo stream
+// so therefore will need channel count, channel id
+void TreeItemMonoAudio::HandleAudioForBuffer( AVSampleFormat format, void* buffers, int nChannels, int nSamples, int offset ) {
+  // offset is index into which channel to use of nChannels
+  switch ( format ) {
+    case AV_SAMPLE_FMT_S16P: // multiple buffers
+    {
+      const int16_t** pSamples( reinterpret_cast<const int16_t**>( buffers ) );
+      const int16_t* p = pSamples[offset];
+      for ( int cnt = 0; cnt < nSamples; ++cnt ) {
+        m_vSamples.push_back( *p );  ++p;
+      }
+    }
+    break;
+    case AV_SAMPLE_FMT_S16:   // interleaved
+    {
+      const int16_t** pSamples( reinterpret_cast<const int16_t**>( buffers ) );
+      const int16_t* p = pSamples[0];
+      p += offset;
+      for ( int cnt = 0; cnt < nSamples; ++cnt ) {
+        m_vSamples.push_back( *p ); p += nChannels;
+      }
+    }
+    break;
+    default:
+      assert( 0 );
+  }
+
+}
+
+void TreeItemMonoAudio::HandleSendBuffer( wxCommandEvent& event ) {
+  if ( 0 == m_vSamples.size() && 0 == m_vSamples.size() ) {
+    std::cout << "nothing to play" << std::endl;
+  }
+  else {
+    std::cout << "stuffing buffers to play " << m_nChannel << " ..." << std::endl;
+    boost::strict_lock<AudioQueue<int16_t> > guard( *m_pAudioQueue );
+    m_pAudioQueue->AddSamples( m_vSamples.size(), &(m_vSamples[0]), guard );
+    std::cout << "ready to play" << std::endl;
+  }
+}
+
+void TreeItemMonoAudio::HandleDecodeComplete( void ) {
+  std::cout << "Audio Decode Complete: " << m_nChannel << ", " << m_vSamples.size() << ", " << m_vSamples.size() << " samples" << std::endl;
+  if ( 0 != m_pwfv )  m_pwfv->SetSamples( &m_vSamples );  //m_pwfvFrontLeft->Refresh();
+}
+
+// ================
+
 // 20150609 refactor to use two sounds.  then can have mono-channel sounds
 
 class TreeItemMusic: public TreeItemSceneElementBase {
@@ -258,12 +609,18 @@ public:
 
 protected:
 private:
+
   enum {
     ID_Null = wxID_HIGHEST,
-    MISelectMusic, MIMusicSeek, MIMusicLoadBuffer, MIMusicStop, MIMusicStats, MIMusicSendBuffer,
+    MISelectMusic, MIMusicSeek, MIMusicLoadBuffer, MIMusicStop, MIMusicStats, MIMusicSendBuffer, MIAudioSetChannel,
     MIDelete, MIRename
   };
   
+  struct ChannelId: public wxObject {
+    unsigned int nChannel;
+    ChannelId( unsigned int nChannel_ ): nChannel( nChannel_ ) {};
+  };
+
   std::string m_sMusicDirectory;
   std::string m_sFilePath;
   
@@ -276,6 +633,9 @@ private:
   boost::signals2::connection m_connectAudioRight;
   
   MediaStreamDecode m_player;
+
+  unsigned int m_channelLeft;
+  unsigned int m_channelRight;
   
   typedef std::vector<int16_t> vSamples_t;
   vSamples_t m_vSamplesLeft;
@@ -292,9 +652,12 @@ private:
   
   int m_intOldVolumeLeft; 
   int m_intOldVolumeRight; 
+
+  void SetChannel( unsigned int nChannel );
   
   void HandleSelectMusic( wxCommandEvent& event );
-  
+  void HandleSetChannel( wxCommandEvent& event );
+
   void HandleAudioForPlay( AVSampleFormat format, void* buffers, int nChannels, int nSamples );
   void HandleAudioForBuffer( AVSampleFormat format, void* buffers, int nChannels, int nSamples );
   
@@ -336,7 +699,10 @@ private:
 };
 
 TreeItemMusic::TreeItemMusic( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources )
-: TreeItemSceneElementBase( id, resources ), m_pwfvLeft( 0 ), m_pwfvRight( 0 ), m_intOldVolumeLeft( 0 ), m_intOldVolumeRight( 0 )
+: TreeItemSceneElementBase( id, resources ), 
+  m_pwfvLeft( 0 ), m_pwfvRight( 0 ), 
+  m_intOldVolumeLeft( 0 ), m_intOldVolumeRight( 0 ),
+  m_channelLeft( 0 ), m_channelRight( 1 )
 {
 #ifdef __WXMSW__
   m_sMusicDirectory = "D:\\Data\\Projects\\Jackson 2015\\Emily\\dance\\Bounced Files";
@@ -370,6 +736,21 @@ TreeItemMusic::~TreeItemMusic( void ) {
   m_connectionDecodeComplete.disconnect();
   m_connectionAudioReady.disconnect();
   
+}
+
+void TreeItemMusic::SetChannel( unsigned int nChannel) {
+  //unsigned int nChannel = ix * 2;
+  nChannel *= 2;
+  if ( nChannel != m_channelLeft ) {
+    m_resources.pAudio->Detach( m_channelLeft, m_pAudioQueueLeft );
+  }
+  if ( ( nChannel + 1 ) != m_channelRight ) {
+    m_resources.pAudio->Detach( m_channelRight, m_pAudioQueueRight );
+  }
+  m_channelLeft = nChannel;
+  m_resources.pAudio->Attach( m_channelLeft, m_pAudioQueueLeft );
+  m_channelRight = m_channelLeft + 1;
+  m_resources.pAudio->Attach( m_channelRight, m_pAudioQueueRight );
 }
 
 void TreeItemMusic::AppendToScenePanel( void ) {
@@ -430,7 +811,16 @@ void TreeItemMusic::ShowContextMenu( void ) {
   pMenu->Append( MISelectMusic, "Select Music" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleSelectMusic, this, MISelectMusic );
 
-//  pMenu->Append( MIReset, "Reset" );
+  unsigned int ttl = m_resources.pAudio->GetChannelCount() / 2; // rounds off odd channel
+  for ( unsigned int cnt = 0; cnt < ttl; ++cnt ) {
+    std::string s( "Stereo Set " );
+    s += boost::lexical_cast<std::string>( cnt );
+    pMenu->Append( MIAudioSetChannel, s ); 
+    ChannelId* p = new ChannelId( cnt );
+    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleSetChannel, this, MIAudioSetChannel, MIAudioSetChannel, (wxObject*) p );
+  }
+
+  //  pMenu->Append( MIReset, "Reset" );
 //  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVisualCommon::HandleReset, this, MIReset );
   
 //  pMenu->Append( MIVideoPause, "Pause" );
@@ -458,6 +848,14 @@ void TreeItemMusic::ShowContextMenu( void ) {
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemSceneElementBase::HandleDelete, this, MIDelete );
   
   m_resources.tree.PopupMenu( pMenu );
+}
+
+void TreeItemMusic::HandleSetChannel( wxCommandEvent& event ) {
+  ChannelId* p = (ChannelId*)event.GetEventUserData();
+  unsigned int ix = p->nChannel;
+  assert( ix < ( m_resources.pAudio->GetChannelCount() / 2 ) );
+  SetChannel( ix );
+  std::cout << "Set Stereo Pair to " << ix << std::endl;
 }
 
 void TreeItemMusic::HandleStats( wxCommandEvent& event ) {
@@ -1819,18 +2217,20 @@ private:
 
   enum {
     ID_Null = wxID_HIGHEST,
-    MIAddSubGroup, MIAddMusic, MIAddColour, MIAddImage, MIAddVideo, MIAddMidi, MIAddDMX, MIAddProjectorAreas,
+    MIAddSubGroup, MIAddMusic, MIAddColour, MIAddImage, MIAddVideo, MIAddMidi, MIAddDMX, MIAddProjectorAreas, MIAddMonoAudio,
     MIRename, MIDelete
   };
 
   enum IdTreeItemType {
-    IdMusic = 201, IdColour, IdImage, IdVideo, IdMidi, IdDMX, IdProjectorArea
+    IdMusic = 201, IdColour, IdImage, IdVideo, IdMidi, IdDMX, IdProjectorArea, IdMonoAudio,
   };
 
   bool m_bAddedProjectorAreas;
 
   void HandleAddMusic( wxCommandEvent& event );
   TreeItemMusic* AddMusic( void );
+
+  void HandleAddMonoAudio( wxCommandEvent& event );
 
   void HandleAddMidi( wxCommandEvent& event );
   void HandleAddDMX( wxCommandEvent& event );
@@ -1850,6 +2250,12 @@ private:
         {
           const TreeItemMusic* pMusic = dynamic_cast<TreeItemMusic*>( iter->m_pTreeItemBase.get() );
           ar & *pMusic;
+        }
+        break;
+        case IdMonoAudio:
+        {
+          const TreeItemMonoAudio* pMonoAudio = dynamic_cast<TreeItemMonoAudio*>( iter->m_pTreeItemBase.get() );
+          ar & *pMonoAudio;
         }
         break;
         case IdMidi:
@@ -1890,6 +2296,13 @@ private:
           pMusic->SelectMusic();
         }
         break;
+        case IdMonoAudio:
+        {
+          TreeItemMonoAudio* pMonoAudio = AddTreeItem<TreeItemMonoAudio,IdTreeItemType>( "Mono Audio", IdMonoAudio );
+          ar & *pMonoAudio;
+          pMonoAudio->SelectAudio();
+        }
+          break;
         case IdMidi:
         {
           TreeItemMidi* pMidi = AddTreeItem<TreeItemMidi,IdTreeItemType>( "Midi", IdMidi );
@@ -1942,6 +2355,8 @@ void TreeItemScene::ShowContextMenu( void ) {  // need scene elements instead on
   wxMenu* pMenu = new wxMenu();
   pMenu->Append( MIAddMusic, "&Music" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScene::HandleAddMusic, this, MIAddMusic );
+  pMenu->Append( MIAddMonoAudio, "&Mono Audio" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScene::HandleAddMonoAudio, this, MIAddMonoAudio );
   pMenu->Append( MIAddMidi, "M&idi" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScene::HandleAddMidi, this, MIAddMidi );
   pMenu->Append( MIAddDMX, "&DMX" );
@@ -1971,6 +2386,11 @@ void TreeItemScene::HandleAddProjectorAreas( wxCommandEvent& event ) {
 
 void TreeItemScene::HandleAddMusic( wxCommandEvent& event ) {
   TreeItemMusic* p = AddTreeItem<TreeItemMusic,IdTreeItemType>( "Music", IdMusic );
+  p->Rename();
+}
+
+void TreeItemScene::HandleAddMonoAudio( wxCommandEvent& event ) {
+  TreeItemMonoAudio* p = AddTreeItem<TreeItemMonoAudio,IdTreeItemType>( "Mono Audio", IdMonoAudio );
   p->Rename();
 }
 

@@ -113,12 +113,14 @@ public:
   Audio( );
   virtual ~Audio( );
   
-  void Attach( unsigned int n, pAudioQueue_t pAudioQueue );
-  void Detach( unsigned int n, pAudioQueue_t pAudioQueue );
+  void Attach( unsigned int n, pAudioQueue_t pAudioQueue ); // any issues doing this while playing?
+  void Detach( unsigned int n, pAudioQueue_t pAudioQueue ); // any issues doing this while playing?
   
   void Play( void ) { m_audio.startStream(); }
   void Abort( void ) { m_audio.abortStream(); }
   void Stop( void ) { m_audio.stopStream(); }
+
+  unsigned int GetChannelCount( void ) const { return m_nActiveChannels; }
   
 protected:
 private:
