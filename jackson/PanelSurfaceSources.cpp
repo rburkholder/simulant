@@ -271,6 +271,9 @@ void PanelSurfaceSources::CreateControls() {
 
   m_treeDisplays->SetStaticTextInfo( m_stInfo );
   m_treeDisplays->SetSliders( m_sliderSeek, m_sliderZ, m_sliderVolume, m_sliderFader, m_sliderMaster );
+  
+  m_connectionClearScenePanel
+    = m_treeDisplays->m_signalClearScenePanel.connect( boost::phoenix::bind( &PanelSurfaceSources::ClearScenePanel, this ) );
   m_connectionAppendKeyFrameView 
     = m_treeDisplays->m_signalAppendKeyframeView.connect( boost::phoenix::bind( &PanelSurfaceSources::AppendKeyFrameView, this ) );
   m_connectionAppendWaveformView
@@ -316,7 +319,7 @@ void PanelSurfaceSources::CreateControls() {
   //m_pWaveFormFrontLeft->Bind( wxEVT_LEAVE_WINDOW, &PanelSurfaceSources::HandleLeaveWindow, this );
   //m_pWaveFormFrontRight->Bind( wxEVT_LEAVE_WINDOW, &PanelSurfaceSources::HandleLeaveWindow, this );
 
-  Bind( wxEVT_CHAR, &PanelSurfaceSources::HandleKey, this );
+  //Bind( wxEVT_CHAR, &PanelSurfaceSources::HandleKey, this );
   
   Bind( wxEVT_CLOSE_WINDOW, &PanelSurfaceSources::HandleClose, this );
   
@@ -329,10 +332,11 @@ void PanelSurfaceSources::CreateControls() {
 void PanelSurfaceSources::HandleClose( wxCloseEvent& event ) {
   m_connectionAppendKeyFrameView.disconnect();
   m_connectionAppendWaveformView.disconnect();
+  m_connectionClearScenePanel.disconnect();
   Unbind( wxEVT_CHAR, &PanelSurfaceSources::HandleKey, this );
 }
 
-void PanelSurfaceSources::ClearScene( void ) {
+void PanelSurfaceSources::ClearScenePanel( void ) {
   m_panelScene->DestroyChildren();
 }
 

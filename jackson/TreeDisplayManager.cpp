@@ -200,8 +200,11 @@ public:
 
   void HandleDelete( wxCommandEvent& event );
 
-protected:
+  virtual void AppendToScenePanel( void ) {};
+  virtual void DetachFromScenePanel( void ) {};
 
+protected:
+  
 private:
 
   template<typename Archive>
@@ -233,6 +236,8 @@ void TreeItemSceneElementBase::HandleDelete( wxCommandEvent& event ) {
 
 // ================
 
+// 20150609 refactor to use two sounds.  then can have mono-channel sounds
+
 class TreeItemMusic: public TreeItemSceneElementBase {
   friend class boost::serialization::access;
 public:
@@ -247,6 +252,9 @@ public:
   
   void SetSelected( CommonGuiElements& elements );
   void RemoveSelected( CommonGuiElements& elements );
+  
+  virtual void AppendToScenePanel( void );
+  virtual void DetachFromScenePanel( void );
 
 protected:
 private:
@@ -338,19 +346,9 @@ TreeItemMusic::TreeItemMusic( wxTreeItemId id, TreeDisplayManager::TreeItemResou
 
   m_pAudioQueueLeft.reset( new AudioQueue<int16_t> );
   m_resources.pAudio->Attach( 0, m_pAudioQueueLeft );
-  m_pwfvLeft = *m_resources.tree.m_signalAppendWaveformView();
-  assert( 0 != m_pwfvLeft );
-  m_pwfvLeft->SetSamples( &m_vSamplesLeft );
-  m_pkfvLeft = *m_resources.tree.m_signalAppendKeyframeView();
-  assert( 0 != m_pkfvLeft );
   
   m_pAudioQueueRight.reset( new AudioQueue<int16_t> );
   m_resources.pAudio->Attach( 1, m_pAudioQueueRight );
-  m_pwfvRight = *m_resources.tree.m_signalAppendWaveformView();
-  assert( 0 != m_pwfvRight );
-  m_pwfvRight->SetSamples( &m_vSamplesRight );
-  m_pkfvRight = *m_resources.tree.m_signalAppendKeyframeView();
-  assert( 0 != m_pkfvRight );
   
   namespace args = boost::phoenix::arg_names;
   m_connectionAudioReady = m_player.ConnectAudioReady( boost::phoenix::bind( &TreeItemMusic::HandleAudioForBuffer, this, args::arg1, args::arg2, args::arg3, args::arg4 ) );
@@ -372,6 +370,28 @@ TreeItemMusic::~TreeItemMusic( void ) {
   m_connectionDecodeComplete.disconnect();
   m_connectionAudioReady.disconnect();
   
+}
+
+void TreeItemMusic::AppendToScenePanel( void ) {
+  
+  m_pwfvLeft = *m_resources.tree.m_signalAppendWaveformView();
+  assert( 0 != m_pwfvLeft );
+  m_pwfvLeft->SetSamples( &m_vSamplesLeft );
+  m_pkfvLeft = *m_resources.tree.m_signalAppendKeyframeView();
+  assert( 0 != m_pkfvLeft );
+  
+  m_pwfvRight = *m_resources.tree.m_signalAppendWaveformView();
+  assert( 0 != m_pwfvRight );
+  m_pwfvRight->SetSamples( &m_vSamplesRight );
+  m_pkfvRight = *m_resources.tree.m_signalAppendKeyframeView();
+  assert( 0 != m_pkfvRight );
+}
+
+void TreeItemMusic::DetachFromScenePanel( void ) {
+  m_pwfvLeft = 0;
+  m_pkfvLeft = 0;
+  m_pwfvRight = 0;
+  m_pkfvRight = 0;
 }
 
 void TreeItemMusic::SetSelected( CommonGuiElements& elements ) {
@@ -1608,11 +1628,9 @@ void TreeItemVideo::ShowImage( void ) {
 
 // ================
 
-class TreeItemProjectorArea: public TreeItemBase {
+class TreeItemProjectorArea: public TreeItemSceneElementBase {
   friend class boost::serialization::access;
 public:
-
-  typedef SceneManager::pSceneManager_t pSceneManager_t;
 
   TreeItemProjectorArea( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources );
   virtual ~TreeItemProjectorArea( void );
@@ -1621,7 +1639,10 @@ public:
 
   virtual void ShowContextMenu( void );
 
-protected:
+  void DetachFromScenePanel( void );
+  void AppendToScenePanel( void );
+  
+  protected:
 
 private:
 
@@ -1635,9 +1656,6 @@ private:
     IdMusic = 201, IdColour, IdImage, IdVideo, IdMidi, IdDMX
   };
 
-  typedef SceneManager::pSceneManager_t pSceneManager_t;
-
-  //pSceneManager_t m_pSceneManager;
   size_t m_ixSceneManager;
 
   void HandleAddColour( wxCommandEvent& event );
@@ -1718,10 +1736,24 @@ private:
 };
 
 TreeItemProjectorArea::TreeItemProjectorArea( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources ) 
-  : TreeItemBase(id, resources) {
+  : TreeItemSceneElementBase(id, resources) {
 }
 
 TreeItemProjectorArea::~TreeItemProjectorArea(void) {
+}
+
+void TreeItemProjectorArea::AppendToScenePanel( void ) {
+  // recursive process of scene elements
+  for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
+    dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->AppendToScenePanel();
+  }
+}
+
+void TreeItemProjectorArea::DetachFromScenePanel( void ) {
+  // recursive process of scene elements
+  for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
+    dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->DetachFromScenePanel();
+  }
 }
 
 void TreeItemProjectorArea::SetSceneManager ( size_t ix ) {
@@ -1778,6 +1810,9 @@ public:
 
   virtual void ShowContextMenu( void );
 
+  virtual void SetSelected( CommonGuiElements& ); // rebuild the panelScene
+  virtual void RemoveSelected( CommonGuiElements& ) {}  // not using yet
+  
 protected:
 
 private:
@@ -1890,6 +1925,19 @@ TreeItemScene::TreeItemScene( wxTreeItemId id, TreeDisplayManager::TreeItemResou
 TreeItemScene::~TreeItemScene(void) {
 }
 
+void TreeItemScene::SetSelected( CommonGuiElements& ) {
+  if ( this->m_id != m_resources.currentScene ) {
+    for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
+      dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->DetachFromScenePanel();
+    }
+    m_resources.tree.m_signalClearScenePanel();
+  }
+  m_resources.currentScene = this->m_id;
+  for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
+    dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->AppendToScenePanel();
+  }
+}
+
 void TreeItemScene::ShowContextMenu( void ) {  // need scene elements instead once I get this figured out
   wxMenu* pMenu = new wxMenu();
   pMenu->Append( MIAddMusic, "&Music" );
@@ -1899,7 +1947,7 @@ void TreeItemScene::ShowContextMenu( void ) {  // need scene elements instead on
   pMenu->Append( MIAddDMX, "&DMX" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScene::HandleAddDMX, this, MIAddDMX );
   if (!m_bAddedProjectorAreas) {
-    pMenu->Append( MIAddProjectorAreas, "&Projector" );
+    pMenu->Append( MIAddProjectorAreas, "&Projectors" );
     pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScene::HandleAddProjectorAreas, this, MIAddProjectorAreas );
   }
   pMenu->Append( MIRename, "&Rename" );

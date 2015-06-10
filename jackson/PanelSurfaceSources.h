@@ -67,7 +67,7 @@ public:
   
   void ResetButtons( void );
   
-  void ClearScene( void );
+  void ClearScenePanel( void );
   WaveformView* AppendWaveformView( void );
   KeyFrameView* AppendKeyFrameView( void );
   
@@ -109,6 +109,7 @@ private:
   BtnEvent m_BtnEvent;
   signalBtnEvent_t m_signalBtnEvent;
   
+  boost::signals2::connection m_connectionClearScenePanel;
   boost::signals2::connection m_connectionAppendKeyFrameView;
   boost::signals2::connection m_connectionAppendWaveformView;
   

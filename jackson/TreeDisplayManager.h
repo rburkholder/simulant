@@ -62,6 +62,9 @@ public:
   
   typedef boost::signals2::signal<void (BtnEvent)> signalBtnEvent_t;
   typedef signalBtnEvent_t::slot_type slotBtnEvent_t;
+
+  typedef boost::signals2::signal<void (void)> signalClearScenePanel_t;
+  typedef signalClearScenePanel_t::slot_type slotClearScenePanel_t;
   
   typedef boost::signals2::signal<WaveformView* (void)> signalAppendWaveformView_t;
   typedef signalAppendWaveformView_t::slot_type slotAppendWaveformView_t;
@@ -80,6 +83,8 @@ public:
     TreeDisplayManager&  tree;  // used for assigning the popup, plus other base class functions, eg for binding, etc
     std::string sCurrentPath;
     TreeDisplayManager::pAudio_t pAudio;  // kept in AppProjection
+    
+    wxTreeItemId currentScene;
 
     // may deprecate this list in favor of a SceneManager list
     typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
@@ -129,6 +134,7 @@ public:
     return m_psignalBtnEvent->connect( slot );
   }
   
+  signalClearScenePanel_t m_signalClearScenePanel; 
   signalAppendWaveformView_t m_signalAppendWaveformView;
   signalAppendKeyFrameView_t m_signalAppendKeyframeView;
 
