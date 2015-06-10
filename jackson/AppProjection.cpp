@@ -171,7 +171,7 @@ void AppProjection::HandleKey( wxKeyEvent& event ) {
   //if ( event.GetKeyCode() = )
   // interacts with TreeDisplayManager::HandleItemActivated, may need to adjust skip on certain things
   // ctrl, alt keys do pass through
-  std::cout << "key='" << event.GetKeyCode() << "'" << std::endl;
+  //std::cout << "key='" << event.GetKeyCode() << "'" << std::endl;
   event.Skip();
 }
 

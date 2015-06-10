@@ -364,22 +364,27 @@ KeyFrameView* PanelSurfaceSources::AppendKeyFrameView( void ) {
 
 void PanelSurfaceSources::HandleMouseWheel1(wxMouseEvent& event) {
   std::cout << "basic panel wheel" << std::endl;
+  event.Skip();
 }
 
 void PanelSurfaceSources::HandleKey( wxKeyEvent& event ) {
-  std::cout << "key='" << event.GetKeyCode() << "'" << std::endl;
+  //std::cout << "key='" << event.GetKeyCode() << "'" << std::endl;
+  event.Skip();
 }
 
 void PanelSurfaceSources::HandleEnterWindow( wxMouseEvent& event ) {
   std::cout << "mouse enter: " << wxID_HIGHEST << "," << event.GetId() << std::endl; 
+  event.Skip();
 }
 
 void PanelSurfaceSources::HandleLeaveWindow( wxMouseEvent& event ) {
   std::cout << "mouse leave: " << wxID_HIGHEST << "," << event.GetId() << std::endl;
+  event.Skip();
 }
 
 void PanelSurfaceSources::HandleMouseWheelInWaveformsPanel( wxMouseEvent& event ) {
   std::cout << "1 wheel: " << event.GetWheelRotation() << std::endl;
+  event.Skip();
 }
 
 void PanelSurfaceSources::HandleMouseMotionInWaveformsPanel( wxMouseEvent& event ) {
@@ -441,14 +446,17 @@ void PanelSurfaceSources::HandleUndo( wxCommandEvent& event ) {
 
 void PanelSurfaceSources::HandleScrollThumbTrack( wxScrollEvent& event ) { // could pause playing while seeking, then on release resume playing
   std::cout << "ThumbTrack " << event.GetPosition() << std::endl;
+  event.Skip();
 }
 
 void PanelSurfaceSources::HandleScrollLineChange( wxScrollEvent& event ) {  // cursor key related changes
   std::cout << "LineChange " << event.GetPosition() << std::endl;
+  event.Skip();
 }
 
 void PanelSurfaceSources::HandleScrollThumbRelease( wxScrollEvent& event ) { // on mouse release
   std::cout << "ThumbRelease " << event.GetPosition() << std::endl;
+  event.Skip();
 }
 
 void PanelSurfaceSources::HandleToggleEditMode( wxCommandEvent& event ) {

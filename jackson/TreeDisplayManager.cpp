@@ -195,13 +195,22 @@ class TreeItemSceneElementBase : public TreeItemBase {
   friend class boost::serialization::access;
 public:
 
+  typedef boost::signals2::signal<void (CommonGuiElements&)> signalSelectionEvent_t;
+  typedef signalSelectionEvent_t::slot_type slotSelectionEvent_t;
+
   TreeItemSceneElementBase( wxTreeItemId id_, TreeDisplayManager::TreeItemResources& resources );
   virtual ~TreeItemSceneElementBase( void );
 
   void HandleDelete( wxCommandEvent& event );
 
+  virtual void SetSelected( CommonGuiElements& elements );
+  virtual void RemoveSelected( CommonGuiElements& elements );
+
   virtual void AppendToScenePanel( void ) {};
   virtual void DetachFromScenePanel( void ) {};
+
+  signalSelectionEvent_t m_signalSelectionEventSetSelected;
+  signalSelectionEvent_t m_signalSelectionEventRemoveSelected;
 
 protected:
   
@@ -227,6 +236,14 @@ TreeItemSceneElementBase::TreeItemSceneElementBase( wxTreeItemId id, TreeDisplay
 }
 
 TreeItemSceneElementBase::~TreeItemSceneElementBase(void) {
+}
+
+void TreeItemSceneElementBase::SetSelected( CommonGuiElements& elements ) {
+  m_signalSelectionEventSetSelected( elements );
+}
+
+void TreeItemSceneElementBase::RemoveSelected( CommonGuiElements& elements ) {
+  m_signalSelectionEventRemoveSelected( elements );
 }
 
 void TreeItemSceneElementBase::HandleDelete( wxCommandEvent& event ) {
@@ -319,12 +336,6 @@ MonoAudioChannel::MonoAudioChannel( TreeDisplayManager::TreeItemResources& resou
 
   m_pAudioQueue.reset( new AudioQueue<int16_t> );
   m_resources.pAudio->Attach( m_nChannel, m_pAudioQueue );
-
-  // will need intermediate receiver to demux the channels
-  // so may be a call rather than an event namespace args = boost::phoenix::arg_names;
-  //m_connectionAudioReady = m_player.ConnectAudioReady( boost::phoenix::bind( &TreeItemMonoAudio::HandleAudioForBuffer, this, args::arg1, args::arg2, args::arg3, args::arg4, args::arg5 ) );
-  //m_connectionDecodeComplete = m_player.ConnectDecodeDone( boost::phoenix::bind( &TreeItemMonoAudio::HandleDecodeComplete, this ) );
-
 }
 
 MonoAudioChannel::~MonoAudioChannel( void ) {
@@ -334,9 +345,6 @@ MonoAudioChannel::~MonoAudioChannel( void ) {
 
   m_resources.pAudio->Detach( m_nChannel, m_pAudioQueue );
   m_pAudioQueue.reset();
-
-  //m_connectionDecodeComplete.disconnect();
-  //m_connectionAudioReady.disconnect();
 
 }
 
@@ -488,9 +496,12 @@ protected:
 
   MediaStreamDecode m_player;
 
+  void BrowseForAudio( const std::string& sPrompt );
   bool BrowseForAudio( 
     const std::string& sPrompt, 
     std::string& sAudioDirectory, std::string& sFilePath, std::string& sFilename );
+
+  virtual void DecodeAudio( void ) {}; // from BrowseForAudio( prompt ) 
 
 private:
 
@@ -535,6 +546,15 @@ TreeItemAudioCommon::~TreeItemAudioCommon( void ) {
 }
 
 // todo:  need to confirm is mono, or choose a specific channel
+void TreeItemAudioCommon::BrowseForAudio( const std::string& sPrompt ) {
+  std::string sFileName;
+  if ( BrowseForAudio( sPrompt, m_sAudioDirectory, m_sFilePath, sFileName ) ) {
+    DecodeAudio();  // virtual call
+    Rename( "Button Label:", sFileName );
+  }
+}
+
+// todo:  need to confirm is mono, or choose a specific channel
 bool TreeItemAudioCommon::BrowseForAudio( 
   const std::string& sPrompt, 
   std::string& sAudioDirectory, std::string& sFilePath, std::string& sFilename ) {
@@ -573,14 +593,16 @@ public:
 
   virtual void ShowContextMenu( void );
 
-  void BrowseForAudio( void );
-  void SelectAudio( void );
+  //void BrowseForAudio( void );
+  //void DecodeAudio( void );
 
-  void SetSelected( CommonGuiElements& elements );
-  void RemoveSelected( CommonGuiElements& elements );
+  virtual void SetSelected( CommonGuiElements& elements );
+  virtual void RemoveSelected( CommonGuiElements& elements );
 
   virtual void AppendToScenePanel( void );
   virtual void DetachFromScenePanel( void );
+
+  virtual void DecodeAudio( void );
 
 protected:
 
@@ -645,11 +667,13 @@ TreeItemAudioMono::~TreeItemAudioMono( void ) {
 }
 
 void TreeItemAudioMono::SetSelected( CommonGuiElements& elements ) {
+  TreeItemSceneElementBase::SetSelected( elements );
   m_audioChannel.SetSelected( elements );
 }
 
 void TreeItemAudioMono::RemoveSelected( CommonGuiElements& elements ) {
   m_audioChannel.RemoveSelected( elements );
+  TreeItemSceneElementBase::RemoveSelected( elements );
 }
 
 void TreeItemAudioMono::AppendToScenePanel( void ) {
@@ -667,14 +691,6 @@ void TreeItemAudioMono::ShowContextMenu( void ) {
   pMenu->Append( MISelectAudio, "Select Audio" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemAudioMono::HandleSelectAudio, this, MISelectAudio );
 
-  for ( unsigned int cnt = 0; cnt < m_resources.pAudio->GetChannelCount(); ++cnt ) {
-    std::string s( "mono channel " );
-    s += boost::lexical_cast<std::string>( cnt );
-    pMenu->Append( MIAudioSetChannel, s ); 
-    ChannelId* p = new ChannelId( cnt );
-    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemAudioMono::HandleSetChannel, this, MIAudioSetChannel, MIAudioSetChannel, (wxObject*) p );
-  }
-
   //  pMenu->Append( MIReset, "Reset" );
   //  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVisualCommon::HandleReset, this, MIReset );
 
@@ -687,17 +703,25 @@ void TreeItemAudioMono::ShowContextMenu( void ) {
   //pMenu->Append( MIMusicSeek, "Seek" );
   //pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleSeek, this, MIMusicSeek );
 
-  pMenu->Append( MIAudioStats, "Stats" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemAudioMono::HandleStats, this, MIAudioStats );
-
   pMenu->Append( MIAudioLoadBuffer, "Load Buffer" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemAudioMono::HandleLoadBuffer, this, MIAudioLoadBuffer );
 
   pMenu->Append( MIAudioSendBuffer, "Send Buffer" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemAudioMono::HandleSendBuffer, this, MIAudioSendBuffer );
 
+  pMenu->Append( MIAudioStats, "Stats" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemAudioMono::HandleStats, this, MIAudioStats );
+
   pMenu->Append( MIRename, "Rename" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemBase::HandleRename, this, MIRename );
+
+  for ( unsigned int cnt = 0; cnt < m_resources.pAudio->GetChannelCount(); ++cnt ) {
+    std::string s( "mono channel " );
+    s += boost::lexical_cast<std::string>( cnt );
+    pMenu->Append( MIAudioSetChannel, s ); 
+    ChannelId* p = new ChannelId( cnt );
+    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemAudioMono::HandleSetChannel, this, MIAudioSetChannel, MIAudioSetChannel, (wxObject*) p );
+  }
 
   pMenu->Append( MIDelete, "Delete" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemSceneElementBase::HandleDelete, this, MIDelete );
@@ -720,7 +744,7 @@ void TreeItemAudioMono::HandleStop( wxCommandEvent& event ) {
 }
 
 void TreeItemAudioMono::HandleSelectAudio( wxCommandEvent& event ) {
-  BrowseForAudio();
+  TreeItemAudioCommon::BrowseForAudio( "Mono Audio" );
 }
 
 void TreeItemAudioMono::HandleSetChannel( wxCommandEvent& event ) {
@@ -731,19 +755,7 @@ void TreeItemAudioMono::HandleSetChannel( wxCommandEvent& event ) {
   std::cout << "Set Channel to " << ix << std::endl;
 }
 
-// todo:  need to confirm is mono, or choose a specific channel
-void TreeItemAudioMono::BrowseForAudio( void ) {
-
-  std::string sFileName;
-
-  if ( TreeItemAudioCommon::BrowseForAudio( "Select Mono Audio", m_sAudioDirectory, m_sFilePath, sFileName ) ) {
-    SelectAudio();
-    Rename( "Button Label:", sFileName );
-  }
-
-}
-
-void TreeItemAudioMono::SelectAudio( void ) {
+void TreeItemAudioMono::DecodeAudio( void ) {
   m_audioChannel.Clear();
   m_player.Close();
   if ( m_player.Open( m_sFilePath ) ) {  // means it needs to be closed manually or automatically
@@ -793,25 +805,22 @@ public:
   
   virtual void ShowContextMenu( void );
   
-  void BrowseForMusic( void );
-  void SelectMusic( void );
-  
-  void SetSelected( CommonGuiElements& elements );
-  void RemoveSelected( CommonGuiElements& elements );
+  virtual void SetSelected( CommonGuiElements& elements );
+  virtual void RemoveSelected( CommonGuiElements& elements );
   
   virtual void AppendToScenePanel( void );
   virtual void DetachFromScenePanel( void );
 
+  virtual void DecodeAudio( void );
+
 protected:
+
 private:
 
   boost::signals2::connection m_connectionBtnEvent;
   
   boost::signals2::connection m_connectionAudioReady;
   boost::signals2::connection m_connectionDecodeComplete;
-  
-  //boost::signals2::connection m_connectAudioLeft;
-  //boost::signals2::connection m_connectAudioRight;
   
   MediaStreamDecode m_player;
 
@@ -857,6 +866,10 @@ private:
 TreeItemAudioStereo::TreeItemAudioStereo( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources )
 : TreeItemAudioCommon( id, resources ), m_channelLeft( resources ), m_channelRight( resources )
 {
+
+  m_channelLeft.SetChannel( 0 );
+  m_channelRight.SetChannel( 1 );
+
   namespace args = boost::phoenix::arg_names;
   m_connectionAudioReady = m_player.ConnectAudioReady( boost::phoenix::bind( &TreeItemAudioStereo::HandleAudioForBuffer, this, args::arg1, args::arg2, args::arg3, args::arg4 ) );
   m_connectionDecodeComplete = m_player.ConnectDecodeDone( boost::phoenix::bind( &TreeItemAudioStereo::HandleDecodeComplete, this ) );
@@ -881,21 +894,15 @@ void TreeItemAudioStereo::DetachFromScenePanel( void ) {
 }
 
 void TreeItemAudioStereo::SetSelected( CommonGuiElements& elements ) {
-  //namespace args = boost::phoenix::arg_names;
-  //m_connectAudioLeft = m_resources.pAudio->m_signalFramesProcessed.connect( boost::phoenix::bind( &WaveformView::UpdatePlayCursor, m_pwfvLeft, args::arg1 ) );
-  //m_connectAudioRight = m_resources.pAudio->m_signalFramesProcessed.connect( boost::phoenix::bind( &WaveformView::UpdatePlayCursor, m_pwfvRight, args::arg1 ) );
-  
+  TreeItemSceneElementBase::SetSelected( elements );
   m_channelLeft.SetSelected( elements );
   m_channelRight.SetSelected( elements );
 }
 
 void TreeItemAudioStereo::RemoveSelected( CommonGuiElements& elements ) {
-
   m_channelLeft.RemoveSelected( elements );
   m_channelRight.RemoveSelected( elements );
-  
-  //m_connectAudioLeft.disconnect();
-  //m_connectAudioRight.disconnect();
+  TreeItemSceneElementBase::RemoveSelected( elements );
 }
 
 void TreeItemAudioStereo::ShowContextMenu( void ) {
@@ -904,15 +911,6 @@ void TreeItemAudioStereo::ShowContextMenu( void ) {
 
   pMenu->Append( MISelectAudio, "Select Music" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemAudioStereo::HandleSelectMusic, this, MISelectAudio );
-
-  unsigned int ttl = m_resources.pAudio->GetChannelCount() / 2; // rounds off odd channel
-  for ( unsigned int cnt = 0; cnt < ttl; ++cnt ) {
-    std::string s( "Stereo Set " );
-    s += boost::lexical_cast<std::string>( cnt );
-    pMenu->Append( MIAudioSetChannel, s ); 
-    ChannelId* p = new ChannelId( cnt );
-    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemAudioStereo::HandleSetChannel, this, MIAudioSetChannel, MIAudioSetChannel, (wxObject*) p );
-  }
 
   //  pMenu->Append( MIReset, "Reset" );
 //  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemVisualCommon::HandleReset, this, MIReset );
@@ -926,18 +924,27 @@ void TreeItemAudioStereo::ShowContextMenu( void ) {
   //pMenu->Append( MIMusicSeek, "Seek" );
   //pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemMusic::HandleSeek, this, MIMusicSeek );
   
-  pMenu->Append( MIAudioStats, "Stats" );
-  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemAudioStereo::HandleStats, this, MIAudioStats );
-  
   pMenu->Append( MIAudioLoadBuffer, "Load Buffer" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemAudioStereo::HandleLoadBuffer, this, MIAudioLoadBuffer );
   
   pMenu->Append( MIAudioSendBuffer, "Send Buffer" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemAudioStereo::HandleSendBuffer, this, MIAudioSendBuffer );
   
+  pMenu->Append( MIAudioStats, "Stats" );
+  pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemAudioStereo::HandleStats, this, MIAudioStats );
+
   pMenu->Append( MIRename, "Rename" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemBase::HandleRename, this, MIRename );
   
+  unsigned int ttl = m_resources.pAudio->GetChannelCount() / 2; // rounds off odd channel
+  for ( unsigned int cnt = 0; cnt < ttl; ++cnt ) {
+    std::string s( "Stereo Set " );
+    s += boost::lexical_cast<std::string>( cnt );
+    pMenu->Append( MIAudioSetChannel, s ); 
+    ChannelId* p = new ChannelId( cnt );
+    pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemAudioStereo::HandleSetChannel, this, MIAudioSetChannel, MIAudioSetChannel, (wxObject*) p );
+  }
+
   pMenu->Append( MIDelete, "Delete" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemSceneElementBase::HandleDelete, this, MIDelete );
   
@@ -968,18 +975,10 @@ void TreeItemAudioStereo::HandleStop( wxCommandEvent& event ) {
 }
 
 void TreeItemAudioStereo::HandleSelectMusic( wxCommandEvent& event ) {
-  BrowseForMusic();
+  TreeItemAudioCommon::BrowseForAudio( "Stereo Audio" );
 }
 
-void TreeItemAudioStereo::BrowseForMusic( void ) {
-  std::string sFileName;
-  if (TreeItemAudioCommon::BrowseForAudio( "Select Music", m_sAudioDirectory, m_sAudioDirectory, sFileName )) {
-    SelectMusic();
-    Rename( "Button Label:", sFileName );
-  }
-}
-
-void TreeItemAudioStereo::SelectMusic( void ) {
+void TreeItemAudioStereo::DecodeAudio( void ) {
   m_channelLeft.Clear();
   m_channelRight.Clear();
   m_player.Close();
@@ -1030,9 +1029,6 @@ public:
 
   virtual void ShowContextMenu( void );
 
-  void SetSelected( CommonGuiElements& elements );
-  void RemoveSelected( CommonGuiElements& elements );
-
 protected:
 private:
   enum {
@@ -1065,12 +1061,6 @@ TreeItemDMX::TreeItemDMX( wxTreeItemId id, TreeDisplayManager::TreeItemResources
 TreeItemDMX::~TreeItemDMX( void ) {
 }
 
-void TreeItemDMX::SetSelected( CommonGuiElements& elements ) {
-}
-
-void TreeItemDMX::RemoveSelected( CommonGuiElements& elements ) {
-}
-
 void TreeItemDMX::ShowContextMenu( void ) {
 
   wxMenu* pMenu = new wxMenu();
@@ -1094,9 +1084,6 @@ public:
   virtual ~TreeItemMidi( void );
 
   virtual void ShowContextMenu( void );
-
-  void SetSelected( CommonGuiElements& elements );
-  void RemoveSelected( CommonGuiElements& elements );
 
 protected:
 private:
@@ -1128,12 +1115,6 @@ TreeItemMidi::TreeItemMidi( wxTreeItemId id, TreeDisplayManager::TreeItemResourc
 }
 
 TreeItemMidi::~TreeItemMidi( void ) {
-}
-
-void TreeItemMidi::SetSelected( CommonGuiElements& elements ) {
-}
-
-void TreeItemMidi::RemoveSelected( CommonGuiElements& elements ) {
 }
 
 void TreeItemMidi::ShowContextMenu( void ) {
@@ -1187,8 +1168,8 @@ protected:
   
   //virtual void UpdateTransformMatrix( const glm::mat4& ) {};  // originates in InteractiveTransform inheritance
 
-  void SetSelected( CommonGuiElements& );  // from tree menu
-  void RemoveSelected( CommonGuiElements& );  // from tree menu
+  virtual void SetSelected( CommonGuiElements& );  // from tree menu
+  virtual void RemoveSelected( CommonGuiElements& );  // from tree menu
 
   virtual void SceneManagerActivated( void ) {};
   
@@ -1221,11 +1202,13 @@ void TreeItemVisualCommon::SetSceneManager ( size_t ix ) {
 }
 
 void TreeItemVisualCommon::SetSelected( CommonGuiElements& cge ) {
+  TreeItemSceneElementBase::SetSelected( cge );
   InteractiveTransform::Activate( m_pSceneManager.get(), cge.pSliderZ, cge.pSliderFader );
 }
 
 void TreeItemVisualCommon::RemoveSelected( CommonGuiElements& cge ) {
   InteractiveTransform::DeActivate();
+  TreeItemSceneElementBase::RemoveSelected( cge );
 }
 
 void TreeItemVisualCommon::HandleReset( wxCommandEvent& event ) {
@@ -1253,7 +1236,7 @@ public:
   virtual ~TreeItemGrid( void );
   
   virtual void ShowContextMenu( void );
-  
+
 protected:
 private:
   
@@ -1326,9 +1309,6 @@ public:
 
   virtual void ShowContextMenu( void );
 
-  void SetSelected( CommonGuiElements& elements );
-  void RemoveSelected( CommonGuiElements& elements );
-
 protected:
 private:
   enum {
@@ -1358,12 +1338,6 @@ TreeItemColour::TreeItemColour( wxTreeItemId id, TreeDisplayManager::TreeItemRes
 
 TreeItemColour::~TreeItemColour( void ) {
 
-}
-
-void TreeItemColour::SetSelected( CommonGuiElements& elements ) {
-}
-
-void TreeItemColour::RemoveSelected( CommonGuiElements& elements ) {
 }
 
 void TreeItemColour::ShowContextMenu( void ) {
@@ -1524,7 +1498,7 @@ public:
   virtual ~TreeItemImage( void );
   
   virtual void ShowContextMenu( void );
-  
+
 protected:
   virtual void SceneManagerActivated( void );
 private:
@@ -1787,7 +1761,7 @@ void TreeItemVideo::SetSelected( CommonGuiElements& elements ) {
 
   }
 }
-  
+
 void TreeItemVideo::RemoveSelected( CommonGuiElements& elements ) {
   //std::cout << "removing " << this->m_id.GetID() << std::endl;
   if ( 0 != m_pstInfo ) {
@@ -2084,8 +2058,8 @@ public:
 
   void DetachFromScenePanel( void );
   void AppendToScenePanel( void );
-  
-  protected:
+
+protected:
 
 private:
 
@@ -2106,6 +2080,11 @@ private:
   void HandleAddVideo( wxCommandEvent& event );
 
   void HandleDelete( wxCommandEvent& event );
+
+  void HandleSetSelected( CommonGuiElements& elements );
+  void HandleRemoveSelected( CommonGuiElements& elements );
+
+  void ConnectToSelectionEvent( TreeItemSceneElementBase* p );
 
   template<typename Archive>
   void save( Archive& ar, const unsigned int version ) const {
@@ -2152,6 +2131,7 @@ private:
         case IdColour:
         {
           TreeItemColour* p = AddTreeItem<TreeItemColour,IdTreeItemType>( "Colour", IdColour );
+          ConnectToSelectionEvent( p );
           p->SetSceneManager( m_ixSceneManager );
           ar & *p;
         }
@@ -2159,6 +2139,7 @@ private:
         case IdImage:
         {
           TreeItemImage* p = AddTreeItem<TreeItemImage,IdTreeItemType>( "Image", IdImage );
+          ConnectToSelectionEvent( p );
           p->SetSceneManager( m_ixSceneManager );
           ar & *p;
         }
@@ -2166,6 +2147,7 @@ private:
         case IdVideo:
         {
           TreeItemVideo* p = AddTreeItem<TreeItemVideo,IdTreeItemType>( "Video", IdVideo );
+          ConnectToSelectionEvent( p );
           p->SetSceneManager( m_ixSceneManager );
           ar & *p;
         }
@@ -2183,6 +2165,15 @@ TreeItemProjectorArea::TreeItemProjectorArea( wxTreeItemId id, TreeDisplayManage
 }
 
 TreeItemProjectorArea::~TreeItemProjectorArea(void) {
+}
+
+void TreeItemProjectorArea::HandleSetSelected( CommonGuiElements& elements ) {  // transitive up to TreeItemScene
+  this->m_signalSelectionEventSetSelected( elements );
+}
+
+void TreeItemProjectorArea::HandleRemoveSelected( CommonGuiElements& elements ) {  // transitive up to TreeItemScene
+  this->m_signalSelectionEventRemoveSelected( elements );
+
 }
 
 void TreeItemProjectorArea::AppendToScenePanel( void ) {
@@ -2219,20 +2210,29 @@ void TreeItemProjectorArea::ShowContextMenu( void ) {
   m_resources.tree.PopupMenu( pMenu );
 }
 
+void TreeItemProjectorArea::ConnectToSelectionEvent( TreeItemSceneElementBase* p ) {
+  namespace args = boost::phoenix::arg_names;
+  p->m_signalSelectionEventSetSelected.connect( boost::phoenix::bind( &TreeItemProjectorArea::HandleSetSelected, this, args::arg1 ) );
+  p->m_signalSelectionEventRemoveSelected.connect( boost::phoenix::bind( &TreeItemProjectorArea::HandleRemoveSelected, this, args::arg1 ) );
+}
+
 void TreeItemProjectorArea::HandleAddColour( wxCommandEvent& event ) {
   TreeItemColour* p = AddTreeItem<TreeItemColour,IdTreeItemType>( "Colour", IdColour );
+  ConnectToSelectionEvent( p );
   p->SetSceneManager( m_ixSceneManager );
   p->Rename();
 }
 
 void TreeItemProjectorArea::HandleAddImage( wxCommandEvent& event ) {
   TreeItemImage* p = AddTreeItem<TreeItemImage,IdTreeItemType>( "Image", IdImage );
+  ConnectToSelectionEvent( p );
   p->SetSceneManager( m_ixSceneManager );
   p->Rename();
 }
 
 void TreeItemProjectorArea::HandleAddVideo( wxCommandEvent& event ) {
   TreeItemVideo* p = AddTreeItem<TreeItemVideo,IdTreeItemType>( "Video", IdVideo );
+  ConnectToSelectionEvent( p );
   p->SetSceneManager( m_ixSceneManager );
   p->Rename();
 }
@@ -2254,7 +2254,7 @@ public:
   virtual void ShowContextMenu( void );
 
   virtual void SetSelected( CommonGuiElements& ); // rebuild the panelScene
-  virtual void RemoveSelected( CommonGuiElements& ) {}  // not using yet
+  virtual void RemoveSelected( CommonGuiElements& );
   
 protected:
 
@@ -2282,6 +2282,11 @@ private:
   void HandleAddProjectorAreas( wxCommandEvent& event );
 
   void HandleDelete( wxCommandEvent& event );
+
+  void HandleSetSelected( CommonGuiElements& elements );
+  void HandleRemoveSelected( CommonGuiElements& elements );
+
+  void ConnectToSelectionEvent( TreeItemSceneElementBase* p );
 
   template<typename Archive>
   void save( Archive& ar, const unsigned int version ) const {
@@ -2337,26 +2342,30 @@ private:
         case IdMusic:
         {
           TreeItemAudioStereo* p = AddTreeItem<TreeItemAudioStereo,IdTreeItemType>( "Stereo Audio", IdMusic );
+          ConnectToSelectionEvent( p );
           ar & *p;
-          p->SelectMusic();
+          p->DecodeAudio();
         }
         break;
         case IdMonoAudio:
         {
           TreeItemAudioMono* p = AddTreeItem<TreeItemAudioMono,IdTreeItemType>( "Mono Audio", IdMonoAudio );
+          ConnectToSelectionEvent( p );
           ar & *p;
-          p->SelectAudio();
+          p->DecodeAudio();
         }
           break;
         case IdMidi:
         {
           TreeItemMidi* p = AddTreeItem<TreeItemMidi,IdTreeItemType>( "Midi", IdMidi );
+          ConnectToSelectionEvent( p );
           ar & *p;
         }
         break;
         case IdDMX:
         {
           TreeItemDMX* p = AddTreeItem<TreeItemDMX,IdTreeItemType>( "DMX", IdDMX );
+          ConnectToSelectionEvent( p );
           ar & *p;
         }
         break;
@@ -2365,6 +2374,7 @@ private:
           // will need to abort if the stored count doesn't match the active count?
           // future todo:  a dynamic creation of displays, so not all are used for projection
           TreeItemProjectorArea* p = AddTreeItem<TreeItemProjectorArea,IdTreeItemType>( "Display", IdProjectorArea );
+          ConnectToSelectionEvent( p );
           ar & *p;  // needs to load appropriate SceneManager itself
         }
         break;
@@ -2383,17 +2393,34 @@ TreeItemScene::TreeItemScene( wxTreeItemId id, TreeDisplayManager::TreeItemResou
 TreeItemScene::~TreeItemScene(void) {
 }
 
-void TreeItemScene::SetSelected( CommonGuiElements& ) {
+// children need to notify scene when clicked on, scene changes if child is new for scene
+
+void TreeItemScene::SetSelected( CommonGuiElements& elements ) { // needs some tweaking
+  if ( this->m_id != m_resources.currentScene ) {
+    m_resources.tree.m_signalClearScenePanel();
+    for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
+      dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->AppendToScenePanel();
+    }
+    m_resources.currentScene = this->m_id;
+  }
+}
+
+void TreeItemScene::HandleSetSelected( CommonGuiElements& elements ) {
+  SetSelected( elements );
+}
+
+void TreeItemScene::RemoveSelected( CommonGuiElements& elements ) {  // needs some tweaking
   if ( this->m_id != m_resources.currentScene ) {
     for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
       dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->DetachFromScenePanel();
     }
     m_resources.tree.m_signalClearScenePanel();
   }
-  m_resources.currentScene = this->m_id;
-  for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
-    dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->AppendToScenePanel();
-  }
+}
+
+void TreeItemScene::HandleRemoveSelected( CommonGuiElements& elements ) {
+  //m_resources.currentScene = this->m_id; // notify other scene it no longer has focus
+  RemoveSelected( elements );
 }
 
 void TreeItemScene::ShowContextMenu( void ) {  // need scene elements instead once I get this figured out
@@ -2417,6 +2444,12 @@ void TreeItemScene::ShowContextMenu( void ) {  // need scene elements instead on
   m_resources.tree.PopupMenu( pMenu );
 }
 
+void TreeItemScene::ConnectToSelectionEvent( TreeItemSceneElementBase* p ) {
+  namespace args = boost::phoenix::arg_names;
+  p->m_signalSelectionEventSetSelected.connect( boost::phoenix::bind( &TreeItemScene::HandleSetSelected, this, args::arg1 ) );
+  p->m_signalSelectionEventRemoveSelected.connect( boost::phoenix::bind( &TreeItemScene::HandleRemoveSelected, this, args::arg1 ) );
+}
+
 void TreeItemScene::HandleAddProjectorAreas( wxCommandEvent& event ) {
   if (!m_bAddedProjectorAreas) {
     for ( size_t ix = 0; ix < m_resources.vpSceneManager.size(); ++ix ) {
@@ -2424,6 +2457,7 @@ void TreeItemScene::HandleAddProjectorAreas( wxCommandEvent& event ) {
       sDesc += boost::lexical_cast<std::string>( ix );
       TreeItemProjectorArea* p = AddTreeItem<TreeItemProjectorArea,IdTreeItemType>( sDesc, IdProjectorArea );
       p->SetSceneManager( ix );
+      ConnectToSelectionEvent( p );
     }
     m_bAddedProjectorAreas = true;
   }
@@ -2431,21 +2465,25 @@ void TreeItemScene::HandleAddProjectorAreas( wxCommandEvent& event ) {
 
 void TreeItemScene::HandleAddAudioStereo( wxCommandEvent& event ) {
   TreeItemAudioStereo* p = AddTreeItem<TreeItemAudioStereo,IdTreeItemType>( "Stereo", IdMusic );
+  ConnectToSelectionEvent( p );
   p->Rename();
 }
 
 void TreeItemScene::HandleAddAudioMono( wxCommandEvent& event ) {
   TreeItemAudioMono* p = AddTreeItem<TreeItemAudioMono,IdTreeItemType>( "Mono Audio", IdMonoAudio );
+  ConnectToSelectionEvent( p );
   p->Rename();
 }
 
 void TreeItemScene::HandleAddMidi( wxCommandEvent& event ) {
   TreeItemMidi* p = AddTreeItem<TreeItemMidi,IdTreeItemType>( "Midi", IdMidi );
+  ConnectToSelectionEvent( p );
   p->Rename();
 }
 
 void TreeItemScene::HandleAddDMX( wxCommandEvent& event ) {
   TreeItemDMX* p = AddTreeItem<TreeItemDMX,IdTreeItemType>( "DMX", IdDMX );
+  ConnectToSelectionEvent( p );
   p->Rename();
 }
 
