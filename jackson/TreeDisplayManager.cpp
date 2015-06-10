@@ -678,8 +678,12 @@ private:
     ar & boost::serialization::base_object<const TreeItemSceneElementBase>(*this);
     ar & m_sMusicDirectory;
     ar & m_sFilePath;
+
     ar & m_intOldVolumeLeft;
     ar & m_intOldVolumeRight;
+
+    ar & m_channelLeft / 2; // flaky way of doing this for now
+    //ar & m_channelRight;
   }
   
   template<typename Archive>
@@ -687,11 +691,16 @@ private:
     ar & boost::serialization::base_object<TreeItemSceneElementBase>(*this);
     ar & m_sMusicDirectory;
     ar & m_sFilePath;  // will this work with an empty string?
+
     ar & m_intOldVolumeLeft;
-    ar & m_intOldVolumeRight;
-     
     m_pAudioQueueLeft->SetAttenuator( m_intOldVolumeLeft );
+    ar & m_intOldVolumeRight;
     m_pAudioQueueRight->SetAttenuator( m_intOldVolumeRight );    
+
+    unsigned int n;
+    ar & n;
+    SetChannel( n / 2 ); // flaky way of doing this
+     
   }
   
   BOOST_SERIALIZATION_SPLIT_MEMBER()
