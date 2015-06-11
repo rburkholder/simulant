@@ -48,14 +48,29 @@ void KeyFrameView::CreateControls() {
   Bind( wxEVT_PAINT, &KeyFrameView::HandlePaint, this );
   Bind( wxEVT_ERASE_BACKGROUND, &KeyFrameView::HandleEraseBackground, this );
   Bind( wxEVT_SIZE, &KeyFrameView::HandleSize, this );
+  Bind( wxEVT_RIGHT_UP, &KeyFrameView::HandleMouseRightUp, this );
+  Bind( wxEVT_LEFT_UP, &KeyFrameView::HandleMouseLeftUp, this );
   //Bind( wxEVT_SIZING, &WaveformView::HandleSizing, this );
   //Bind( wxEVT_LEFT_DOWN, &WaveformView::HandleMouseLeftDown, this );
-  //Bind( wxEVT_LEFT_UP, &WaveformView::HandleMouseLeftUp, this );
   //Bind( wxEVT_MOUSEWHEEL, &WaveformView::HandleMouseWheel, this );
-  //Bind( wxEVT_MOTION, &WaveformView::HandleMouseMotion, this );
+  Bind( wxEVT_MOTION, &KeyFrameView::HandleMouseMotion, this );
   //Bind( wxEVT_LEAVE_WINDOW, &WaveformView::HandleLeaveWindow, this );
   //Bind( wxEVT_IDLE, &WaveformView::HandleIdle, this );
   //Bind( wxEVT_COMMAND_ENTER, &WaveformView::HandlePlayCursor, this, ID_EVENT_PLAYCURSOR );
+  
+  // may need to be more dynamic, figure out which are needed
+  m_pContextMenu = new wxMenu();
+  m_pContextMenu->Append( MIAddKeyFrame, "Add KeyFrame" );
+  m_pContextMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &KeyFrameView::HandleAddKeyFrame, this, MIAddKeyFrame );
+  m_pContextMenu->Append( MIDeleteKeyFrame, "Delete KeyFrame" );
+  m_pContextMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &KeyFrameView::HandleDeleteKeyFrame, this, MIDeleteKeyFrame );
+  m_pContextMenu->Append( MIEditKeyFrame, "Edit KeyFrame" );
+  m_pContextMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &KeyFrameView::HandleEditKeyFrame, this, MIEditKeyFrame );
+  m_pContextMenu->Append( MICopy, "Copy Settings" );
+  m_pContextMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &KeyFrameView::HandleCopy, this, MICopy );
+  m_pContextMenu->Append( MIPaste, "Paste Settings" );
+  m_pContextMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &KeyFrameView::HandlePaste, this, MIPaste );
+  
 }
 
 KeyFrameView::~KeyFrameView( ) {
@@ -76,6 +91,43 @@ void KeyFrameView::HandlePaint( wxPaintEvent& event ) {
   dc.SetBrush( brush );
   dc.DrawRectangle( rectClientArea );  // blank out background
 
+}
+
+void KeyFrameView::HandleMouseRightUp( wxMouseEvent& event ) {
+  m_pointLatestMouse = event.GetPosition();
+  this->PopupMenu( m_pContextMenu );
+}
+
+void KeyFrameView::HandleMouseLeftUp( wxMouseEvent& event ) { // click to activate a keyframe (how to select one?)
+  m_pointLatestMouse = event.GetPosition();
+  // do some pre-filter first?
+  m_signalMouseEventSelectKeyFrame( m_pointLatestMouse );
+}
+
+void KeyFrameView::HandleMouseMotion( wxMouseEvent& event ) { // move the cursor, signal back to scene to update other windows
+  // common code from wave form then?
+  m_pointLatestMouse = event.GetPosition();
+  m_signalMouseEventMovement( m_pointLatestMouse );
+}
+
+void KeyFrameView::HandleAddKeyFrame( wxCommandEvent& event ) {
+  m_signalMouseEventAddKeyFrame( m_pointLatestMouse );
+}
+
+void KeyFrameView::HandleEditKeyFrame( wxCommandEvent& event ) {
+  m_signalMouseEventEditKeyFrame( m_pointLatestMouse );
+}
+
+void KeyFrameView::HandleDeleteKeyFrame( wxCommandEvent& event ) {
+  m_signalMouseEventDeleteKeyFrame( m_pointLatestMouse );
+}
+
+void KeyFrameView::HandleCopy( wxCommandEvent& event ) {
+  //m_signalMouseEventDeleteKeyFrame( m_pointLatestMouse );
+}
+
+void KeyFrameView::HandlePaste( wxCommandEvent& event ) {
+  //m_signalMouseEventDeleteKeyFrame( m_pointLatestMouse );
 }
 
 void KeyFrameView::HandleSize( wxSizeEvent& event ) {

@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <boost/signals2.hpp>
+
 #include <wx/panel.h>
 
 #define SYMBOL_CONTROLKEYFRAMEVIEW_STYLE wxTAB_TRAVERSAL
@@ -18,6 +20,9 @@
 class KeyFrameView: public wxPanel {
   DECLARE_DYNAMIC_CLASS( KeyFrameView )
 public:
+  
+  typedef boost::signals2::signal<void (wxPoint&)> signalMouseEvent_t;
+  typedef signalMouseEvent_t::slot_type slotMouseEvent_t;
   
   KeyFrameView( );
   KeyFrameView( 
@@ -35,6 +40,12 @@ public:
           long style = SYMBOL_CONTROLKEYFRAMEVIEW_STYLE );
   virtual ~KeyFrameView( );
   
+  signalMouseEvent_t m_signalMouseEventAddKeyFrame;
+  signalMouseEvent_t m_signalMouseEventEditKeyFrame;
+  signalMouseEvent_t m_signalMouseEventDeleteKeyFrame;
+  signalMouseEvent_t m_signalMouseEventSelectKeyFrame;
+  signalMouseEvent_t m_signalMouseEventMovement;
+  
 protected:
 private:
   
@@ -44,11 +55,31 @@ private:
 
   };
   
+  enum {
+    MIAddKeyFrame, MIDeleteKeyFrame, MIEditKeyFrame, MICopy, MIPaste
+  };
+  
   wxColour m_colourBackground;
+  
+  wxMenu* m_pContextMenu;
+  
+  wxPoint m_pointLatestMouse;
 
   void HandlePaint( wxPaintEvent& );
   void HandleEraseBackground( wxEraseEvent& );
   void HandleSize( wxSizeEvent& );
+  
+  void HandleMouseRightUp( wxMouseEvent& );
+  void HandleMouseLeftUp( wxMouseEvent& );
+  
+  void HandleMouseMotion( wxMouseEvent& );
+  
+  void HandleAddKeyFrame( wxCommandEvent& event );
+  void HandleDeleteKeyFrame( wxCommandEvent& event );
+  void HandleEditKeyFrame( wxCommandEvent& event );
+  
+  void HandleCopy( wxCommandEvent& event );
+  void HandlePaste( wxCommandEvent& event );
 
   void Init();
   void CreateControls();
