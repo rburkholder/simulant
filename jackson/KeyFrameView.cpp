@@ -22,6 +22,7 @@ KeyFrameView::KeyFrameView( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 
 void KeyFrameView::Init() {
 
+  std::cout << "KeyFrameView colour" << std::endl;
   m_colourBackground = wxColour( 100, 100, 100 );
 
 }

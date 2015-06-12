@@ -231,6 +231,9 @@ public:
 
   virtual void UpdateInteractiveCursor( int x ) {};
   virtual void UpdatePlayCursor( int x ) {};
+  virtual void UpdateMouseShift( int diff ) {};
+  virtual void UpdateMouseZoomIn( int x ) {};
+  virtual void UpdateMouseZoomOut( int x ) {};
 
 protected:
   
@@ -418,11 +421,6 @@ void MonoAudioChannel::DetachFromScenePanel( void ) {
 }
 
 void MonoAudioChannel::SetSelected( CommonGuiElements& elements ) {
-
-  namespace args = boost::phoenix::arg_names;
-  //m_connectAudio = m_resources.pAudio->m_signalFramesProcessed.connect( boost::phoenix::bind( &WaveformView::UpdatePlayCursor, m_pwfv, args::arg1 ) );
-  //m_connectAudio.disconnect();
-
   elements.pSliderVolume->Bind( wxEVT_SCROLL_CHANGED, &MonoAudioChannel::HandleScrollChangedVolume, this );
   elements.pSliderVolume->Bind( wxEVT_SCROLL_THUMBTRACK, &MonoAudioChannel::HandleScrollChangedVolume, this );
   elements.pSliderVolume->SetValue( m_intVolume );
@@ -433,8 +431,6 @@ void MonoAudioChannel::RemoveSelected( CommonGuiElements& elements ) {
   elements.pSliderVolume->Enable( false );
   elements.pSliderVolume->Unbind( wxEVT_SCROLL_CHANGED, &MonoAudioChannel::HandleScrollChangedVolume, this );
   elements.pSliderVolume->Unbind( wxEVT_SCROLL_THUMBTRACK, &MonoAudioChannel::HandleScrollChangedVolume, this );
-
-  //m_connectAudio.disconnect();
 }
 
 void MonoAudioChannel::HandleScrollChangedVolume( wxScrollEvent& event ) {
@@ -2469,6 +2465,8 @@ TreeItemScene::TreeItemScene( wxTreeItemId id, TreeDisplayManager::TreeItemResou
   // used upon scene play and stop
   //m_connectAudio = m_resources.pAudio->m_signalFramesProcessed.connect( boost::phoenix::bind( &WaveformView::UpdatePlayCursor, m_pwfv, args::arg1 ) );
   // also need bind/unbind on ID_EVENT_PLAYCURSOR / HandleFrameCounterxxxx
+  //virtual void UpdatePlayCursor( int x ) {};
+
 }
 
 TreeItemScene::~TreeItemScene(void) {
@@ -2568,15 +2566,24 @@ void TreeItemScene::HandleMouseMotion( int x, int diff ) {
 }
 
 void TreeItemScene::HandleMouseShift( int diff ) {
-  std::cout << "mouse shift" << std::endl;
+  //std::cout << "mouse shift" << std::endl;
+  for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
+    dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseShift( diff );
+  }
 }
 
 void TreeItemScene::HandleZoomIn( wxCoord x ) { 
-  std::cout << "mouse zoom in" << std::endl;
+  //std::cout << "mouse zoom in" << std::endl;
+  for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
+    dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseZoomIn( x );
+  }
 }
 
 void TreeItemScene::HandleZoomOut( wxCoord x ) {
-  std::cout << "mouse zoom out" << std::endl;
+  //std::cout << "mouse zoom out" << std::endl;
+  for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
+    dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseZoomOut( x );
+  }
 }
 
 void TreeItemScene::HandleAddProjectorAreas( wxCommandEvent& event ) {
