@@ -71,7 +71,6 @@ public:
   WaveformView* AppendWaveformView( void );
   KeyFrameView* AppendKeyFrameView( void );
   
-  
   // when range is 0, should disable the control
   //void SetScrollMin( int min ) { assert( 0 != m_sliderHorizontal ); m_sliderHorizontal->SetMin( min ); }  // defaults to 0..100
   //void SetScrollMax( int max ) { assert( 0 != m_sliderHorizontal ); m_sliderHorizontal->SetMax( max ); }  // defaults to 0..100
@@ -135,13 +134,6 @@ private:
   wxPanel* m_panelScene; // handles mouse events
   wxBoxSizer* m_itemBoxSizerSceneElements;
   
-  wxPoint m_posMouseOnLeftDown;
-  
-  WaveformView* m_pWaveFormFrontLeft;
-  WaveformView* m_pWaveFormFrontRight;
-  WaveformView* m_pWaveFormBackLeft; // not implemented yet
-  WaveformView* m_pWaveFormBackRight; // not implemented yet
-
   TreeDisplayManager* m_treeDisplays;
   
   void HandleToggleEditMode( wxCommandEvent& event );
@@ -159,14 +151,6 @@ private:
 
   void HandleMouseWheel1( wxMouseEvent& );
 
-  void HandleMouseWheelInWaveformsPanel( wxMouseEvent& );
-  void HandleMouseMotionInWaveformsPanel( wxMouseEvent& );
-  
-  void HandleMouseWheelInWaveform( wxMouseEvent& );
-  void HandleMouseMotionInWaveform( wxMouseEvent& );
-  void HandleMouseLeftDownInWaveform( wxMouseEvent& );
-  void HandleMouseLeftUpInWaveform( wxMouseEvent& );
-  
   void HandleEnterWindow( wxMouseEvent& );
   void HandleLeaveWindow( wxMouseEvent& );
   

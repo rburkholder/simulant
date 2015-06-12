@@ -9,7 +9,7 @@
 
 #include <boost/signals2.hpp>
 
-#include <wx/panel.h>
+#include "SceneViewCommon.h"
 
 #define SYMBOL_CONTROLKEYFRAMEVIEW_STYLE wxTAB_TRAVERSAL
 #define SYMBOL_CONTROLKEYFRAMEVIEW_TITLE _("KeyFrameView")
@@ -17,7 +17,7 @@
 #define SYMBOL_CONTROLKEYFRAMEVIEW_SIZE wxSize(100, 20)
 #define SYMBOL_CONTROLKEYFRAMEVIEW_POSITION wxDefaultPosition
 
-class KeyFrameView: public wxPanel {
+class KeyFrameView: public SceneViewCommon  {
   DECLARE_DYNAMIC_CLASS( KeyFrameView )
 public:
   
@@ -40,12 +40,15 @@ public:
           long style = SYMBOL_CONTROLKEYFRAMEVIEW_STYLE );
   virtual ~KeyFrameView( );
   
+  // how many are actually necessary for the owner
   signalMouseEvent_t m_signalMouseEventAddKeyFrame;
   signalMouseEvent_t m_signalMouseEventEditKeyFrame;
   signalMouseEvent_t m_signalMouseEventDeleteKeyFrame;
   signalMouseEvent_t m_signalMouseEventSelectKeyFrame;
   signalMouseEvent_t m_signalMouseEventMovement;
   
+  virtual void UnDrawCursor( Cursor& cursor );
+
 protected:
 private:
   
@@ -72,8 +75,8 @@ private:
   void HandleMouseRightUp( wxMouseEvent& );
   void HandleMouseLeftUp( wxMouseEvent& );
   
-  void HandleMouseMotion( wxMouseEvent& );
-  
+  //void HandleMouseMotion( wxMouseEvent& );
+
   void HandleAddKeyFrame( wxCommandEvent& event );
   void HandleDeleteKeyFrame( wxCommandEvent& event );
   void HandleEditKeyFrame( wxCommandEvent& event );

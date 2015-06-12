@@ -61,10 +61,10 @@ void PanelSurfaceSources::Init() {
   
   m_panelScene = 0;
   
-  m_pWaveFormFrontLeft = 0;
-  m_pWaveFormFrontRight = 0;
-  m_pWaveFormBackLeft = 0;
-  m_pWaveFormBackRight = 0;
+  //m_pWaveFormFrontLeft = 0;
+  //m_pWaveFormFrontRight = 0;
+  //m_pWaveFormBackLeft = 0;
+  //m_pWaveFormBackRight = 0;
   
   m_BtnEvent = BtnEvent::BtnPlay;
 }
@@ -225,22 +225,6 @@ void PanelSurfaceSources::CreateControls() {
   m_itemBoxSizerSceneElements = new wxBoxSizer(wxVERTICAL);
   m_panelScene->SetSizer(m_itemBoxSizerSceneElements);
 
-  //m_pWaveFormFrontLeft = new WaveformView( m_panelScene, ID_WFV_FRONTLEFT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-  //m_pWaveFormFrontLeft->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
-  //itemBoxSizerSceneElements->Add( m_pWaveFormFrontLeft, 1, wxGROW|wxALL, 2 );
-  
-  //m_pWaveFormFrontRight = new WaveformView( m_panelScene, ID_WFV_FRONTRIGHT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-  //m_pWaveFormFrontRight->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
-  //itemBoxSizerSceneElements->Add( m_pWaveFormFrontRight, 1, wxGROW|wxALL, 2 );
-
-  //m_pWaveFormBackLeft = new WaveformView( m_panelWaveforms, ID_WFV_BACKLEFT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-  //m_pWaveFormBackLeft->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
-  //itemBoxSizerWaveforms->Add( m_pWaveFormBackLeft, 1, wxGROW|wxALL, 2 );
-  
-  //m_pWaveFormBackRight = new WaveformView( m_panelWaveforms, ID_WFV_BACKRIGHT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-  //m_pWaveFormBackRight->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
-  //itemBoxSizerWaveforms->Add( m_pWaveFormBackRight, 1, wxGROW|wxALL, 2 );
-
   m_sliderZ = new wxSlider( itemPanel1, ID_SLIDER_Z, 0, -100, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE|wxNO_BORDER );
   if (PanelSurfaceSources::ShowToolTips())
     m_sliderZ->SetToolTip(_("z"));
@@ -288,36 +272,10 @@ void PanelSurfaceSources::CreateControls() {
   Bind( wxEVT_BUTTON, &PanelSurfaceSources::HandleStop, this, ID_BTN_STOP );
   Bind( wxEVT_BUTTON, &PanelSurfaceSources::HandleAbort, this, ID_BTN_ABORT );
 
-  //m_panelWaveforms->Bind( wxEVT_MOUSEWHEEL, &PanelSurfaceSources::HandleMouseWheelInWaveformsPanel, this );
-  //m_panelWaveforms->Bind( wxEVT_MOTION, &PanelSurfaceSources::HandleMouseMotionInWaveformsPanel, this );
-  //m_panelWaveforms->Bind( wxEVT_ENTER_WINDOW, &PanelSurfaceSources::HandleEnterWindow, this );
-  //m_panelWaveforms->Bind( wxEVT_LEAVE_WINDOW, &PanelSurfaceSources::HandleLeaveWindow, this );
-
-  //Bind( wxEVT_MOUSEWHEEL, &PanelSurfaceSources::HandleMouseWheel1, this );
-  //m_panelWaveforms->Bind( wxEVT_MOUSEWHEEL, &PanelSurfaceSources::HandleMouseWheel1, this );
-  
-// ******   
-  // these neede to go to the scene, which will then replicate to the scene elements.
-  // therefore scene controls the scene panel
-//  m_pWaveFormFrontLeft->Bind( wxEVT_MOTION, &PanelSurfaceSources::HandleMouseMotionInWaveform, this );
-//  m_pWaveFormFrontRight->Bind( wxEVT_MOTION, &PanelSurfaceSources::HandleMouseMotionInWaveform, this );
-  
-//  m_pWaveFormFrontLeft->Bind( wxEVT_MOUSEWHEEL, &PanelSurfaceSources::HandleMouseWheelInWaveform, this );
-//  m_pWaveFormFrontRight->Bind( wxEVT_MOUSEWHEEL, &PanelSurfaceSources::HandleMouseWheelInWaveform, this );
-  
-//  m_pWaveFormFrontLeft->Bind( wxEVT_LEFT_DOWN, &PanelSurfaceSources::HandleMouseLeftDownInWaveform, this );
-//  m_pWaveFormFrontRight->Bind( wxEVT_LEFT_DOWN, &PanelSurfaceSources::HandleMouseLeftDownInWaveform, this );
-  
-//  m_pWaveFormFrontLeft->Bind( wxEVT_LEFT_UP, &PanelSurfaceSources::HandleMouseLeftUpInWaveform, this );
-//  m_pWaveFormFrontRight->Bind( wxEVT_LEFT_UP, &PanelSurfaceSources::HandleMouseLeftUpInWaveform, this );
-  // ******
-
-  // ignore
-  //m_pWaveFormFrontLeft->Bind( wxEVT_ENTER_WINDOW, &PanelSurfaceSources::HandleEnterWindow, this );
-  //m_pWaveFormFrontRight->Bind( wxEVT_ENTER_WINDOW, &PanelSurfaceSources::HandleEnterWindow, this );
-
-  //m_pWaveFormFrontLeft->Bind( wxEVT_LEAVE_WINDOW, &PanelSurfaceSources::HandleLeaveWindow, this );
-  //m_pWaveFormFrontRight->Bind( wxEVT_LEAVE_WINDOW, &PanelSurfaceSources::HandleLeaveWindow, this );
+  //m_panelScene->Bind( wxEVT_MOUSEWHEEL, &PanelSurfaceSources::HandleMouseWheel1, this );
+  //m_panelScene->Bind( wxEVT_MOTION, &PanelSurfaceSources::HandleMouseMotionInWaveformsPanel, this );
+  //m_panelScene->Bind( wxEVT_ENTER_WINDOW, &PanelSurfaceSources::HandleEnterWindow, this );
+  //m_panelScene->Bind( wxEVT_LEAVE_WINDOW, &PanelSurfaceSources::HandleLeaveWindow, this );
 
   //Bind( wxEVT_CHAR, &PanelSurfaceSources::HandleKey, this );
   
@@ -333,7 +291,7 @@ void PanelSurfaceSources::HandleClose( wxCloseEvent& event ) {
   m_connectionAppendKeyFrameView.disconnect();
   m_connectionAppendWaveformView.disconnect();
   m_connectionClearScenePanel.disconnect();
-  Unbind( wxEVT_CHAR, &PanelSurfaceSources::HandleKey, this );
+  //Unbind( wxEVT_CHAR, &PanelSurfaceSources::HandleKey, this );
 }
 
 void PanelSurfaceSources::ClearScenePanel( void ) {
@@ -362,13 +320,13 @@ KeyFrameView* PanelSurfaceSources::AppendKeyFrameView( void ) {
   return p;
 }
 
-void PanelSurfaceSources::HandleMouseWheel1(wxMouseEvent& event) {
-  std::cout << "basic panel wheel" << std::endl;
+void PanelSurfaceSources::HandleKey( wxKeyEvent& event ) {
+  //std::cout << "key='" << event.GetKeyCode() << "'" << std::endl;
   event.Skip();
 }
 
-void PanelSurfaceSources::HandleKey( wxKeyEvent& event ) {
-  //std::cout << "key='" << event.GetKeyCode() << "'" << std::endl;
+void PanelSurfaceSources::HandleMouseWheel1(wxMouseEvent& event) {
+  std::cout << "basic panel wheel" << std::endl;
   event.Skip();
 }
 
@@ -379,64 +337,6 @@ void PanelSurfaceSources::HandleEnterWindow( wxMouseEvent& event ) {
 
 void PanelSurfaceSources::HandleLeaveWindow( wxMouseEvent& event ) {
   std::cout << "mouse leave: " << wxID_HIGHEST << "," << event.GetId() << std::endl;
-  event.Skip();
-}
-
-void PanelSurfaceSources::HandleMouseWheelInWaveformsPanel( wxMouseEvent& event ) {
-  std::cout << "1 wheel: " << event.GetWheelRotation() << std::endl;
-  event.Skip();
-}
-
-void PanelSurfaceSources::HandleMouseMotionInWaveformsPanel( wxMouseEvent& event ) {
-  //m_pWaveFormFrontLeft->HitTest()
-  //m_posMouse = event.GetPosition();
-  //std::cout << "1 motion: " << m_posMouse.x << "," << m_posMouse.y << std::endl;
-  event.Skip();
-}
-
-void PanelSurfaceSources::HandleMouseWheelInWaveform( wxMouseEvent& event ) {
-  wxPoint posMouse = event.GetPosition();
-  //std::cout << "0 wheel: " << event.GetWheelRotation() << "," << event.GetWheelDelta()
-  //  << "," << event.GetLinesPerAction() << "," << m_posMouse.x << "," << m_posMouse.y 
-  //  << std::endl;
-  //event.Skip();
-  //event.ResumePropagation( 1 );
-  if ( event.GetWheelRotation() > 0 ) {
-    m_pWaveFormFrontLeft->ZoomIn( posMouse.x );
-    m_pWaveFormFrontRight->ZoomIn( posMouse.x );
-  }
-  else {
-    m_pWaveFormFrontLeft->ZoomOut( posMouse.x );
-    m_pWaveFormFrontRight->ZoomOut( posMouse.x );
-  }
-  m_pWaveFormFrontLeft->Refresh();
-  m_pWaveFormFrontRight->Refresh();
-
-  event.Skip();
-}
-
-void PanelSurfaceSources::HandleMouseMotionInWaveform( wxMouseEvent& event ) {
-  //std::cout << "0 motion: " << m_posMouse.x << "," << m_posMouse.y << "," << event.Dragging() << std::endl;
-  wxPoint point = event.GetPosition();
-  int x = point.x;
-  if ( event.Dragging() && ( x != m_posMouseOnLeftDown.x ) ) {
-    int diff = x - m_posMouseOnLeftDown.x;
-    //std::cout << "shift " << diff << std::endl;
-    m_pWaveFormFrontLeft->Shift( diff );
-    m_pWaveFormFrontRight->Shift( diff );
-    m_pWaveFormFrontLeft->Refresh();
-    m_pWaveFormFrontRight->Refresh();
-    m_posMouseOnLeftDown = point;
-  }
-  event.Skip();
-}
-
-void PanelSurfaceSources::HandleMouseLeftDownInWaveform( wxMouseEvent& event ) {
-  m_posMouseOnLeftDown = event.GetPosition();
-  event.Skip();
-}
-
-void PanelSurfaceSources::HandleMouseLeftUpInWaveform( wxMouseEvent& event ) {
   event.Skip();
 }
 

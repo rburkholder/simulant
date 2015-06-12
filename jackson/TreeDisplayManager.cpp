@@ -19,6 +19,8 @@
 #include <boost/signals2.hpp>
 #include <boost/chrono/chrono_io.hpp>
 
+#include <boost/atomic/atomic.hpp>
+
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/split_member.hpp>
 
@@ -97,6 +99,7 @@ protected:
     pTreeItemBase_t m_pTreeItemBase;
     member_t( unsigned int type, void* void_, pTreeItemBase_t p ): m_type( type ), m_void( void_ ), m_pTreeItemBase( p ) {};
   };
+
   typedef std::vector<member_t> vMembers_t; // tracks ordered list for serialization
   vMembers_t m_vMembers;
 
@@ -198,6 +201,8 @@ public:
   typedef boost::signals2::signal<void (CommonGuiElements&)> signalSelectionEvent_t;
   typedef signalSelectionEvent_t::slot_type slotSelectionEvent_t;
 
+  //typedef boost::signals2::signal<void (wxPoint&)> signal
+
   TreeItemSceneElementBase( wxTreeItemId id_, TreeDisplayManager::TreeItemResources& resources );
   virtual ~TreeItemSceneElementBase( void );
 
@@ -211,6 +216,21 @@ public:
 
   signalSelectionEvent_t m_signalSelectionEventSetSelected;
   signalSelectionEvent_t m_signalSelectionEventRemoveSelected;
+
+  // for callers to register
+  KeyFrameView::signalMouseMotion_t m_signalMouseMotion;
+  KeyFrameView::signalMouseShift_t m_signalMouseShift;
+  KeyFrameView::signalMouseWheel_t m_signalZoomIn;
+  KeyFrameView::signalMouseWheel_t m_signalZoomOut;
+
+  // for handling inheritor arrivals
+  void HandleMouseMotion( int x, int diff ) { m_signalMouseMotion( x, diff ); }
+  void HandleMouseShift( int diff ) { m_signalMouseShift( diff ); }
+  void HandleZoomIn( wxCoord x ) { m_signalZoomIn( x );  }
+  void HandleZoomOut( wxCoord x ) { m_signalZoomOut( x ); }
+
+  virtual void UpdateInteractiveCursor( int x ) {};
+  virtual void UpdatePlayCursor( int x ) {};
 
 protected:
   
@@ -277,6 +297,13 @@ public:
 
   void Clear( void );
 
+  KeyFrameView::signalMouseMotion_t m_signalMouseMotion;
+  KeyFrameView::signalMouseShift_t m_signalMouseShift;
+  KeyFrameView::signalMouseWheel_t m_signalZoomIn;
+  KeyFrameView::signalMouseWheel_t m_signalZoomOut;
+
+  void UpdateInteractiveCursor( int x );
+
 protected:
 private:
 
@@ -284,13 +311,6 @@ private:
     unsigned int nChannel;
     ChannelId( unsigned int nChannel_ ): nChannel( nChannel_ ) {};
   };
-
-  //boost::signals2::connection m_connectionAudioReady;
-  //boost::signals2::connection m_connectionDecodeComplete;
-
-  boost::signals2::connection m_connectAudio;
-
-  //MediaStreamDecode m_player;
 
   TreeDisplayManager::TreeItemResources& m_resources;
 
@@ -307,7 +327,10 @@ private:
 
   void HandleScrollChangedVolume( wxScrollEvent& event );
 
-  //void HandlePlayBuffer( TreeDisplayManager::BtnEvent event );
+  void HandleMouseMotion( int x, int diff ) { m_signalMouseMotion( x, diff ); }
+  void HandleMouseShift( int diff ) { m_signalMouseShift( diff ); }
+  void HandleZoomIn( wxCoord x ) { m_signalZoomIn( x );  }
+  void HandleZoomOut( wxCoord x ) { m_signalZoomOut( x ); }
 
   template<typename Archive>
   void save( Archive& ar, const unsigned int version ) const {
@@ -348,6 +371,11 @@ MonoAudioChannel::~MonoAudioChannel( void ) {
 
 }
 
+void MonoAudioChannel::UpdateInteractiveCursor( int x ) {
+  if ( 0 != m_pwfv ) m_pwfv->UpdateInteractiveCursor( x );
+  if ( 0 != m_pkfv ) m_pkfv->UpdateInteractiveCursor( x );
+}
+
 void MonoAudioChannel::Clear( void ) {
   // may need to check that play is not in progress by caller
   m_vSamples.clear();
@@ -371,6 +399,17 @@ void MonoAudioChannel::AppendToScenePanel( void ) {
   m_pkfv = *m_resources.tree.m_signalAppendKeyframeView();
   assert( 0 != m_pkfv );
 
+  namespace args = boost::phoenix::arg_names;
+
+  m_pwfv->m_signalMouseMotion.connect( boost::phoenix::bind( &MonoAudioChannel::HandleMouseMotion, this, args::arg1, args::arg2 ) );
+  m_pwfv->m_signalMouseShift.connect( boost::phoenix::bind( &MonoAudioChannel::HandleMouseShift, this, args::arg1 ) );
+  m_pwfv->m_signalZoomIn.connect( boost::phoenix::bind( &MonoAudioChannel::HandleZoomIn, this, args::arg1 ) );
+  m_pwfv->m_signalZoomOut.connect( boost::phoenix::bind( &MonoAudioChannel::HandleZoomOut, this, args::arg1 ) );
+
+  m_pkfv->m_signalMouseMotion.connect( boost::phoenix::bind( &MonoAudioChannel::HandleMouseMotion, this, args::arg1, args::arg2 ) );
+  m_pkfv->m_signalMouseShift.connect( boost::phoenix::bind( &MonoAudioChannel::HandleMouseShift, this, args::arg1 ) );
+  m_pkfv->m_signalZoomIn.connect( boost::phoenix::bind( &MonoAudioChannel::HandleZoomIn, this, args::arg1 ) );
+  m_pkfv->m_signalZoomOut.connect( boost::phoenix::bind( &MonoAudioChannel::HandleZoomOut, this, args::arg1 ) );
 }
 
 void MonoAudioChannel::DetachFromScenePanel( void ) {
@@ -381,7 +420,8 @@ void MonoAudioChannel::DetachFromScenePanel( void ) {
 void MonoAudioChannel::SetSelected( CommonGuiElements& elements ) {
 
   namespace args = boost::phoenix::arg_names;
-  m_connectAudio = m_resources.pAudio->m_signalFramesProcessed.connect( boost::phoenix::bind( &WaveformView::UpdatePlayCursor, m_pwfv, args::arg1 ) );
+  //m_connectAudio = m_resources.pAudio->m_signalFramesProcessed.connect( boost::phoenix::bind( &WaveformView::UpdatePlayCursor, m_pwfv, args::arg1 ) );
+  //m_connectAudio.disconnect();
 
   elements.pSliderVolume->Bind( wxEVT_SCROLL_CHANGED, &MonoAudioChannel::HandleScrollChangedVolume, this );
   elements.pSliderVolume->Bind( wxEVT_SCROLL_THUMBTRACK, &MonoAudioChannel::HandleScrollChangedVolume, this );
@@ -394,7 +434,7 @@ void MonoAudioChannel::RemoveSelected( CommonGuiElements& elements ) {
   elements.pSliderVolume->Unbind( wxEVT_SCROLL_CHANGED, &MonoAudioChannel::HandleScrollChangedVolume, this );
   elements.pSliderVolume->Unbind( wxEVT_SCROLL_THUMBTRACK, &MonoAudioChannel::HandleScrollChangedVolume, this );
 
-  m_connectAudio.disconnect();
+  //m_connectAudio.disconnect();
 }
 
 void MonoAudioChannel::HandleScrollChangedVolume( wxScrollEvent& event ) {
@@ -658,6 +698,11 @@ TreeItemAudioMono::TreeItemAudioMono( wxTreeItemId id, TreeDisplayManager::TreeI
   m_connectionAudioReady = m_player.ConnectAudioReady( boost::phoenix::bind( &TreeItemAudioMono::HandleAudioForBuffer, this, args::arg1, args::arg2, args::arg3, args::arg4 ) );
   m_connectionDecodeComplete = m_player.ConnectDecodeDone( boost::phoenix::bind( &TreeItemAudioMono::HandleDecodeComplete, this ) );
 
+  m_audioChannel.m_signalMouseMotion.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleMouseMotion, this, args::arg1, args::arg2 ) );
+  m_audioChannel.m_signalMouseShift.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleMouseShift, this, args::arg1 ) );
+  m_audioChannel.m_signalZoomIn.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleZoomIn, this, args::arg1 ) );
+  m_audioChannel.m_signalZoomOut.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleZoomOut, this, args::arg1 ) );
+
 }
 
 TreeItemAudioMono::~TreeItemAudioMono( void ) {
@@ -814,6 +859,8 @@ public:
 
   virtual void DecodeAudio( void );
 
+  virtual void UpdateInteractiveCursor( int x );
+
 protected:
 
 private:
@@ -875,6 +922,15 @@ TreeItemAudioStereo::TreeItemAudioStereo( wxTreeItemId id, TreeDisplayManager::T
   m_connectionAudioReady = m_player.ConnectAudioReady( boost::phoenix::bind( &TreeItemAudioStereo::HandleAudioForBuffer, this, args::arg1, args::arg2, args::arg3, args::arg4 ) );
   m_connectionDecodeComplete = m_player.ConnectDecodeDone( boost::phoenix::bind( &TreeItemAudioStereo::HandleDecodeComplete, this ) );
   
+  m_channelLeft.m_signalMouseMotion.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleMouseMotion, this, args::arg1, args::arg2 ) );
+  m_channelLeft.m_signalMouseShift.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleMouseShift, this, args::arg1 ) );
+  m_channelLeft.m_signalZoomIn.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleZoomIn, this, args::arg1 ) );
+  m_channelLeft.m_signalZoomOut.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleZoomOut, this, args::arg1 ) );
+
+  m_channelRight.m_signalMouseMotion.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleMouseMotion, this, args::arg1, args::arg2 ) );
+  m_channelRight.m_signalMouseShift.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleMouseShift, this, args::arg1 ) );
+  m_channelRight.m_signalZoomIn.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleZoomIn, this, args::arg1 ) );
+  m_channelRight.m_signalZoomOut.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleZoomOut, this, args::arg1 ) );
 }
 
 TreeItemAudioStereo::~TreeItemAudioStereo( void ) {
@@ -882,6 +938,11 @@ TreeItemAudioStereo::~TreeItemAudioStereo( void ) {
   m_connectionDecodeComplete.disconnect();
   m_connectionAudioReady.disconnect();
   
+}
+
+void TreeItemAudioStereo::UpdateInteractiveCursor( int x ) {
+  m_channelLeft.UpdateInteractiveCursor( x );
+  m_channelRight.UpdateInteractiveCursor( x );
 }
 
 void TreeItemAudioStereo::AppendToScenePanel( void ) {
@@ -2264,17 +2325,22 @@ private:
   enum {
     ID_Null = wxID_HIGHEST,
     MIAddSubGroup, MIAddMusic, MIAddColour, MIAddImage, MIAddVideo, MIAddMidi, MIAddDMX, MIAddProjectorAreas, MIAddMonoAudio,
-    MIRename, MIDelete
+    MIRename, MIDelete, 
+    ID_EVENT_PLAYCURSOR
   };
 
   enum IdTreeItemType {
-    IdMusic = 201, IdColour, IdImage, IdVideo, IdMidi, IdDMX, IdProjectorArea, IdMonoAudio,
+    IdMusic = 201, IdColour, IdImage, IdVideo, IdMidi, IdDMX, IdProjectorArea, IdMonoAudio
   };
 
   bool m_bAddedProjectorAreas;
 
+  boost::signals2::connection m_connectAudio;
+  boost::atomic<size_t> m_nFramesPlayed;
+  boost::atomic<size_t> m_nEventsQueued;
+
   void HandleAddAudioStereo( wxCommandEvent& event );
-  TreeItemAudioStereo* AddAudioStereo( void );
+  //TreeItemAudioStereo* AddAudioStereo( void );  // necessary?
 
   void HandleAddAudioMono( wxCommandEvent& event );
 
@@ -2287,7 +2353,16 @@ private:
   void HandleSetSelected( CommonGuiElements& elements );
   void HandleRemoveSelected( CommonGuiElements& elements );
 
-  void ConnectToSelectionEvent( TreeItemSceneElementBase* p );
+  void ConnectToEvents( TreeItemSceneElementBase* p );
+
+  void HandleMouseMotion( int x, int diff );
+  void HandleMouseShift( int diff );
+  void HandleZoomIn( wxCoord x );
+  void HandleZoomOut( wxCoord x );
+
+  void HandleFrameCounterBkgnd( size_t nFrames );
+  void HandleFrameCounterFgnd( wxCommandEvent& );
+  void ResetFramesPlayed( void );
 
   template<typename Archive>
   void save( Archive& ar, const unsigned int version ) const {
@@ -2343,7 +2418,7 @@ private:
         case IdMusic:
         {
           TreeItemAudioStereo* p = AddTreeItem<TreeItemAudioStereo,IdTreeItemType>( "Stereo Audio", IdMusic );
-          ConnectToSelectionEvent( p );
+          ConnectToEvents( p );
           ar & *p;
           p->DecodeAudio();
         }
@@ -2351,7 +2426,7 @@ private:
         case IdMonoAudio:
         {
           TreeItemAudioMono* p = AddTreeItem<TreeItemAudioMono,IdTreeItemType>( "Mono Audio", IdMonoAudio );
-          ConnectToSelectionEvent( p );
+          ConnectToEvents( p );
           ar & *p;
           p->DecodeAudio();
         }
@@ -2359,14 +2434,14 @@ private:
         case IdMidi:
         {
           TreeItemMidi* p = AddTreeItem<TreeItemMidi,IdTreeItemType>( "Midi", IdMidi );
-          ConnectToSelectionEvent( p );
+          ConnectToEvents( p );
           ar & *p;
         }
         break;
         case IdDMX:
         {
           TreeItemDMX* p = AddTreeItem<TreeItemDMX,IdTreeItemType>( "DMX", IdDMX );
-          ConnectToSelectionEvent( p );
+          ConnectToEvents( p );
           ar & *p;
         }
         break;
@@ -2375,7 +2450,7 @@ private:
           // will need to abort if the stored count doesn't match the active count?
           // future todo:  a dynamic creation of displays, so not all are used for projection
           TreeItemProjectorArea* p = AddTreeItem<TreeItemProjectorArea,IdTreeItemType>( "Display", IdProjectorArea );
-          ConnectToSelectionEvent( p );
+          ConnectToEvents( p );
           ar & *p;  // needs to load appropriate SceneManager itself
         }
         break;
@@ -2389,13 +2464,42 @@ private:
 
 TreeItemScene::TreeItemScene( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources ) 
   : TreeItemBase(id, resources), m_bAddedProjectorAreas( false ) {
+  m_nFramesPlayed.store( 0 );
+  m_nEventsQueued.store( 0 );
+  // used upon scene play and stop
+  //m_connectAudio = m_resources.pAudio->m_signalFramesProcessed.connect( boost::phoenix::bind( &WaveformView::UpdatePlayCursor, m_pwfv, args::arg1 ) );
+  // also need bind/unbind on ID_EVENT_PLAYCURSOR / HandleFrameCounterxxxx
 }
 
 TreeItemScene::~TreeItemScene(void) {
+  // used upon scene play and stop
+  //m_connectAudio.disconnect();
+}
+
+// background thread
+void TreeItemScene::HandleFrameCounterBkgnd( size_t nFrames ) {
+  m_nFramesPlayed.fetch_add( nFrames );
+  size_t nEventsQueued = m_nEventsQueued.load();
+  // rate limit number of requests for cursor update
+  if ( 3 > nEventsQueued ) {
+    wxCommandEvent* event = new wxCommandEvent( wxEVT_COMMAND_ENTER, ID_EVENT_PLAYCURSOR );
+    m_resources.tree.GetEventHandler()->QueueEvent( event );
+    //dynamic_cast<wxPanel*>( m_resources.tree.GetParent() )->QueueEvent( event );
+    //this->QueueEvent( event );
+    m_nEventsQueued.fetch_add( 1 );
+  }
+}
+
+void TreeItemScene::HandleFrameCounterFgnd( wxCommandEvent& event ) {
+  m_nEventsQueued.fetch_sub( 1 );
+  const size_t nFramesPlayed( m_nFramesPlayed.load() );
+}
+
+void TreeItemScene::ResetFramesPlayed( void ) {
+  m_nFramesPlayed.store( 0 );  // set to 0, maybe need a seek at some point
 }
 
 // children need to notify scene when clicked on, scene changes if child is new for scene
-
 void TreeItemScene::SetSelected( CommonGuiElements& elements ) { // needs some tweaking
   if ( this->m_id != m_resources.currentScene ) {
     m_resources.tree.m_signalClearScenePanel();
@@ -2445,10 +2549,34 @@ void TreeItemScene::ShowContextMenu( void ) {  // need scene elements instead on
   m_resources.tree.PopupMenu( pMenu );
 }
 
-void TreeItemScene::ConnectToSelectionEvent( TreeItemSceneElementBase* p ) {
+void TreeItemScene::ConnectToEvents( TreeItemSceneElementBase* p ) {
   namespace args = boost::phoenix::arg_names;
   p->m_signalSelectionEventSetSelected.connect( boost::phoenix::bind( &TreeItemScene::HandleSetSelected, this, args::arg1 ) );
   p->m_signalSelectionEventRemoveSelected.connect( boost::phoenix::bind( &TreeItemScene::HandleRemoveSelected, this, args::arg1 ) );
+
+  p->m_signalMouseMotion.connect( boost::phoenix::bind( &TreeItemScene::HandleMouseMotion, this, args::arg1, args::arg2 ) );
+  p->m_signalMouseShift.connect( boost::phoenix::bind( &TreeItemScene::HandleMouseShift, this, args::arg1 ) );
+  p->m_signalZoomIn.connect( boost::phoenix::bind( &TreeItemScene::HandleZoomIn, this, args::arg1 ) );
+  p->m_signalZoomOut.connect( boost::phoenix::bind( &TreeItemScene::HandleZoomOut, this, args::arg1 ) );
+}
+
+void TreeItemScene::HandleMouseMotion( int x, int diff ) {
+  //std::cout << "mouse motion" << std::endl;
+  for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
+    dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateInteractiveCursor( x );
+  }
+}
+
+void TreeItemScene::HandleMouseShift( int diff ) {
+  std::cout << "mouse shift" << std::endl;
+}
+
+void TreeItemScene::HandleZoomIn( wxCoord x ) { 
+  std::cout << "mouse zoom in" << std::endl;
+}
+
+void TreeItemScene::HandleZoomOut( wxCoord x ) {
+  std::cout << "mouse zoom out" << std::endl;
 }
 
 void TreeItemScene::HandleAddProjectorAreas( wxCommandEvent& event ) {
@@ -2458,7 +2586,7 @@ void TreeItemScene::HandleAddProjectorAreas( wxCommandEvent& event ) {
       sDesc += boost::lexical_cast<std::string>( ix );
       TreeItemProjectorArea* p = AddTreeItem<TreeItemProjectorArea,IdTreeItemType>( sDesc, IdProjectorArea );
       p->SetSceneManager( ix );
-      ConnectToSelectionEvent( p );
+      ConnectToEvents( p );
     }
     m_bAddedProjectorAreas = true;
   }
@@ -2466,25 +2594,25 @@ void TreeItemScene::HandleAddProjectorAreas( wxCommandEvent& event ) {
 
 void TreeItemScene::HandleAddAudioStereo( wxCommandEvent& event ) {
   TreeItemAudioStereo* p = AddTreeItem<TreeItemAudioStereo,IdTreeItemType>( "Stereo", IdMusic );
-  ConnectToSelectionEvent( p );
+  ConnectToEvents( p );
   p->Rename();
 }
 
 void TreeItemScene::HandleAddAudioMono( wxCommandEvent& event ) {
   TreeItemAudioMono* p = AddTreeItem<TreeItemAudioMono,IdTreeItemType>( "Mono Audio", IdMonoAudio );
-  ConnectToSelectionEvent( p );
+  ConnectToEvents( p );
   p->Rename();
 }
 
 void TreeItemScene::HandleAddMidi( wxCommandEvent& event ) {
   TreeItemMidi* p = AddTreeItem<TreeItemMidi,IdTreeItemType>( "Midi", IdMidi );
-  ConnectToSelectionEvent( p );
+  ConnectToEvents( p );
   p->Rename();
 }
 
 void TreeItemScene::HandleAddDMX( wxCommandEvent& event ) {
   TreeItemDMX* p = AddTreeItem<TreeItemDMX,IdTreeItemType>( "DMX", IdDMX );
-  ConnectToSelectionEvent( p );
+  ConnectToEvents( p );
   p->Rename();
 }
 
