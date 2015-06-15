@@ -196,6 +196,7 @@
     <ClInclude Include="SceneElement.h" />
     <ClInclude Include="SceneElementOpenGL.h" />
     <ClInclude Include="SceneManager.h" />
+    <ClInclude Include="SceneView.h" />
     <ClInclude Include="SceneViewCommon.h" />
     <ClInclude Include="SEGrid.h" />
     <ClInclude Include="SETexture.h" />
@@ -240,6 +241,7 @@
     <ClCompile Include="SceneElement.cpp" />
     <ClCompile Include="SceneElementOpenGL.cpp" />
     <ClCompile Include="SceneManager.cpp" />
+    <ClCompile Include="SceneView.cpp" />
     <ClCompile Include="SceneViewCommon.cpp" />
     <ClCompile Include="SEGrid.cpp" />
     <ClCompile Include="SETexture.cpp" />

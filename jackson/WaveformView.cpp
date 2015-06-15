@@ -31,14 +31,14 @@ void WaveformView::Init() {
   m_ixFirstSampleInWindow = 0;
   m_nSamplesInWindow = 0;
   
-  m_colourWaveform = wxColour( 255, 102, 0 );
-  
 }
 
 bool WaveformView::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) {
     
   SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
   SceneViewCommon::Create( parent, id, pos, size, style );
+
+  m_colourWaveform = wxColour( 255, 102, 0 );
 
   CreateControls();
   if (GetSizer()) {

@@ -22,15 +22,15 @@ KeyFrameView::KeyFrameView( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 
 void KeyFrameView::Init() {
 
-  std::cout << "KeyFrameView colour" << std::endl;
-  m_colourBackground = wxColour( 100, 100, 100 );
-
 }
 
 bool KeyFrameView::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) {
     
   SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
   SceneViewCommon::Create( parent, id, pos, size, style );
+
+  std::cout << "KeyFrameView colour" << std::endl;
+  m_colourBackground = wxColour( 100, 100, 100 );
 
   CreateControls();
   if (GetSizer()) {

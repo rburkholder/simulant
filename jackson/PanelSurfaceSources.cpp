@@ -16,6 +16,9 @@
 
 #include "DndSourceButton.h"
 #include "DndTargetButton.h"
+
+#include "SceneViewCommon.h"
+
 #include "PanelSurfaceSources.h"
 
 IMPLEMENT_DYNAMIC_CLASS( PanelSurfaceSources, wxPanel )
@@ -256,12 +259,14 @@ void PanelSurfaceSources::CreateControls() {
   m_treeDisplays->SetStaticTextInfo( m_stInfo );
   m_treeDisplays->SetSliders( m_sliderSeek, m_sliderZ, m_sliderVolume, m_sliderFader, m_sliderMaster );
   
-  m_connectionClearScenePanel
-    = m_treeDisplays->m_signalClearScenePanel.connect( boost::phoenix::bind( &PanelSurfaceSources::ClearScenePanel, this ) );
-  m_connectionAppendKeyFrameView 
-    = m_treeDisplays->m_signalAppendKeyframeView.connect( boost::phoenix::bind( &PanelSurfaceSources::AppendKeyFrameView, this ) );
-  m_connectionAppendWaveformView
-    = m_treeDisplays->m_signalAppendWaveformView.connect( boost::phoenix::bind( &PanelSurfaceSources::AppendWaveformView, this ) );
+  //m_connectionClearScenePanel
+  //  = m_treeDisplays->m_signalClearScenePanel.connect( boost::phoenix::bind( &PanelSurfaceSources::ClearScenePanel, this ) );
+  //m_connectionAppendKeyFrameView 
+  //  = m_treeDisplays->m_signalAppendKeyframeView.connect( boost::phoenix::bind( &PanelSurfaceSources::AppendKeyFrameView, this ) );
+  namespace args = boost::phoenix::arg_names;
+  m_connectionAppendView
+    = m_treeDisplays->m_signalAppendView.connect( boost::phoenix::bind( &PanelSurfaceSources::AppendView, this, args::arg1, args::arg2 ) );
+  m_treeDisplays->SetScenePanel( m_panelScene );
   
   m_treeDisplays->SetButtonEvent( &m_signalBtnEvent );
   
@@ -288,15 +293,27 @@ void PanelSurfaceSources::CreateControls() {
 }
 
 void PanelSurfaceSources::HandleClose( wxCloseEvent& event ) {
-  m_connectionAppendKeyFrameView.disconnect();
-  m_connectionAppendWaveformView.disconnect();
-  m_connectionClearScenePanel.disconnect();
+  m_connectionAppendView.disconnect();
+  //m_connectionAppendWaveformView.disconnect();
+  //m_connectionClearScenePanel.disconnect();
   //Unbind( wxEVT_CHAR, &PanelSurfaceSources::HandleKey, this );
 }
 
-void PanelSurfaceSources::ClearScenePanel( void ) {
-  m_panelScene->DestroyChildren();
+void PanelSurfaceSources::AppendView( SceneViewCommon* p, int xRelativeSize ) {
+  //View* p = new View( m_panelScene, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+  //p->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
+  //p->SetSize( wxDefaultCoord, wxDefaultCoord, wxDefaultCoord, 20, wxSIZE_AUTO_WIDTH );
+  m_itemBoxSizerSceneElements->Add( p, xRelativeSize, wxEXPAND|wxALL, 1 );
+  //m_itemBoxSizerSceneElements->Fit(p);
+  //p->Refresh();
+  m_panelScene->Layout();
+  //return p;
 }
+
+
+//void PanelSurfaceSources::ClearScenePanel( void ) {
+//  m_panelScene->DestroyChildren();
+//}
 
 void PanelSurfaceSources::HandleKey( wxKeyEvent& event ) {
   //std::cout << "key='" << event.GetKeyCode() << "'" << std::endl;

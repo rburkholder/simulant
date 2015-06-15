@@ -22,15 +22,15 @@ SceneView::SceneView( wxWindow* parent, wxWindowID id, const wxPoint& pos, const
 
 void SceneView::Init() {
 
-  std::cout << "SceneView colour" << std::endl;
-  m_colourBackground = wxColour( 100, 100, 100 );
-
 }
 
 bool SceneView::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) {
     
   SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
   SceneViewCommon::Create( parent, id, pos, size, style );
+
+  std::cout << "SceneView colour" << std::endl;
+  m_colourBackground = wxColour( 200, 200, 200 );
 
   CreateControls();
   if (GetSizer()) {
@@ -45,11 +45,11 @@ SceneView::~SceneView( ) {
 
 
 void SceneView::CreateControls() {
-  Bind( wxEVT_PAINT, &SceneView::HandlePaint, this );
-  Bind( wxEVT_ERASE_BACKGROUND, &SceneView::HandleEraseBackground, this );
-  Bind( wxEVT_SIZE, &SceneView::HandleSize, this );
-  Bind( wxEVT_RIGHT_UP, &SceneView::HandleMouseRightUp, this );
-  Bind( wxEVT_LEFT_UP, &SceneView::HandleMouseLeftUp, this );
+  Bind( wxEVT_PAINT, &SceneView::HandlePaint, this );   // from SceneViewCommon
+  Bind( wxEVT_ERASE_BACKGROUND, &SceneView::HandleEraseBackground, this );   // from SceneViewCommon
+  Bind( wxEVT_SIZE, &SceneView::HandleSize, this );   // from SceneViewCommon
+  Bind( wxEVT_RIGHT_UP, &SceneView::HandleMouseRightUp, this );   // from SceneViewCommon
+  Bind( wxEVT_LEFT_UP, &SceneView::HandleMouseLeftUp, this );   // from SceneViewCommon
   //Bind( wxEVT_SIZING, &WaveformView::HandleSizing, this );
   //Bind( wxEVT_LEFT_DOWN, &WaveformView::HandleMouseLeftDown, this );
   //Bind( wxEVT_MOUSEWHEEL, &WaveformView::HandleMouseWheel, this );
@@ -71,29 +71,6 @@ void SceneView::CreateControls() {
   //m_pContextMenu->Append( MIPaste, "Paste Settings" );
   //m_pContextMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &KeyFrameView::HandlePaste, this, MIPaste );
   
-}
-
-void SceneView::HandleEraseBackground( wxEraseEvent& event ) {
-  event.Skip();
-}
-
-void SceneView::HandlePaint( wxPaintEvent& event ) {
-
-  wxPaintDC dc(this);
-  wxRect rectClientArea( this->GetClientRect() );
-  int width( rectClientArea.GetWidth() );
-  int height( rectClientArea.GetHeight() );
-  wxBrush brush( dc.GetBrush() );
-  brush.SetColour( m_colourBackground );
-  dc.SetBrush( brush );
-  dc.DrawRectangle( rectClientArea );  // blank out background
-
-}
-
-void SceneView::HandleSize( wxSizeEvent& event ) {
-  //std::cout << "sized" << std::endl;
-  Refresh();
-  event.Skip();
 }
 
 wxBitmap SceneView::GetBitmapResource( const wxString& name ) {

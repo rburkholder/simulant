@@ -68,22 +68,8 @@ public:
   
   void ResetButtons( void );
   
-  void ClearScenePanel( void );
-  
-  template<typename View>
-  View* AppendView( void ) {
-    View* p = new View( m_panelScene, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-    p->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
-    //p->SetSize( wxDefaultCoord, wxDefaultCoord, wxDefaultCoord, 20, wxSIZE_AUTO_WIDTH );
-    m_itemBoxSizerSceneElements->Add( p, 1, wxEXPAND|wxALL, 1 );
-    //m_itemBoxSizerSceneElements->Fit(p);
-    //p->Refresh();
-    m_panelScene->Layout();
-    return p;
-  }
-  //SceneView* AppendSceneView( void );
-  //WaveformView* AppendWaveformView( void );
-  //KeyFrameView* AppendKeyFrameView( void );
+  //void ClearScenePanel( void );
+  //void AppendView( wxWindow* p );
   
   // when range is 0, should disable the control
   //void SetScrollMin( int min ) { assert( 0 != m_sliderHorizontal ); m_sliderHorizontal->SetMin( min ); }  // defaults to 0..100
@@ -122,9 +108,9 @@ private:
   BtnEvent m_BtnEvent;
   signalBtnEvent_t m_signalBtnEvent;
   
-  boost::signals2::connection m_connectionClearScenePanel;
-  boost::signals2::connection m_connectionAppendKeyFrameView;
-  boost::signals2::connection m_connectionAppendWaveformView;
+  //boost::signals2::connection m_connectionClearScenePanel;
+  //boost::signals2::connection m_connectionAppendKeyFrameView;
+  boost::signals2::connection m_connectionAppendView;
   
   bool m_bInEditMode;
   
@@ -150,6 +136,8 @@ private:
   
   TreeDisplayManager* m_treeDisplays;
   
+  void AppendView( SceneViewCommon* p, int xRelativeSize );
+
   void HandleToggleEditMode( wxCommandEvent& event );
   void HandleUndo( wxCommandEvent& event );
   void HandleScrollThumbTrack( wxScrollEvent& event );

@@ -442,11 +442,16 @@ void MonoAudioChannel::SetChannel( unsigned int ix) {
 
 void MonoAudioChannel::AppendToScenePanel( void ) {
 
-  m_pwfv = *m_resources.tree.m_signalAppendWaveformView();
+  m_pwfv = new WaveformView( m_resources.pScenePanel );
+  //m_pwfv = *m_resources.tree.m_signalAppendWaveformView();
   assert( 0 != m_pwfv );
+  m_resources.tree.m_signalAppendView( m_pwfv, 3 );
   m_pwfv->SetSamples( &m_vSamples );
-  m_pkfv = *m_resources.tree.m_signalAppendKeyframeView();
+
+  m_pkfv = new KeyFrameView( m_resources.pScenePanel );
+  //m_pkfv = *m_resources.tree.m_signalAppendKeyframeView();
   assert( 0 != m_pkfv );
+  m_resources.tree.m_signalAppendView( m_pkfv, 1 );
 
   namespace args = boost::phoenix::arg_names;
 
@@ -463,7 +468,7 @@ void MonoAudioChannel::AppendToScenePanel( void ) {
 
 void MonoAudioChannel::DetachFromScenePanel( void ) {
   m_pwfv = 0;
-  m_pwfv = 0;
+  m_pkfv = 0;
 }
 
 void MonoAudioChannel::SetSelected( CommonGuiElements& elements ) {
@@ -2575,7 +2580,9 @@ void TreeItemScene::ResetFramesPlayed( void ) {
 // children need to notify scene when clicked on, scene changes if child is new for scene
 void TreeItemScene::SetSelected( CommonGuiElements& elements ) { // needs some tweaking
   if ( this->m_id != m_resources.currentScene ) {
-    m_resources.tree.m_signalClearScenePanel();
+    m_resources.pScenePanel->DestroyChildren();
+    //m_resources.tree.m_signalClearScenePanel();
+    AppendToScenePanel();
     for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
       dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->AppendToScenePanel();
     }
@@ -2589,10 +2596,12 @@ void TreeItemScene::HandleSetSelected( CommonGuiElements& elements ) {
 
 void TreeItemScene::RemoveSelected( CommonGuiElements& elements ) {  // needs some tweaking
   if ( this->m_id != m_resources.currentScene ) {
+    DetachFromScenePanel();
     for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
       dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->DetachFromScenePanel();
     }
-    m_resources.tree.m_signalClearScenePanel();
+    //m_resources.tree.m_signalClearScenePanel();
+    m_resources.pScenePanel->DestroyChildren();
   }
 }
 
@@ -2604,24 +2613,22 @@ void TreeItemScene::HandleRemoveSelected( CommonGuiElements& elements ) {
 
 void TreeItemScene::AppendToScenePanel( void ) {
 
-  m_psv = *m_resources.tree.m_signalAppendKeyframeView();
+  m_psv = new SceneView( m_resources.pScenePanel );
   assert( 0 != m_psv );
+  m_resources.tree.m_signalAppendView( m_psv, 1 );
+  std::string sName( m_resources.tree.GetItemText( m_id ) );
+  m_psv->SetName( sName );
 
   namespace args = boost::phoenix::arg_names;
 
-  m_pwfv->m_signalMouseMotion.connect( boost::phoenix::bind( &MonoAudioChannel::HandleMouseMotion, this, args::arg1, args::arg2 ) );
-  m_pwfv->m_signalMouseShift.connect( boost::phoenix::bind( &MonoAudioChannel::HandleMouseShift, this, args::arg1 ) );
-  m_pwfv->m_signalZoomIn.connect( boost::phoenix::bind( &MonoAudioChannel::HandleZoomIn, this, args::arg1 ) );
-  m_pwfv->m_signalZoomOut.connect( boost::phoenix::bind( &MonoAudioChannel::HandleZoomOut, this, args::arg1 ) );
+  m_psv->m_signalMouseMotion.connect( boost::phoenix::bind( &TreeItemScene::HandleMouseMotion, this, args::arg1, args::arg2 ) );
+  m_psv->m_signalMouseShift.connect( boost::phoenix::bind( &TreeItemScene::HandleMouseShift, this, args::arg1 ) );
+  m_psv->m_signalZoomIn.connect( boost::phoenix::bind( &TreeItemScene::HandleZoomIn, this, args::arg1 ) );
+  m_psv->m_signalZoomOut.connect( boost::phoenix::bind( &TreeItemScene::HandleZoomOut, this, args::arg1 ) );
 
-  m_pkfv->m_signalMouseMotion.connect( boost::phoenix::bind( &MonoAudioChannel::HandleMouseMotion, this, args::arg1, args::arg2 ) );
-  m_pkfv->m_signalMouseShift.connect( boost::phoenix::bind( &MonoAudioChannel::HandleMouseShift, this, args::arg1 ) );
-  m_pkfv->m_signalZoomIn.connect( boost::phoenix::bind( &MonoAudioChannel::HandleZoomIn, this, args::arg1 ) );
-  m_pkfv->m_signalZoomOut.connect( boost::phoenix::bind( &MonoAudioChannel::HandleZoomOut, this, args::arg1 ) );
 }
 
 void TreeItemScene::DetachFromScenePanel( void ) {
-  m_psv = 0;
   m_psv = 0;
 }
 

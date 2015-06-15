@@ -32,11 +32,14 @@ void SceneViewCommon::Init() {
   std::cout << "SceneViewCommon colour" << std::endl;
   m_colourBackground = wxColour( 0, 0, 0 );
 
+  m_colourName = wxColour( 255, 255, 255 );
+  m_pointName = wxPoint( 2, 2 );
+
   m_cursorInteractive.m_colourCursor = wxColour( 218,112,214 );
   m_cursorInteractive.m_pointStatusText = wxPoint( 120, 2 );
 
   m_cursorPlay.m_colourCursor = wxColour( 0, 255, 0 );
-  m_cursorPlay.m_pointStatusText = wxPoint( 2, 2 );
+  m_cursorPlay.m_pointStatusText = wxPoint( 22, 2 );
 
 }
 
@@ -59,8 +62,8 @@ bool SceneViewCommon::Create( wxWindow* parent, wxWindowID id, const wxPoint& po
 }
 
 void SceneViewCommon::CreateControls() {
-  //Bind( wxEVT_PAINT, &SceneViewCommon::HandlePaint, this );
   //Bind( wxEVT_ERASE_BACKGROUND, &SceneViewCommon::HandleEraseBackground, this );
+  //Bind( wxEVT_PAINT, &SceneViewCommon::HandlePaint, this );
   //Bind( wxEVT_SIZE, &SceneViewCommon::HandleSize, this );
   //Bind( wxEVT_SIZING, &SceneViewCommon::HandleSizing, this );
   Bind( wxEVT_LEFT_DOWN, &SceneViewCommon::HandleMouseLeftDown, this );
@@ -74,6 +77,53 @@ void SceneViewCommon::CreateControls() {
 }
 
 SceneViewCommon::~SceneViewCommon( ) {
+}
+
+void SceneViewCommon::SetName( const std::string& sName ) { 
+  m_sName = sName; 
+}
+
+void SceneViewCommon::DrawName( wxClientDC& dc ) {
+
+  wxSize sizeText = dc.GetTextExtent( m_sName );
+
+  wxBrush brush( dc.GetBrush() );
+  brush.SetColour( m_colourBackground );
+  dc.SetBrush( brush );
+
+  wxPen pen( dc.GetPen() );
+  pen.SetColour( m_colourBackground );
+  dc.SetPen( pen );
+
+  dc.DrawRectangle( m_pointName, sizeText );
+
+  dc.SetTextBackground( m_colourBackground );
+  dc.SetTextForeground( m_colourName );
+  dc.DrawText( m_sName, m_pointName );
+}
+
+void SceneViewCommon::HandleEraseBackground( wxEraseEvent& event ) {
+  event.Skip();
+}
+
+void SceneViewCommon::HandlePaint( wxPaintEvent& event ) {
+
+  wxPaintDC dc(this);
+  wxRect rectClientArea( this->GetClientRect() );
+  int width( rectClientArea.GetWidth() );
+  int height( rectClientArea.GetHeight() );
+  wxBrush brush( dc.GetBrush() );
+  brush.SetColour( m_colourBackground );
+  dc.SetBrush( brush );
+  dc.DrawRectangle( rectClientArea );  // blank out background
+  DrawName( dc );
+
+}
+
+void SceneViewCommon::HandleSize( wxSizeEvent& event ) {
+  //std::cout << "sized" << std::endl;
+  Refresh();
+  event.Skip();
 }
 
 void SceneViewCommon::HandleMouseWheel( wxMouseEvent& event ) {

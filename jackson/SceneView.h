@@ -37,6 +37,11 @@ public:
   ~SceneView( );
   
 protected:
+
+  virtual void HandlePaint( wxPaintEvent& event ) { SceneViewCommon::HandlePaint( event ); }
+  virtual void HandleEraseBackground( wxEraseEvent& event ) { SceneViewCommon::HandleEraseBackground( event ); }
+  virtual void HandleSize( wxSizeEvent& event ) { SceneViewCommon::HandleSize( event ); }
+
 private:
   
   enum {
@@ -44,13 +49,7 @@ private:
     ID_CONTROLSCENEVIEW
   };
   
-  wxColour m_colourBackground;
-  
   wxMenu* m_pContextMenu;
-  
-  void HandlePaint( wxPaintEvent& );
-  void HandleEraseBackground( wxEraseEvent& );
-  void HandleSize( wxSizeEvent& );
   
   void Init();
   void CreateControls();

@@ -22,6 +22,7 @@
 
 #include <wx/wx.h>
 #include <wx/treectrl.h>
+#include <wx/panel.h>
 
 #include "PhysicalDisplay.h"
 #include "SceneManager.h"
@@ -35,6 +36,7 @@
 #define SYMBOL_TREEDISPLAYMANAGER_POSITION wxDefaultPosition
 
 class TreeItemBase;
+class SceneViewCommon;
 
 struct CommonGuiElements {
 
@@ -61,14 +63,11 @@ public:
   typedef boost::signals2::signal<void (BtnEvent)> signalBtnEvent_t;
   typedef signalBtnEvent_t::slot_type slotBtnEvent_t;
 
-  typedef boost::signals2::signal<void (void)> signalClearScenePanel_t;
-  typedef signalClearScenePanel_t::slot_type slotClearScenePanel_t;
+  //typedef boost::signals2::signal<void (void)> signalClearScenePanel_t;
+  //typedef signalClearScenePanel_t::slot_type slotClearScenePanel_t;
   
-  typedef boost::signals2::signal<WaveformView* (void)> signalAppendWaveformView_t;
-  typedef signalAppendWaveformView_t::slot_type slotAppendWaveformView_t;
-  
-  typedef boost::signals2::signal<KeyFrameView* (void)> signalAppendKeyFrameView_t;
-  typedef signalAppendKeyFrameView_t::slot_type slotAppendKeyFrameView_t;
+  typedef boost::signals2::signal<void (SceneViewCommon*, int)> signalAppendView_t;
+  typedef signalAppendView_t::slot_type slotAppendView_t;
   
   typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
 
@@ -83,6 +82,7 @@ public:
     TreeDisplayManager::pAudio_t pAudio;  // kept in AppProjection
     
     wxTreeItemId currentScene;
+    wxPanel* pScenePanel;
 
     // may deprecate this list in favor of a SceneManager list
     typedef PhysicalDisplay::pPhysicalDisplay_t pPhysicalDisplay_t;
@@ -127,14 +127,13 @@ public:
     namespace args = boost::phoenix::arg_names;
     m_connectionBtnEvent = signal->connect( boost::phoenix::bind( &TreeDisplayManager::HandleBtnEvent, this, args::arg1 ) );  
   }
+  void SetScenePanel( wxPanel* panel ) { m_resources.pScenePanel = panel; }
   
   boost::signals2::connection ConnectSignalBtnEvent( const slotBtnEvent_t& slot ) {
     return m_psignalBtnEvent->connect( slot );
   }
   
-  signalClearScenePanel_t m_signalClearScenePanel; 
-  signalAppendWaveformView_t m_signalAppendWaveformView;
-  signalAppendKeyFrameView_t m_signalAppendKeyframeView;
+  signalAppendView_t m_signalAppendView;
 
   void Save( boost::archive::text_oarchive& oa);
   void Load( boost::archive::text_iarchive& ia);
@@ -163,7 +162,7 @@ private:
   
   void Init();
   void CreateControls();
-  
+
   void HandleContextMenu( wxTreeEvent& event );
   void HandleSelectionChanged( wxTreeEvent& event );
   void HandleSelectionChanging( wxTreeEvent& event );

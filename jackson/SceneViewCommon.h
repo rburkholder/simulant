@@ -10,6 +10,7 @@
 #include <boost/signals2.hpp>
 
 #include <wx/panel.h>
+#include <wx/dcclient.h>
 
 #define SYMBOL_SCENEVIEWCOMMON_STYLE wxTAB_TRAVERSAL
 #define SYMBOL_SCENEVIEWCOMMON_TITLE _("WaveFormView")
@@ -48,6 +49,8 @@ public:
     long style = SYMBOL_SCENEVIEWCOMMON_STYLE );
 
   virtual ~SceneViewCommon( );
+
+  void SetName( const std::string& sName );
 
   signalMouseMotion_t m_signalMouseMotion;  // interactive cursor
   signalMouseShift_t m_signalMouseShift; // shifting content
@@ -106,6 +109,10 @@ protected:
 
   wxMenu* m_pContextMenu;
   
+  virtual void HandlePaint( wxPaintEvent& );
+  virtual void HandleEraseBackground( wxEraseEvent& );
+  virtual void HandleSize( wxSizeEvent& );
+
   void HandleMouseRightUp( wxMouseEvent& );
   void HandleMouseLeftUp( wxMouseEvent& );
   
@@ -133,10 +140,16 @@ private:
     ID_SCENEVIEWCOMMON
   };
 
+  std::string m_sName;
+  wxColour m_colourName;
+  wxPoint m_pointName;
+
   wxPoint m_posMouseOnLeftDown;
 
   //void HandlePaint( wxPaintEvent& );
   //void HandleEraseBackground( wxEraseEvent& );
+
+  void DrawName( wxClientDC& dc );
 
   void HandleMouseWheel( wxMouseEvent& );
   void HandleMouseMotion( wxMouseEvent& );
