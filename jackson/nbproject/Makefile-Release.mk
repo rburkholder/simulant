@@ -69,6 +69,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/SceneElement.o \
 	${OBJECTDIR}/SceneElementOpenGL.o \
 	${OBJECTDIR}/SceneManager.o \
+	${OBJECTDIR}/SceneView.o \
+	${OBJECTDIR}/SceneViewCommon.o \
 	${OBJECTDIR}/ShaderManager.o \
 	${OBJECTDIR}/TimeLine.o \
 	${OBJECTDIR}/TimeLineView.o \
@@ -272,6 +274,16 @@ ${OBJECTDIR}/SceneManager.o: SceneManager.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneManager.o SceneManager.cpp
+
+${OBJECTDIR}/SceneView.o: SceneView.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneView.o SceneView.cpp
+
+${OBJECTDIR}/SceneViewCommon.o: SceneViewCommon.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneViewCommon.o SceneViewCommon.cpp
 
 ${OBJECTDIR}/ShaderManager.o: ShaderManager.cpp 
 	${MKDIR} -p ${OBJECTDIR}

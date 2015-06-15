@@ -27,8 +27,6 @@
 #include "SceneManager.h"
 
 #include "Audio.h"
-#include "WaveformView.h"
-#include "KeyFrameView.h"
 
 #define SYMBOL_TREEDISPLAYMANAGER_STYLE wxTR_HAS_BUTTONS | wxTR_SINGLE
 #define SYMBOL_TREEDISPLAYMANAGER_TITLE _("Displays")

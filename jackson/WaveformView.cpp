@@ -277,7 +277,7 @@ void WaveformView::SummarizeSamples( unsigned long width, size_t ixStart, size_t
   }
 }
 
-void WaveformView::Shift( int x ) {
+void WaveformView::UpdateMouseShift( int x ) {
   if ( 0 != x ) {
     if ( 0 != m_pvSamples ) {
       const size_t width( m_vVertical.size() );
@@ -301,7 +301,7 @@ void WaveformView::Shift( int x ) {
   }
 }
 
-void WaveformView::ZoomIn( int x ) {
+void WaveformView::UpdateMouseZoomIn( int x ) {
   
   if ( 0 != m_pvSamples ) {
     const size_t width( m_vVertical.size() );
@@ -323,7 +323,7 @@ void WaveformView::ZoomIn( int x ) {
   
 }
 
-void WaveformView::ZoomOut( int x ) {
+void WaveformView::UpdateMouseZoomOut( int x ) {
   
   if ( 0 != m_pvSamples ) {
     const size_t size( m_pvSamples->size() );

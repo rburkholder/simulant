@@ -94,69 +94,6 @@ void KeyFrameView::HandlePaint( wxPaintEvent& event ) {
 
 }
 
-void KeyFrameView::UnDrawCursor( Cursor& cursor ) {
-
-  wxRect rectClientArea( this->GetClientRect() );
-  int yMax( rectClientArea.height - 1 );
-  wxClientDC dc( this );
-  wxPen pen( cursor.m_colourCursor, 1, wxPENSTYLE_SOLID );
-  dc.SetPen( pen );
-
-  // redraw data that was under the cursor
-  if ( cursor.m_bCursorDrawn ) {
-
-    // draw vertical line with background colour
-    wxBrush brush( dc.GetBrush() );
-    brush.SetColour( m_colourBackground );
-    dc.SetBrush( brush );
-    wxPen pen( dc.GetPen() );
-    pen.SetColour( m_colourBackground );
-    dc.SetPen( pen );
-    dc.DrawLine( cursor.m_locCursor, 0, cursor.m_locCursor, yMax );
-
-    cursor.m_bCursorDrawn = false;
-  }
-}
-
-void KeyFrameView::HandleMouseRightUp( wxMouseEvent& event ) {
-  m_pointLatestMouse = event.GetPosition();
-  this->PopupMenu( m_pContextMenu );
-  event.Skip();
-}
-
-void KeyFrameView::HandleMouseLeftUp( wxMouseEvent& event ) { // click to activate a keyframe (how to select one?)
-  m_pointLatestMouse = event.GetPosition();
-  // do some pre-filter first?
-  m_signalMouseEventSelectKeyFrame( m_pointLatestMouse );
-  event.Skip();
-}
-
-//void KeyFrameView::HandleMouseMotion( wxMouseEvent& event ) { // move the cursor, signal back to scene to update other windows
-//  // common code from wave form then?
-//  m_pointLatestMouse = event.GetPosition();
-//  m_signalMouseEventMovement( m_pointLatestMouse );
-//}
-
-void KeyFrameView::HandleAddKeyFrame( wxCommandEvent& event ) {
-  m_signalMouseEventAddKeyFrame( m_pointLatestMouse );
-}
-
-void KeyFrameView::HandleEditKeyFrame( wxCommandEvent& event ) {
-  m_signalMouseEventEditKeyFrame( m_pointLatestMouse );
-}
-
-void KeyFrameView::HandleDeleteKeyFrame( wxCommandEvent& event ) {
-  m_signalMouseEventDeleteKeyFrame( m_pointLatestMouse );
-}
-
-void KeyFrameView::HandleCopy( wxCommandEvent& event ) {
-  //m_signalMouseEventDeleteKeyFrame( m_pointLatestMouse );
-}
-
-void KeyFrameView::HandlePaste( wxCommandEvent& event ) {
-  //m_signalMouseEventDeleteKeyFrame( m_pointLatestMouse );
-}
-
 void KeyFrameView::HandleSize( wxSizeEvent& event ) {
   //std::cout << "sized" << std::endl;
   Refresh();

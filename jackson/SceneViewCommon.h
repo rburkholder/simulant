@@ -54,8 +54,11 @@ public:
   signalMouseWheel_t m_signalZoomIn; // zoom in
   signalMouseWheel_t m_signalZoomOut; // zoom out
 
-  void SceneViewCommon::UpdateInteractiveCursor( int x );
+  void UpdateInteractiveCursor( int x );
   void UpdatePlayCursor( size_t nFramesPlayed );
+  virtual void UpdateMouseShift( int diff ) {}
+  virtual void UpdateMouseZoomIn( int x ) {}
+  virtual void UpdateMouseZoomOut( int x ) {}
 
 protected:
 
@@ -93,13 +96,36 @@ protected:
   Cursor m_cursorPlay;
 
   void DrawCursor( int ix, Cursor& cursor ); // if < 0, don't draw
-  const std::string TimeAtSample( size_t nSample, size_t numerator, size_t denominator );
+  static const std::string TimeAtSample( size_t nSample, size_t numerator, size_t denominator );
   void DrawTime( Cursor& cursor, wxPoint& point, const std::string& sTime );
 
-  virtual void UnDrawCursor( Cursor& cursor ) {};
-
+  virtual void UnDrawCursor( Cursor& cursor );
   void EraseTime( Cursor& cursor, wxPoint& point );
 
+  wxPoint m_pointLatestMouse;
+
+  wxMenu* m_pContextMenu;
+  
+  void HandleMouseRightUp( wxMouseEvent& );
+  void HandleMouseLeftUp( wxMouseEvent& );
+  
+  void HandleAddKeyFrame( wxCommandEvent& event );
+  void HandleEditKeyFrame( wxCommandEvent& event );
+  void HandleDeleteKeyFrame( wxCommandEvent& event );
+  
+  void HandleCopy( wxCommandEvent& event );
+  void HandlePaste( wxCommandEvent& event );
+
+  typedef boost::signals2::signal<void (wxPoint&)> signalMouseEvent_t;
+  typedef signalMouseEvent_t::slot_type slotMouseEvent_t;
+  
+  // how many are actually necessary for the owner
+  signalMouseEvent_t m_signalMouseEventAddKeyFrame;
+  signalMouseEvent_t m_signalMouseEventEditKeyFrame;
+  signalMouseEvent_t m_signalMouseEventDeleteKeyFrame;
+  signalMouseEvent_t m_signalMouseEventSelectKeyFrame;
+  signalMouseEvent_t m_signalMouseEventMovement;
+  
 private:
 
   enum {

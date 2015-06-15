@@ -124,6 +124,31 @@ void SceneViewCommon::HandleLeaveWindow( wxMouseEvent& event ) {
   event.Skip();
 }
 
+void SceneViewCommon::UnDrawCursor( Cursor& cursor ) {
+
+  wxRect rectClientArea( this->GetClientRect() );
+  int yMax( rectClientArea.height - 1 );
+  wxClientDC dc( this );
+  wxPen pen( cursor.m_colourCursor, 1, wxPENSTYLE_SOLID );
+  dc.SetPen( pen );
+
+  // redraw data that was under the cursor
+  if ( cursor.m_bCursorDrawn ) {
+
+    // draw vertical line with background colour
+    wxBrush brush( dc.GetBrush() );
+    brush.SetColour( m_colourBackground );
+    dc.SetBrush( brush );
+    wxPen pen( dc.GetPen() );
+    pen.SetColour( m_colourBackground );
+    dc.SetPen( pen );
+    // apply background colour top to bottom where cursor was
+    dc.DrawLine( cursor.m_locCursor, 0, cursor.m_locCursor, yMax );
+
+    cursor.m_bCursorDrawn = false;
+  }
+}
+
 void SceneViewCommon::DrawCursor( int ix, Cursor& cursor ) {
 
   wxRect rectClientArea( this->GetClientRect() );
@@ -242,6 +267,39 @@ void SceneViewCommon::UpdatePlayCursor( size_t nFramesPlayed ) {
       }
     }
   }
+}
+
+void SceneViewCommon::HandleMouseRightUp( wxMouseEvent& event ) {
+  m_pointLatestMouse = event.GetPosition();
+  this->PopupMenu( m_pContextMenu );
+  event.Skip();
+}
+
+void SceneViewCommon::HandleMouseLeftUp( wxMouseEvent& event ) { // click to activate a keyframe (how to select one?)
+  m_pointLatestMouse = event.GetPosition();
+  // do some pre-filter first?
+  m_signalMouseEventSelectKeyFrame( m_pointLatestMouse );
+  event.Skip();
+}
+
+void SceneViewCommon::HandleAddKeyFrame( wxCommandEvent& event ) {
+  m_signalMouseEventAddKeyFrame( m_pointLatestMouse );
+}
+
+void SceneViewCommon::HandleEditKeyFrame( wxCommandEvent& event ) {
+  m_signalMouseEventEditKeyFrame( m_pointLatestMouse );
+}
+
+void SceneViewCommon::HandleDeleteKeyFrame( wxCommandEvent& event ) {
+  m_signalMouseEventDeleteKeyFrame( m_pointLatestMouse );
+}
+
+void SceneViewCommon::HandleCopy( wxCommandEvent& event ) {
+  //m_signalMouseEventDeleteKeyFrame( m_pointLatestMouse );
+}
+
+void SceneViewCommon::HandlePaste( wxCommandEvent& event ) {
+  //m_signalMouseEventDeleteKeyFrame( m_pointLatestMouse );
 }
 
 wxBitmap SceneViewCommon::GetBitmapResource( const wxString& name ) {

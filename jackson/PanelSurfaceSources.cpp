@@ -298,28 +298,6 @@ void PanelSurfaceSources::ClearScenePanel( void ) {
   m_panelScene->DestroyChildren();
 }
 
-WaveformView* PanelSurfaceSources::AppendWaveformView( void ) {
-  WaveformView* p = new WaveformView( m_panelScene, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-  p->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
-  //p->SetSize( wxDefaultCoord, wxDefaultCoord, wxDefaultCoord, 60, wxSIZE_AUTO_WIDTH );
-  m_itemBoxSizerSceneElements->Add( p, 3, wxEXPAND|wxALL, 1 );
-  //m_itemBoxSizerSceneElements->Fit(p);
-  //p->Refresh();
-  m_panelScene->Layout();
-  return p;
-}
-
-KeyFrameView* PanelSurfaceSources::AppendKeyFrameView( void ) {
-  KeyFrameView* p = new KeyFrameView( m_panelScene, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-  p->SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
-  //p->SetSize( wxDefaultCoord, wxDefaultCoord, wxDefaultCoord, 20, wxSIZE_AUTO_WIDTH );
-  m_itemBoxSizerSceneElements->Add( p, 1, wxEXPAND|wxALL, 1 );
-  //m_itemBoxSizerSceneElements->Fit(p);
-  //p->Refresh();
-  m_panelScene->Layout();
-  return p;
-}
-
 void PanelSurfaceSources::HandleKey( wxKeyEvent& event ) {
   //std::cout << "key='" << event.GetKeyCode() << "'" << std::endl;
   event.Skip();

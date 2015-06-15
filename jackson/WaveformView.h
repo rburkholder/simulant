@@ -42,10 +42,9 @@ public:
   
   void SetSamples( vSamples_t* );
   
-  void ZoomIn( int x );
-  void ZoomOut( int x );
-  
-  void Shift( int x ); // x is relative left or right
+  virtual void UpdateMouseShift( int x ); // x is relative left or right
+  virtual void UpdateMouseZoomIn( int x );
+  virtual void UpdateMouseZoomOut( int x );
   
   virtual void UnDrawCursor( Cursor& cursor );
   
