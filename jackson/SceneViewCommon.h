@@ -146,9 +146,6 @@ private:
 
   wxPoint m_posMouseOnLeftDown;
 
-  //void HandlePaint( wxPaintEvent& );
-  //void HandleEraseBackground( wxEraseEvent& );
-
   void DrawName( wxClientDC& dc );
 
   void HandleMouseWheel( wxMouseEvent& );

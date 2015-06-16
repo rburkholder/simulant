@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 #include <boost/signals2.hpp>
 
 #include "SceneViewCommon.h"
@@ -35,10 +37,13 @@ public:
           const wxSize& size = SYMBOL_CONTROLSCENEVIEW_SIZE, 
           long style = SYMBOL_CONTROLSCENEVIEW_STYLE );
   ~SceneView( );
+
+  void DrawTime( const std::string& sTime );
   
 protected:
 
-  virtual void HandlePaint( wxPaintEvent& event ) { SceneViewCommon::HandlePaint( event ); }
+  //virtual void HandlePaint( wxPaintEvent& event ) { SceneViewCommon::HandlePaint( event ); }
+  virtual void HandlePaint( wxPaintEvent& event );
   virtual void HandleEraseBackground( wxEraseEvent& event ) { SceneViewCommon::HandleEraseBackground( event ); }
   virtual void HandleSize( wxSizeEvent& event ) { SceneViewCommon::HandleSize( event ); }
 
@@ -48,8 +53,17 @@ private:
     ID_Null = wxID_HIGHEST,
     ID_CONTROLSCENEVIEW
   };
+
+  boost::posix_time::time_duration m_tdWinStart;
+  boost::posix_time::time_duration m_tdPixelWidth;
   
   wxMenu* m_pContextMenu;
+
+  void ZoomIn( int x );
+  void ZoomOut( int x );
+  void Shift( int x ); // number of pixels
+
+  void DrawDecorations( wxClientDC& dc );
   
   void Init();
   void CreateControls();

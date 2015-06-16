@@ -2666,6 +2666,8 @@ void TreeItemScene::ConnectToEvents( TreeItemSceneElementBase* p ) {
 
 void TreeItemScene::HandleMouseMotion( int x, int diff ) {
   //std::cout << "mouse motion" << std::endl;
+  assert( 0 != m_psv );
+  m_psv->UpdateInteractiveCursor( x );
   for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
     dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateInteractiveCursor( x );
   }
@@ -2673,12 +2675,16 @@ void TreeItemScene::HandleMouseMotion( int x, int diff ) {
 
 void TreeItemScene::HandleMouseShift( int diff ) {
   //std::cout << "mouse shift" << std::endl;
+  assert( 0 != m_psv );
+  m_psv->UpdateMouseShift( diff );
   for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
     dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseShift( diff );
   }
 }
 
 void TreeItemScene::HandleZoomIn( wxCoord x ) { 
+  assert( 0 != m_psv );
+  m_psv->UpdateMouseZoomIn( x );
   //std::cout << "mouse zoom in" << std::endl;
   for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
     dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseZoomIn( x );
@@ -2686,6 +2692,8 @@ void TreeItemScene::HandleZoomIn( wxCoord x ) {
 }
 
 void TreeItemScene::HandleZoomOut( wxCoord x ) {
+  assert( 0 != m_psv );
+  m_psv->UpdateMouseZoomOut( x );
   //std::cout << "mouse zoom out" << std::endl;
   for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
     dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseZoomOut( x );

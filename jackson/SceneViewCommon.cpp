@@ -29,17 +29,17 @@ void SceneViewCommon::Init() {
   //m_bMouseLeftDown = false;
   //m_ixFirstSampleInWindow = 0;
   //m_nSamplesInWindow = 0;
-  std::cout << "SceneViewCommon colour" << std::endl;
+  //std::cout << "SceneViewCommon colour" << std::endl;
   m_colourBackground = wxColour( 0, 0, 0 );
 
   m_colourName = wxColour( 255, 255, 255 );
   m_pointName = wxPoint( 2, 2 );
 
   m_cursorInteractive.m_colourCursor = wxColour( 218,112,214 );
-  m_cursorInteractive.m_pointStatusText = wxPoint( 120, 2 );
+  m_cursorInteractive.m_pointStatusText = wxPoint( 22, 2 );
 
   m_cursorPlay.m_colourCursor = wxColour( 0, 255, 0 );
-  m_cursorPlay.m_pointStatusText = wxPoint( 22, 2 );
+  m_cursorPlay.m_pointStatusText = wxPoint( 102, 2 );
 
 }
 
@@ -270,8 +270,14 @@ void SceneViewCommon::EraseTime( Cursor& cursor, wxPoint& point ) {
 }
 
 void SceneViewCommon::UpdateInteractiveCursor( int x ) {
+  wxClientDC dc( this );
+  this->DrawName( dc );
+  // change the following to  use dc at some point
   UnDrawCursor( m_cursorInteractive );
   DrawCursor( x, m_cursorInteractive );
+
+  // need this in SceneView only
+  //DrawTime( m_cursorInteractive, m_cursorInteractive.m_pointStatusText, TimeAtSample( x, 1, 44100 ) );
 }
 
 // gui thread
