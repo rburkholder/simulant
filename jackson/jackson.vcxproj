@@ -118,6 +118,7 @@
       <AdditionalLibraryDirectories>D:\Data\Projects\VC++\3rdparty\glext_src\glext\x64\Debug;D:\Data\Projects\VC++\msys\usr\local\lib;D:\Data\Projects\VC++\msys\home\me\rtaudio-4.1.1\rtaudio\x64\Debug;D:\Data\Projects\VC++\3rdparty\wxwidgets\wxwidgets-git\lib\vc_x64_lib;D:\Data\Projects\VC++\3rdparty\boost\boost_1_58_0\stage\x64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>glext.lib;libavcodec.a;libavdevice.a;libavfilter.a;libavformat.a;libavresample.a;libavutil.a;libswscale.a;RtAudio.lib;opengl32.lib;glu32.lib;dsound.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
+      <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

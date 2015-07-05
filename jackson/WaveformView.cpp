@@ -69,10 +69,10 @@ void WaveformView::CreateControls() {
 WaveformView::~WaveformView( ) {
 }
 
-void WaveformView::UnDrawCursor( Cursor& cursor ) {
+void WaveformView::UnDrawCursor( wxClientDC& dc, Cursor& cursor ) {
   wxRect rectClientArea( this->GetClientRect() );
   int yMax( rectClientArea.height - 1 );
-  wxClientDC dc( this );
+  //wxClientDC dc( this );
   wxPen pen( cursor.m_colourCursor, 1, wxPENSTYLE_SOLID );
   dc.SetPen( pen );
 
@@ -390,12 +390,13 @@ void WaveformView::HandleMouseWheel( wxMouseEvent& event ) {
 }
 
 void WaveformView::HandleMouseMotion( wxMouseEvent& event ) {
+  wxClientDC dc( this );
   wxPoint posMouse = event.GetPosition();
   if ( 0 != m_pvSamples ) {
      
     int x = event.GetPosition().x;
-    UnDrawCursor( m_cursorInteractive );
-    SceneViewCommon::DrawCursor( x, m_cursorInteractive );
+    UnDrawCursor( dc, m_cursorInteractive );
+    SceneViewCommon::DrawCursor( dc, x, m_cursorInteractive );
 
     size_t nSample( m_vVertical[ posMouse.x ].index );
     DrawTime( m_cursorInteractive, m_cursorInteractive.m_pointStatusText, TimeAtSample( nSample, 1, 44100 ) );

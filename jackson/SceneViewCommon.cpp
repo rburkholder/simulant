@@ -118,7 +118,7 @@ void SceneViewCommon::HandlePaint( wxPaintEvent& event ) {
   brush.SetColour( m_colourBackground );
   dc.SetBrush( brush );
   dc.DrawRectangle( rectClientArea );  // blank out background
-  DrawName( dc );
+  //DrawName( dc );
 
 }
 
@@ -170,17 +170,18 @@ void SceneViewCommon::HandleMouseMotion( wxMouseEvent& event ) {
 
 void SceneViewCommon::HandleLeaveWindow( wxMouseEvent& event ) {
   //std::cout << "wfv leave window" << std::endl;
-  UnDrawCursor( m_cursorInteractive );
-  SceneViewCommon::DrawCursor( -1, m_cursorInteractive );  
+  wxClientDC dc( this );
+  UnDrawCursor( dc, m_cursorInteractive );
+  SceneViewCommon::DrawCursor( dc, -1, m_cursorInteractive );  
   EraseTime( m_cursorInteractive, m_cursorInteractive.m_pointStatusText );
   event.Skip();
 }
 
-void SceneViewCommon::UnDrawCursor( Cursor& cursor ) {
+void SceneViewCommon::UnDrawCursor( wxClientDC& dc, Cursor& cursor ) {
 
   wxRect rectClientArea( this->GetClientRect() );
   int yMax( rectClientArea.height - 1 );
-  wxClientDC dc( this );
+  //wxClientDC dc( this );
   wxPen pen( cursor.m_colourCursor, 1, wxPENSTYLE_SOLID );
   dc.SetPen( pen );
 
@@ -201,11 +202,11 @@ void SceneViewCommon::UnDrawCursor( Cursor& cursor ) {
   }
 }
 
-void SceneViewCommon::DrawCursor( int ix, Cursor& cursor ) {
+void SceneViewCommon::DrawCursor( wxClientDC& dc, int ix, Cursor& cursor ) {
 
   wxRect rectClientArea( this->GetClientRect() );
   int yMax( rectClientArea.height - 1 );
-  wxClientDC dc( this );
+  //wxClientDC dc( this );
   wxPen pen( cursor.m_colourCursor, 1, wxPENSTYLE_SOLID );
   dc.SetPen( pen );
 
@@ -243,18 +244,18 @@ void SceneViewCommon::DrawTime( const Cursor& cursor, const wxPoint& point, cons
   DrawTime( cursor.m_colourCursor, point, sTime );
 }
 
-void SceneViewCommon::DrawTime( wxColour colourText, const wxPoint& point, const std::string& sTime ) {
+void SceneViewCommon::DrawTime( wxColour colourText, const wxPoint& point, const std::string& sTime, bool bErase ) {
   wxClientDC dc( this );
-  wxBrush brush( dc.GetBrush() );
-  wxPen pen( dc.GetPen() );
-
-  wxSize sizeText = dc.GetTextExtent( sTime );
-
-  brush.SetColour( m_colourBackground );
-  dc.SetBrush( brush );
-  pen.SetColour( m_colourBackground );
-  dc.SetPen( pen );
-  dc.DrawRectangle( point, sizeText );
+  if ( bErase ) {
+    wxBrush brush( dc.GetBrush() );
+    wxPen pen( dc.GetPen() );
+    wxSize sizeText = dc.GetTextExtent( sTime );
+    brush.SetColour( m_colourBackground );
+    dc.SetBrush( brush );
+    pen.SetColour( m_colourBackground );
+    dc.SetPen( pen );
+    dc.DrawRectangle( point, sizeText );
+  }
   dc.SetTextBackground( m_colourBackground );
   dc.SetTextForeground( colourText );
   dc.DrawText( sTime, point );
@@ -275,10 +276,10 @@ void SceneViewCommon::EraseTime( Cursor& cursor, wxPoint& point ) {
 
 void SceneViewCommon::UpdateInteractiveCursor( int x ) {
   wxClientDC dc( this );
-  this->DrawName( dc );
+  //this->DrawName( dc );
   // change the following to  use dc at some point
-  UnDrawCursor( m_cursorInteractive );
-  DrawCursor( x, m_cursorInteractive );
+  UnDrawCursor(dc, m_cursorInteractive );
+  DrawCursor( dc, x, m_cursorInteractive );
 
   // need this in SceneView only
   //DrawTime( m_cursorInteractive, m_cursorInteractive.m_pointStatusText, TimeAtSample( x, 1, 44100 ) );
@@ -286,6 +287,8 @@ void SceneViewCommon::UpdateInteractiveCursor( int x ) {
 
 // gui thread
 void SceneViewCommon::UpdatePlayCursor( size_t nFramesPlayed ) {
+
+  wxClientDC dc( this );
 
   if ( 0 != nFramesPlayed ) { // some frames played, so move/display cursor
     Cursor& cursor( m_cursorPlay );
@@ -309,8 +312,8 @@ void SceneViewCommon::UpdatePlayCursor( size_t nFramesPlayed ) {
         if ( bCanDrawCursor ) {
           size_t n = iter - m_vVertical.begin(); // index into the vector for cursor calc
           if ( n != cursor.m_locCursor ) { // cursor location has changed 
-            UnDrawCursor( m_cursorPlay );
-            SceneViewCommon::DrawCursor( n, m_cursorPlay );
+            UnDrawCursor( dc, m_cursorPlay );
+            SceneViewCommon::DrawCursor( dc, n, m_cursorPlay );
             cursor.m_ixFrame = nFramesPlayed;
           }
         }

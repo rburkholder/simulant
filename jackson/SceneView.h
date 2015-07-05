@@ -42,6 +42,9 @@ public:
   
 protected:
 
+
+  virtual void UnDrawCursor( wxClientDC& dc, Cursor& cursor );
+
   //virtual void HandlePaint( wxPaintEvent& event ) { SceneViewCommon::HandlePaint( event ); }
   virtual void HandlePaint( wxPaintEvent& event );
   virtual void HandleEraseBackground( wxEraseEvent& event ) { SceneViewCommon::HandleEraseBackground( event ); }

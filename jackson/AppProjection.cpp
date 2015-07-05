@@ -59,7 +59,7 @@ bool AppProjection::OnInit( ) {
   unsigned int nDisplays = wxDisplay::GetCount();
   std::cout << "#connected displays: " << nDisplays << std::endl;
   
-  for ( int ix = 0; ix < nDisplays; ++ix ) {
+  for ( unsigned int ix = 0; ix < nDisplays; ++ix ) {
     
     wxDisplay display( ix );
     wxRect rectClientArea = display.GetClientArea();

@@ -100,12 +100,12 @@ protected:
   Cursor m_cursorInteractive;
   Cursor m_cursorPlay;
 
-  void DrawCursor( int ix, Cursor& cursor ); // if < 0, don't draw
+  void DrawCursor( wxClientDC& dc, int ix, Cursor& cursor ); // if < 0, don't draw
   static const std::string TimeAtSample( size_t nSample, size_t numerator, size_t denominator );
   void DrawTime( const Cursor& cursor, const wxPoint& point, const std::string& sTime );
-  void DrawTime( wxColour colourText, const wxPoint& point, const std::string& sTime );
+  void DrawTime( wxColour colourText, const wxPoint& point, const std::string& sTime, bool bErase=true );
 
-  virtual void UnDrawCursor( Cursor& cursor );
+  virtual void UnDrawCursor( wxClientDC& dc, Cursor& cursor );
   void EraseTime( Cursor& cursor, wxPoint& point );
 
   wxPoint m_pointLatestMouse;

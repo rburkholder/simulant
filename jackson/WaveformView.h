@@ -46,7 +46,7 @@ public:
   virtual void UpdateMouseZoomIn( int x );
   virtual void UpdateMouseZoomOut( int x );
   
-  virtual void UnDrawCursor( Cursor& cursor );
+  virtual void UnDrawCursor( wxClientDC& dc, Cursor& cursor );
   
 protected:
 private:

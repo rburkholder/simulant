@@ -84,6 +84,11 @@ void SceneView::HandlePaint( wxPaintEvent& event ) {
   DrawLegend( dc );
 }
 
+void SceneView::UnDrawCursor( wxClientDC& dc, Cursor& cursor ) {
+  SceneViewCommon::UnDrawCursor( dc, cursor );
+  DrawLegend( dc );
+}
+
 void SceneView::DrawLegend( wxClientDC& dc ) {
 
   //int height;
