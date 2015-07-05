@@ -13,6 +13,8 @@
 
 IMPLEMENT_DYNAMIC_CLASS( SceneViewCommon, wxPanel )
 
+const std::string SceneViewCommon::sZeroTime( "00:00:00.000000" );
+
 SceneViewCommon::SceneViewCommon( ) {
   Init();
 }
@@ -237,8 +239,11 @@ const std::string SceneViewCommon::TimeAtSample( size_t nSample, size_t numerato
   return s;
 }
 
-void SceneViewCommon::DrawTime( Cursor& cursor, wxPoint& point, const std::string& sTime ) {
+void SceneViewCommon::DrawTime( const Cursor& cursor, const wxPoint& point, const std::string& sTime ) {
+  DrawTime( cursor.m_colourCursor, point, sTime );
+}
 
+void SceneViewCommon::DrawTime( wxColour colourText, const wxPoint& point, const std::string& sTime ) {
   wxClientDC dc( this );
   wxBrush brush( dc.GetBrush() );
   wxPen pen( dc.GetPen() );
@@ -251,15 +256,14 @@ void SceneViewCommon::DrawTime( Cursor& cursor, wxPoint& point, const std::strin
   dc.SetPen( pen );
   dc.DrawRectangle( point, sizeText );
   dc.SetTextBackground( m_colourBackground );
-  dc.SetTextForeground( cursor.m_colourCursor );
+  dc.SetTextForeground( colourText );
   dc.DrawText( sTime, point );
-
 }
 
 void SceneViewCommon::EraseTime( Cursor& cursor, wxPoint& point ) {
-  static const std::string s( "00:00:00.000000");
+  //static const std::string s( "00:00:00.000000");
   wxClientDC dc( this );
-  wxSize size = dc.GetTextExtent( s );
+  wxSize size = dc.GetTextExtent( sZeroTime );
   wxBrush brush( dc.GetBrush() );
   brush.SetColour( m_colourBackground );
   dc.SetBrush( brush );

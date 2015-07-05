@@ -23,7 +23,6 @@ SceneView::SceneView( wxWindow* parent, wxWindowID id, const wxPoint& pos, const
 }
 
 void SceneView::Init() {
-
 }
 
 bool SceneView::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) {
@@ -31,12 +30,13 @@ bool SceneView::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, con
   SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
   SceneViewCommon::Create( parent, id, pos, size, style );
 
-  std::cout << "SceneView colour" << std::endl;
+  //std::cout << "SceneView colour" << std::endl;
   m_colourBackground = wxColour( 200, 200, 200 );
 
   m_tdWinStart = boost::posix_time::time_duration( 0, 0, 0 );  // time starts at 0
   static boost::posix_time::time_duration tdOneSecond = boost::posix_time::seconds( 1 );
-  m_tdPixelWidth = tdOneSecond / 24;  // 24 frames per second, one frame per pixel to start
+  //m_tdPixelWidth = tdOneSecond / 100;  // 100 frames per second, one frame per pixel to start
+  m_tdPixelWidth = tdOneSecond; // to start, one pixel is one second of waveform or video
 
   CreateControls();
   if (GetSizer()) {
@@ -81,36 +81,65 @@ void SceneView::CreateControls() {
 void SceneView::HandlePaint( wxPaintEvent& event ) {
   SceneViewCommon::HandlePaint( event );
   wxPaintDC dc(this);
-  DrawDecorations( dc );
+  DrawLegend( dc );
 }
 
-void SceneView::DrawDecorations( wxClientDC& dc ) {
+void SceneView::DrawLegend( wxClientDC& dc ) {
+
+  //int height;
+  //int width;
+  std::stringstream ss;
+
   wxRect rect = GetClientRect();
-  if (0 < rect.width) {
-    if (1 <= rect.height) { // can draw ticks
+
+  // play with drawing time ticks
+  wxSize sizeText = dc.GetTextExtent( SceneViewCommon::sZeroTime );
+  int widthText = sizeText.GetWidth();
+  int widthTextBy2 = widthText / 2;
+  if ( ( 0 < widthText ) && ( 0 < rect.width ) ) {
+    int nTextExtents = rect.width / ( widthText + 4 );
+    if ( ( 0 < nTextExtents ) && ( 1 <= rect.height ) ) { // there are some extents to draw, and some height to draw them in
+
+      // prep tick locations
       int top = std::min<int>( rect.height, rect.height - 10 );  // might not be set quite right for x pixel high tic
       top = std::max<int>( 1, top );
       int bot = rect.height - 1;
-      for (int ix = 0; ix < rect.width; ix += 15) {
+
+      // will need work on normalizing values, but at least get some sort of value in place for now
+      // ticks start at 1/2 size of extent
+      boost::posix_time::time_duration td;
+      for ( int ix = widthTextBy2 + 2; ix < ( rect.width - widthTextBy2 + 2 ); ix += widthText + 2 ) {
+        
+        // draw tick
         wxPen pen( dc.GetPen() );
         pen.SetColour( wxColour( 0, 0, 0 ) );
         dc.SetPen( pen );
         dc.DrawLine( ix, bot, ix, top );
+
+        // figure out time-at-sample based upon m_tdWinStart, m_tdPixelWidth
+        if ( 2 + sizeText.GetHeight() < rect.height ) { // ensure there is space to draw
+          td = m_tdWinStart + m_tdPixelWidth * ix;
+          ss.str( std::string() );
+          ss << td;
+          std::string s( ss.str() );
+          SceneViewCommon::DrawTime( wxColour( 0, 0, 0 ), wxPoint( ix - widthTextBy2, 2 ), s );
+        }
       }
     }
   }
 }
 
-void SceneView::ZoomIn( int x ) {
+void SceneView::ZoomIn( int x ) { // zoom in around client area pixel x
   wxRect rect = GetClientRect();
   int width( rect.GetWidth() );
   if ( 0 != width ) {
     boost::posix_time::time_duration tdPixelWidth = (m_tdPixelWidth * 3) / 4;  // use this ratio for now
-    boost::posix_time::time_duration tdRelativeOffset = (tdPixelWidth * x) / width;
+    boost::posix_time::time_duration tdRelativeOffset = (tdPixelWidth * x) / width; // linear interpolation
     boost::posix_time::time_duration tdWinStart = tdPixelWidth * x;
     m_tdWinStart = tdWinStart;
   }
 }
+
 /*void WaveformView::UpdateMouseZoomIn( int x ) {
 
   if ( 0 != m_pvSamples ) {

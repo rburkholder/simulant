@@ -63,7 +63,7 @@ private:
   void ZoomOut( int x );
   void Shift( int x ); // number of pixels
 
-  void DrawDecorations( wxClientDC& dc );
+  void DrawLegend( wxClientDC& dc );
   
   void Init();
   void CreateControls();

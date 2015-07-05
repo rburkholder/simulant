@@ -2634,16 +2634,16 @@ void TreeItemScene::DetachFromScenePanel( void ) {
 
 void TreeItemScene::ShowContextMenu( void ) {  // need scene elements instead once I get this figured out
   wxMenu* pMenu = new wxMenu();
-  pMenu->Append( MIAddMusic, "&Stereo Audio" );
+  pMenu->Append( MIAddMusic, "Add &Stereo Audio" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScene::HandleAddAudioStereo, this, MIAddMusic );
-  pMenu->Append( MIAddMonoAudio, "&Mono Audio" );
+  pMenu->Append( MIAddMonoAudio, "Add &Mono Audio" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScene::HandleAddAudioMono, this, MIAddMonoAudio );
-  pMenu->Append( MIAddMidi, "M&idi" );
+  pMenu->Append( MIAddMidi, "Add M&idi" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScene::HandleAddMidi, this, MIAddMidi );
-  pMenu->Append( MIAddDMX, "&DMX" );
+  pMenu->Append( MIAddDMX, "Add &DMX" );
   pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScene::HandleAddDMX, this, MIAddDMX );
   if (!m_bAddedProjectorAreas) {
-    pMenu->Append( MIAddProjectorAreas, "&Projectors" );
+    pMenu->Append( MIAddProjectorAreas, "Add &Projectors" );
     pMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &TreeItemScene::HandleAddProjectorAreas, this, MIAddProjectorAreas );
   }
   pMenu->Append( MIRename, "&Rename" );

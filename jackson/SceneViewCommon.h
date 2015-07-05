@@ -88,6 +88,8 @@ protected:
     bool operator<( size_t rhs ) const { return ( index < rhs ); }
   };
 
+  static const std::string sZeroTime;
+
   vSamples_t* m_pvSamples;
 
   typedef std::vector<Vertical> vVertical_t;
@@ -100,7 +102,8 @@ protected:
 
   void DrawCursor( int ix, Cursor& cursor ); // if < 0, don't draw
   static const std::string TimeAtSample( size_t nSample, size_t numerator, size_t denominator );
-  void DrawTime( Cursor& cursor, wxPoint& point, const std::string& sTime );
+  void DrawTime( const Cursor& cursor, const wxPoint& point, const std::string& sTime );
+  void DrawTime( wxColour colourText, const wxPoint& point, const std::string& sTime );
 
   virtual void UnDrawCursor( Cursor& cursor );
   void EraseTime( Cursor& cursor, wxPoint& point );
