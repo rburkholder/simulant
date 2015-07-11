@@ -309,15 +309,17 @@ void WaveformView::UpdateMouseZoomIn( int x ) {
       // can't zoom in any more
     }
     else {
-      const size_t width( m_vVertical.size() );
-      assert( x <= width );
-      size_t ixAbsoluteSample = m_vVertical[ x ].index;
-      size_t nSamplesInWindow = ( m_nSamplesInWindow * 3 ) / 4;  // use this ratio for now
-      if ( width > nSamplesInWindow ) nSamplesInWindow = width;  // minimum of 1 to 1 samples
-      size_t offsetRelative = ( x * nSamplesInWindow ) / width;
-      size_t startAbsolute = ixAbsoluteSample - offsetRelative;
-      assert( m_pvSamples->size() > ( startAbsolute + nSamplesInWindow ) );
-      SummarizeSamples( width, startAbsolute, nSamplesInWindow );
+      if ( 0 != m_pvSamples->size() ) {
+        const size_t width( m_vVertical.size() );
+        assert( x <= width );
+        size_t ixAbsoluteSample = m_vVertical[ x ].index;
+        size_t nSamplesInWindow = ( m_nSamplesInWindow * 3 ) / 4;  // use this ratio for now
+        if ( width > nSamplesInWindow ) nSamplesInWindow = width;  // minimum of 1 to 1 samples
+        size_t offsetRelative = ( x * nSamplesInWindow ) / width;
+        size_t startAbsolute = ixAbsoluteSample - offsetRelative;
+        assert( m_pvSamples->size() > ( startAbsolute + nSamplesInWindow ) );
+        SummarizeSamples( width, startAbsolute, nSamplesInWindow );
+      }
     }
   }
   
@@ -331,18 +333,20 @@ void WaveformView::UpdateMouseZoomOut( int x ) {
       // can't zoom out any more, need to check for the < issue, check done below
     }
     else {
-      const size_t width( m_vVertical.size() );
-      assert( x <= width );
-      size_t ixAbsoluteSample = m_vVertical[ x ].index;
-      size_t nSamplesInWindow = ( m_nSamplesInWindow * 4 ) / 3;  // use this ratio for now
-      if ( size < nSamplesInWindow ) nSamplesInWindow = size;
-      size_t offsetRelative = ( x * nSamplesInWindow ) / width;
-      if ( offsetRelative > ixAbsoluteSample ) offsetRelative = ixAbsoluteSample;
-      size_t startAbsolute = ixAbsoluteSample - offsetRelative;
-      if ( startAbsolute > ( size - nSamplesInWindow ) ) startAbsolute = size - nSamplesInWindow;
-      //std::cout << "final: " << startAbsolute << "," << size << "," << nSamplesInWindow << std::endl;
-      assert( size >= ( startAbsolute + nSamplesInWindow ) );
-      SummarizeSamples( width, startAbsolute, nSamplesInWindow );
+      if ( 0 != m_pvSamples->size() ) {
+        const size_t width( m_vVertical.size() );
+        assert( x <= width );
+        size_t ixAbsoluteSample = m_vVertical[ x ].index;
+        size_t nSamplesInWindow = ( m_nSamplesInWindow * 4 ) / 3;  // use this ratio for now
+        if ( size < nSamplesInWindow ) nSamplesInWindow = size;
+        size_t offsetRelative = ( x * nSamplesInWindow ) / width;
+        if ( offsetRelative > ixAbsoluteSample ) offsetRelative = ixAbsoluteSample;
+        size_t startAbsolute = ixAbsoluteSample - offsetRelative;
+        if ( startAbsolute > ( size - nSamplesInWindow ) ) startAbsolute = size - nSamplesInWindow;
+        //std::cout << "final: " << startAbsolute << "," << size << "," << nSamplesInWindow << std::endl;
+        assert( size >= ( startAbsolute + nSamplesInWindow ) );
+        SummarizeSamples( width, startAbsolute, nSamplesInWindow );
+      }
     }
   }
 }
