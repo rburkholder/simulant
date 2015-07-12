@@ -144,9 +144,11 @@ void SceneView::UpdateMouseZoomIn( const int x, TimePixelMapping& tpm ) {
   assert( x < width );
   
   // is there a minimum pixel width to be checked?
+  
   boost::posix_time::time_duration tdAtX 
     = m_tdTimePixelMapping.tdWinStart + m_tdTimePixelMapping.tdPixelWidth * x;
   boost::posix_time::time_duration tdPixelWidth = (m_tdTimePixelMapping.tdPixelWidth * 3) / 4;  // use this ratio for now
+  if ( boost::posix_time::milliseconds( 1 ) > tdPixelWidth ) tdPixelWidth = boost::posix_time::milliseconds( 1 );
   //boost::posix_time::time_duration tdRelativeOffset = (tdPixelWidth * x) / width; // linear interpolation
   boost::posix_time::time_duration tdWinStart = tdAtX - ( tdPixelWidth * x );  // ** needs an offset
   assert( boost::posix_time::time_duration( 0, 0, 0 ) <= tdWinStart );  // assert rather than fix to assess math correctness
@@ -168,9 +170,11 @@ void SceneView::UpdateMouseZoomOut( const int x, TimePixelMapping& tpm ) {
   assert( x < width );
   
   // is there a minimum pixel width to be checked?
+  static const boost::posix_time::time_duration tdOneMinute( boost::posix_time::time_duration( 0, 1, 0 ) );
   boost::posix_time::time_duration tdAtX 
     = m_tdTimePixelMapping.tdWinStart + m_tdTimePixelMapping.tdPixelWidth * x;
   boost::posix_time::time_duration tdPixelWidth = (m_tdTimePixelMapping.tdPixelWidth * 4) / 3;  // use this ratio for now
+  if ( tdOneMinute < tdPixelWidth ) tdPixelWidth = tdOneMinute;
   //boost::posix_time::time_duration tdRelativeOffset = (tdPixelWidth * x) / width; // linear interpolation
   boost::posix_time::time_duration tdOffset = tdPixelWidth * x;
   if ( tdOffset >= tdAtX ) {
@@ -194,11 +198,11 @@ void SceneView::UpdateMouseShift( const int x, TimePixelMapping& tpm ) {
   assert( 0 < width );
   
   if ( 0 != x ) {
-    if ( 0 < x ) { // positive
-      m_tdTimePixelMapping.tdWinStart += m_tdTimePixelMapping.tdPixelWidth * x;
+    if ( 0 > x ) { // closer to origin
+      m_tdTimePixelMapping.tdWinStart += m_tdTimePixelMapping.tdPixelWidth * -x;
     }
-    else { // negative
-      boost::posix_time::time_duration tdOffset = m_tdTimePixelMapping.tdPixelWidth * -x;
+    else { // farther from origin
+      boost::posix_time::time_duration tdOffset = m_tdTimePixelMapping.tdPixelWidth * x;
       if ( tdOffset >= m_tdTimePixelMapping.tdWinStart ) {
         m_tdTimePixelMapping.tdWinStart = boost::posix_time::time_duration( 0, 0, 0 );
       }

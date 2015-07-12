@@ -2677,6 +2677,7 @@ void TreeItemScene::HandleZoomIn( wxCoord x ) {
   assert( 0 != m_psv );
   SceneView::TimePixelMapping tpm;
   m_psv->UpdateMouseZoomIn( x, tpm );  // this sends in raw, then the time should be sent to the members in the iterator below
+  m_psv->Refresh();
   //std::cout << "mouse zoom in" << std::endl;
   for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
     dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseZoomIn( x );
@@ -2687,6 +2688,7 @@ void TreeItemScene::HandleZoomOut( wxCoord x ) {
   assert( 0 != m_psv );
   SceneView::TimePixelMapping tpm;
   m_psv->UpdateMouseZoomOut( x, tpm );
+  m_psv->Refresh();
   //std::cout << "mouse zoom out" << std::endl;
   for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
     dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseZoomOut( x );
@@ -2698,6 +2700,7 @@ void TreeItemScene::HandleMouseShift( int diff ) {
   assert( 0 != m_psv );
   SceneView::TimePixelMapping tpm;
   m_psv->UpdateMouseShift( diff, tpm );
+  m_psv->Refresh();
   for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
     dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseShift( diff );
   }
