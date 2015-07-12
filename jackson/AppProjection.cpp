@@ -68,6 +68,7 @@ bool AppProjection::OnInit( ) {
     
     // need to keep track of projection frames, so can iconize them sometime for visual reference in the gui
     // force frame size for the time being
+    // rpb: different  windows based upon development machine type
 #ifdef __WXMSW__
     m_pSurfaceSources->Append( pPhysicalDisplay_t( new PhysicalDisplay( ix, m_pFrameMain, wxPoint( rectClientArea.x, rectClientArea.y ), wxSize( 1000, 720 ) ) ) );
 #else

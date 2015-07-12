@@ -1,3 +1,19 @@
+2015/07/11
+
+multi-paradigm control
+1) use source media, make into a set of clips like adobe premiere
+     fit the clips into a timeline for playing on fixed pre-programmed sets
+2) free flow:  create cues which are based seek, play, stop, loop, something like show control system
+3) then mix and max combinations of the two
+
+* key is to be able to pull out time stamps, view waveforms and media files, and coordinate the efforts
+* will require various views on the data, additional serialization tasks
+
+* media file list
+* clip list
+* timelines
+* cue lists based upon events
+
 2015/06/01
 libraries:
 libavdevice, libavffilter, libavformat, libavcodec, libavresample, libavutil, libswscale

@@ -33,11 +33,6 @@ bool SceneView::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, con
   //std::cout << "SceneView colour" << std::endl;
   m_colourBackground = wxColour( 200, 200, 200 );
 
-  m_tdWinStart = boost::posix_time::time_duration( 0, 0, 0 );  // time starts at 0
-  static boost::posix_time::time_duration tdOneSecond = boost::posix_time::seconds( 1 );
-  //m_tdPixelWidth = tdOneSecond / 100;  // 100 frames per second, one frame per pixel to start
-  m_tdPixelWidth = tdOneSecond; // to start, one pixel is one second of waveform or video
-
   CreateControls();
   if (GetSizer()) {
     GetSizer()->SetSizeHints(this);
@@ -89,21 +84,26 @@ void SceneView::UnDrawCursor( wxClientDC& dc, Cursor& cursor ) {
   DrawLegend( dc );
 }
 
+void SceneView::DrawTime( const std::string& sTime ) {
+  wxClientDC dc( this );
+  SceneViewCommon::DrawTime( m_cursorInteractive, m_cursorInteractive.m_pointStatusText, sTime );
+}
+
 void SceneView::DrawLegend( wxClientDC& dc ) {
 
-  //int height;
-  //int width;
   std::stringstream ss;
 
   wxRect rect = GetClientRect();
 
-  // play with drawing time ticks
+  // text sizing calcs
   wxSize sizeText = dc.GetTextExtent( SceneViewCommon::sZeroTime );
   int widthText = sizeText.GetWidth();
   int widthTextBy2 = widthText / 2;
-  if ( ( 0 < widthText ) && ( 0 < rect.width ) ) {
-    int nTextExtents = rect.width / ( widthText + 4 );
-    if ( ( 0 < nTextExtents ) && ( 1 <= rect.height ) ) { // there are some extents to draw, and some height to draw them in
+  
+  // play with drawing time ticks
+  if ( ( 0 < widthText ) && ( 10 < rect.width ) ) {  // non zero width text and at least 10 pixel widths to draw
+    int nTextExtents = rect.width / ( widthText + 4 );  // how many ticks can we draw
+    if ( ( 0 < nTextExtents ) && ( 4 <= rect.height ) ) { // there are some extents to draw, and some height to draw them in
 
       // prep tick locations
       int top = std::min<int>( rect.height, rect.height - 10 );  // might not be set quite right for x pixel high tic
@@ -123,7 +123,7 @@ void SceneView::DrawLegend( wxClientDC& dc ) {
 
         // figure out time-at-sample based upon m_tdWinStart, m_tdPixelWidth
         if ( 2 + sizeText.GetHeight() < rect.height ) { // ensure there is space to draw
-          td = m_tdWinStart + m_tdPixelWidth * ix;
+          td = m_tdTimePixelMapping.tdWinStart + m_tdTimePixelMapping.tdPixelWidth * ix;
           ss.str( std::string() );
           ss << td;
           std::string s( ss.str() );
@@ -134,51 +134,79 @@ void SceneView::DrawLegend( wxClientDC& dc ) {
   }
 }
 
-void SceneView::ZoomIn( int x ) { // zoom in around client area pixel x
-  wxRect rect = GetClientRect();
-  int width( rect.GetWidth() );
-  if ( 0 != width ) {
-    boost::posix_time::time_duration tdPixelWidth = (m_tdPixelWidth * 3) / 4;  // use this ratio for now
-    boost::posix_time::time_duration tdRelativeOffset = (tdPixelWidth * x) / width; // linear interpolation
-    boost::posix_time::time_duration tdWinStart = tdPixelWidth * x;
-    m_tdWinStart = tdWinStart;
+void SceneView::UpdateMouseZoomIn( const int x, TimePixelMapping& tpm ) {
+  
+  assert( 0 <= x );
+  
+  const wxRect rect = GetClientRect();
+  const int width( rect.GetWidth() );
+  assert( 0 < width );
+  assert( x < width );
+  
+  // is there a minimum pixel width to be checked?
+  boost::posix_time::time_duration tdAtX 
+    = m_tdTimePixelMapping.tdWinStart + m_tdTimePixelMapping.tdPixelWidth * x;
+  boost::posix_time::time_duration tdPixelWidth = (m_tdTimePixelMapping.tdPixelWidth * 3) / 4;  // use this ratio for now
+  //boost::posix_time::time_duration tdRelativeOffset = (tdPixelWidth * x) / width; // linear interpolation
+  boost::posix_time::time_duration tdWinStart = tdAtX - ( tdPixelWidth * x );  // ** needs an offset
+  assert( boost::posix_time::time_duration( 0, 0, 0 ) <= tdWinStart );  // assert rather than fix to assess math correctness
+  
+  m_tdTimePixelMapping.tdPixelWidth = tdPixelWidth;
+  m_tdTimePixelMapping.tdWinStart = tdWinStart;
+  
+  tpm = m_tdTimePixelMapping;
+
+}
+
+void SceneView::UpdateMouseZoomOut( const int x, TimePixelMapping& tpm ) {
+  
+  assert( 0 <= x );
+  
+  const wxRect rect = GetClientRect();
+  const int width( rect.GetWidth() );
+  assert( 0 < width );
+  assert( x < width );
+  
+  // is there a minimum pixel width to be checked?
+  boost::posix_time::time_duration tdAtX 
+    = m_tdTimePixelMapping.tdWinStart + m_tdTimePixelMapping.tdPixelWidth * x;
+  boost::posix_time::time_duration tdPixelWidth = (m_tdTimePixelMapping.tdPixelWidth * 4) / 3;  // use this ratio for now
+  //boost::posix_time::time_duration tdRelativeOffset = (tdPixelWidth * x) / width; // linear interpolation
+  boost::posix_time::time_duration tdOffset = tdPixelWidth * x;
+  if ( tdOffset >= tdAtX ) {
+    m_tdTimePixelMapping.tdWinStart = boost::posix_time::time_duration( 0, 0, 0 );
   }
+  else {
+    m_tdTimePixelMapping.tdWinStart = tdAtX - tdOffset;
+  }
+  assert( boost::posix_time::time_duration( 0, 0, 0 ) <= m_tdTimePixelMapping.tdWinStart );
+  
+  m_tdTimePixelMapping.tdPixelWidth = tdPixelWidth;
+  
+  tpm = m_tdTimePixelMapping;
+
 }
 
-/*void WaveformView::UpdateMouseZoomIn( int x ) {
+void SceneView::UpdateMouseShift( const int x, TimePixelMapping& tpm ) {
 
-  if ( 0 != m_pvSamples ) {
-    const size_t width( m_vVertical.size() );
-    if ( width == m_nSamplesInWindow ) {
-      // can't zoom in any more
+  const wxRect rect = GetClientRect();
+  const int width( rect.GetWidth() );
+  assert( 0 < width );
+  
+  if ( 0 != x ) {
+    if ( 0 < x ) { // positive
+      m_tdTimePixelMapping.tdWinStart += m_tdTimePixelMapping.tdPixelWidth * x;
     }
-    else {
-      const size_t width( m_vVertical.size() );
-      assert( x <= width );
-      size_t ixAbsoluteSample = m_vVertical[ x ].index;
-      size_t nSamplesInWindow = ( m_nSamplesInWindow * 3 ) / 4;  // use this ratio for now
-      if ( width > nSamplesInWindow ) nSamplesInWindow = width;  // minimum of 1 to 1 samples
-      size_t offsetRelative = ( x * nSamplesInWindow ) / width;
-      size_t startAbsolute = ixAbsoluteSample - offsetRelative;
-      assert( m_pvSamples->size() > ( startAbsolute + nSamplesInWindow ) );
-      SummarizeSamples( width, startAbsolute, nSamplesInWindow );
+    else { // negative
+      boost::posix_time::time_duration tdOffset = m_tdTimePixelMapping.tdPixelWidth * -x;
+      if ( tdOffset >= m_tdTimePixelMapping.tdWinStart ) {
+        m_tdTimePixelMapping.tdWinStart = boost::posix_time::time_duration( 0, 0, 0 );
+      }
+      else {
+        m_tdTimePixelMapping.tdWinStart -= tdOffset;
+      }
     }
   }
-
-}
-*/
-
-void SceneView::ZoomOut( int x ) {
-
-}
-
-void SceneView::Shift( int x ) { // number of pixels
-
-}
-
-void SceneView::DrawTime( const std::string& sTime ) {
-  wxClientDC dc( this );
-  SceneViewCommon::DrawTime( m_cursorInteractive, m_cursorInteractive.m_pointStatusText, sTime );
 }
 
 wxBitmap SceneView::GetBitmapResource( const wxString& name ) {

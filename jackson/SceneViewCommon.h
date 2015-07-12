@@ -59,9 +59,9 @@ public:
 
   void UpdateInteractiveCursor( int x );
   void UpdatePlayCursor( size_t nFramesPlayed );
-  virtual void UpdateMouseShift( int diff ) {}
-  virtual void UpdateMouseZoomIn( int x ) {}
-  virtual void UpdateMouseZoomOut( int x ) {}
+  virtual void UpdateMouseZoomIn( const int x ) {}  // need to pass the time begin, pixel width structure
+  virtual void UpdateMouseZoomOut( const int x ) {}
+  virtual void UpdateMouseShift( const int diff ) {}
 
 protected:
 

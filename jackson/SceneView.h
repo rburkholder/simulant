@@ -22,6 +22,7 @@
 class SceneView: public SceneViewCommon {
   DECLARE_DYNAMIC_CLASS( SceneView )
 public:
+  
   SceneView( );
   SceneView( 
           wxWindow* parent, 
@@ -37,7 +38,23 @@ public:
           const wxSize& size = SYMBOL_CONTROLSCENEVIEW_SIZE, 
           long style = SYMBOL_CONTROLSCENEVIEW_STYLE );
   ~SceneView( );
+  
+  struct TimePixelMapping {
+    boost::posix_time::time_duration tdWinStart;  // first pixel starts at this time, 00:00;00 is minimum
+    boost::posix_time::time_duration tdPixelWidth;  // each pixel counts for this duration
+    TimePixelMapping( void ) {
+      static boost::posix_time::time_duration tdOneSecond = boost::posix_time::seconds( 1 );
+      tdWinStart = boost::posix_time::time_duration( 0, 0, 0 );
+      tdPixelWidth = tdOneSecond; // to start, one pixel is one second of waveform or video
+      //m_tdPixelWidth = tdOneSecond / 100;  // 100 frames per second, one frame per pixel to start
+    }
+  };
 
+  // pixel offset in, time begin, offset out
+  void UpdateMouseZoomIn( const int x, TimePixelMapping& );
+  void UpdateMouseZoomOut( const int x, TimePixelMapping& );
+  void UpdateMouseShift( const int diff, TimePixelMapping& );
+  
   void DrawTime( const std::string& sTime );
   
 protected:
@@ -57,14 +74,12 @@ private:
     ID_CONTROLSCENEVIEW
   };
 
-  boost::posix_time::time_duration m_tdWinStart;
-  boost::posix_time::time_duration m_tdPixelWidth;
+  // these two will be retired
+  //boost::posix_time::time_duration m_tdWinStart;
+  //boost::posix_time::time_duration m_tdPixelWidth;
+  TimePixelMapping m_tdTimePixelMapping;
   
   wxMenu* m_pContextMenu;
-
-  void ZoomIn( int x );
-  void ZoomOut( int x );
-  void Shift( int x ); // number of pixels
 
   void DrawLegend( wxClientDC& dc );
   
