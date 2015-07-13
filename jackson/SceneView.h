@@ -39,6 +39,7 @@ public:
           long style = SYMBOL_CONTROLSCENEVIEW_STYLE );
   ~SceneView( );
   
+  // unwind the structure for use in TreeDisplayManager
   struct TimePixelMapping {
     boost::posix_time::time_duration tdWinStart;  // first pixel starts at this time, 00:00;00 is minimum
     boost::posix_time::time_duration tdPixelWidth;  // each pixel counts for this duration

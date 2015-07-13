@@ -2668,6 +2668,7 @@ void TreeItemScene::HandleMouseMotion( int x, int diff ) {
   //std::cout << "mouse motion" << std::endl;
   assert( 0 != m_psv );
   m_psv->UpdateInteractiveCursor( x );
+  m_psv->Refresh();
   for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
     dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateInteractiveCursor( x );
   }

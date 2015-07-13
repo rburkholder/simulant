@@ -211,6 +211,7 @@ void SceneView::UpdateMouseShift( const int x, TimePixelMapping& tpm ) {
       }
     }
   }
+  tpm = m_tdTimePixelMapping;
 }
 
 wxBitmap SceneView::GetBitmapResource( const wxString& name ) {
