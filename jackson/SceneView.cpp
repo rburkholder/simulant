@@ -134,7 +134,7 @@ void SceneView::DrawLegend( wxClientDC& dc ) {
   }
 }
 
-void SceneView::UpdateMouseZoomIn( const int x, TimePixelMapping& tpm ) {
+SceneView::TimePixelMapping SceneView::UpdateMouseZoomIn( const int x ) {
   
   assert( 0 <= x );
   
@@ -156,11 +156,11 @@ void SceneView::UpdateMouseZoomIn( const int x, TimePixelMapping& tpm ) {
   m_tdTimePixelMapping.tdPixelWidth = tdPixelWidth;
   m_tdTimePixelMapping.tdWinStart = tdWinStart;
   
-  tpm = m_tdTimePixelMapping;
+  return m_tdTimePixelMapping;
 
 }
 
-void SceneView::UpdateMouseZoomOut( const int x, TimePixelMapping& tpm ) {
+SceneView::TimePixelMapping SceneView::UpdateMouseZoomOut( const int x ) {
   
   assert( 0 <= x );
   
@@ -187,11 +187,11 @@ void SceneView::UpdateMouseZoomOut( const int x, TimePixelMapping& tpm ) {
   
   m_tdTimePixelMapping.tdPixelWidth = tdPixelWidth;
   
-  tpm = m_tdTimePixelMapping;
+  return m_tdTimePixelMapping;
 
 }
 
-void SceneView::UpdateMouseShift( const int x, TimePixelMapping& tpm ) {
+SceneView::TimePixelMapping SceneView::UpdateMouseShift( const int x ) {
 
   const wxRect rect = GetClientRect();
   const int width( rect.GetWidth() );
@@ -211,7 +211,7 @@ void SceneView::UpdateMouseShift( const int x, TimePixelMapping& tpm ) {
       }
     }
   }
-  tpm = m_tdTimePixelMapping;
+  return m_tdTimePixelMapping;
 }
 
 wxBitmap SceneView::GetBitmapResource( const wxString& name ) {

@@ -30,6 +30,7 @@ void WaveformView::Init() {
   m_bMouseLeftDown = false;
   m_ixFirstSampleInWindow = 0;
   m_nSamplesInWindow = 0;
+  m_pvSamples = 0;
   
 }
 
@@ -104,7 +105,7 @@ void WaveformView::UnDrawCursor( wxClientDC& dc, Cursor& cursor ) {
   }
 }
 
-void WaveformView::SetSamples( vSamples_t* p ) {
+void WaveformView::SetSamples( vSamples_t* p ) {  // will samples ever disappear?  maybe supply as shared_ptr?
   //std::cout << "Set Samples start" << std::endl;
   m_pvSamples = p;
   wxRect rect( this->GetClientRect() );
@@ -114,7 +115,7 @@ void WaveformView::SetSamples( vSamples_t* p ) {
   else {
     SummarizeSamples( rect.GetWidth(), 0, p->size() );
   }
-  this->Refresh();  // is this needed?
+  this->Refresh();  // is this needed or done from caller?
   //std::cout << "Set Samples done" << std::endl;
 }
 
@@ -277,22 +278,22 @@ void WaveformView::SummarizeSamples( unsigned long width, size_t ixStart, size_t
   }
 }
 
-void WaveformView::UpdateMouseShift( int x ) {
-  if ( 0 != x ) {
+void WaveformView::UpdateMouseShift( int xDiff, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
+  if ( 0 != xDiff ) {
     if ( 0 != m_pvSamples ) {
       const size_t width( m_vVertical.size() );
       const size_t nSamplesTotal( m_pvSamples->size() );
       assert( width <= m_nSamplesInWindow );
       size_t stepSamples = m_nSamplesInWindow / width;
-      if ( 0 <= x ) { // positive
-        size_t diff = x * stepSamples;
+      if ( 0 <= xDiff ) { // positive
+        size_t delta = xDiff * stepSamples;
         size_t first = 0;
-        if ( diff < m_ixFirstSampleInWindow ) first = m_ixFirstSampleInWindow - diff;
+        if ( delta < m_ixFirstSampleInWindow ) first = m_ixFirstSampleInWindow - delta;
         SummarizeSamples( width, first, m_nSamplesInWindow );
       }
       else {
-        size_t diff = -x * stepSamples;
-        size_t first = m_ixFirstSampleInWindow + diff;
+        size_t delta = -xDiff * stepSamples;
+        size_t first = m_ixFirstSampleInWindow + delta;
         if ( first >  ( nSamplesTotal - m_nSamplesInWindow ) ) first = nSamplesTotal - m_nSamplesInWindow;
         SummarizeSamples( width, first, m_nSamplesInWindow );
 
@@ -301,7 +302,7 @@ void WaveformView::UpdateMouseShift( int x ) {
   }
 }
 
-void WaveformView::UpdateMouseZoomIn( int x ) {
+void WaveformView::UpdateMouseZoomIn( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
   
   if ( 0 != m_pvSamples ) {
     const size_t width( m_vVertical.size() );
@@ -325,7 +326,7 @@ void WaveformView::UpdateMouseZoomIn( int x ) {
   
 }
 
-void WaveformView::UpdateMouseZoomOut( int x ) {
+void WaveformView::UpdateMouseZoomOut( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
   
   if ( 0 != m_pvSamples ) {
     const size_t size( m_pvSamples->size() );

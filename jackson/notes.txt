@@ -1,3 +1,11 @@
+2015/07/18
+libav files (note debian is going back to ffmpeg, should i also?)
+https://lists.ffmpeg.org/pipermail/libav-user/2011-September/000624.html  -=- seeking in media file
+http://ffmpeg.org/pipermail/libav-user/2012-July/002491.html
+https://libav.org/documentation/doxygen/master/index.html
+
+
+
 2015/07/11
 
 multi-paradigm control

@@ -7,8 +7,6 @@
 
 #pragma once
 
-#include <boost/date_time/posix_time/posix_time.hpp>
-
 #include <boost/signals2.hpp>
 
 #include "SceneViewCommon.h"
@@ -39,7 +37,6 @@ public:
           long style = SYMBOL_CONTROLSCENEVIEW_STYLE );
   ~SceneView( );
   
-  // unwind the structure for use in TreeDisplayManager
   struct TimePixelMapping {
     boost::posix_time::time_duration tdWinStart;  // first pixel starts at this time, 00:00;00 is minimum
     boost::posix_time::time_duration tdPixelWidth;  // each pixel counts for this duration
@@ -51,10 +48,10 @@ public:
     }
   };
 
-  // pixel offset in, time begin, offset out
-  void UpdateMouseZoomIn( const int x, TimePixelMapping& );
-  void UpdateMouseZoomOut( const int x, TimePixelMapping& );
-  void UpdateMouseShift( const int diff, TimePixelMapping& );
+  // in: pixel offset, out: time begin, pixel width
+  TimePixelMapping UpdateMouseZoomIn( const int x );
+  TimePixelMapping UpdateMouseZoomOut( const int x );
+  TimePixelMapping UpdateMouseShift( const int diff );
   
   void DrawTime( const std::string& sTime );
   

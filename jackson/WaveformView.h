@@ -42,9 +42,9 @@ public:
   
   void SetSamples( vSamples_t* );
   
-  virtual void UpdateMouseShift( int x ); // x is relative left or right
-  virtual void UpdateMouseZoomIn( int x );
-  virtual void UpdateMouseZoomOut( int x );
+  virtual void UpdateMouseShift( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel );
+  virtual void UpdateMouseZoomIn( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel );
+  virtual void UpdateMouseZoomOut( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel );
   
   virtual void UnDrawCursor( wxClientDC& dc, Cursor& cursor );
   

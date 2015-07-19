@@ -9,6 +9,8 @@
 
 #include <boost/signals2.hpp>
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 #include <wx/panel.h>
 #include <wx/dcclient.h>
 
@@ -59,9 +61,10 @@ public:
 
   void UpdateInteractiveCursor( int x );
   void UpdatePlayCursor( size_t nFramesPlayed );
-  virtual void UpdateMouseZoomIn( const int x ) {}  // need to pass the time begin, pixel width structure
-  virtual void UpdateMouseZoomOut( const int x ) {}
-  virtual void UpdateMouseShift( const int diff ) {}
+  
+  virtual void UpdateMouseZoomIn( const int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {}  // need to pass the time begin, pixel width structure
+  virtual void UpdateMouseZoomOut( const int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {}
+  virtual void UpdateMouseShift( const int diff, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {}
 
 protected:
 

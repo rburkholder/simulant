@@ -235,9 +235,9 @@ public:
 
   virtual void UpdateInteractiveCursor( int x ) {};
   virtual void UpdatePlayCursor( int x ) {};
-  virtual void UpdateMouseShift( int diff ) {};
-  virtual void UpdateMouseZoomIn( int x ) {};
-  virtual void UpdateMouseZoomOut( int x ) {};
+  virtual void UpdateMouseShift( int diff, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {};
+  virtual void UpdateMouseZoomIn( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {};
+  virtual void UpdateMouseZoomOut( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {};
 
 protected:
   
@@ -311,9 +311,9 @@ public:
 
   virtual void UpdateInteractiveCursor( int x );
   virtual void UpdatePlayCursor( int x );
-  virtual void UpdateMouseShift( int diff );
-  virtual void UpdateMouseZoomIn( int x );
-  virtual void UpdateMouseZoomOut( int x );
+  virtual void UpdateMouseShift( int diff, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel );
+  virtual void UpdateMouseZoomIn( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel );
+  virtual void UpdateMouseZoomOut( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel );
 
 protected:
 private:
@@ -392,35 +392,35 @@ void MonoAudioChannel::UpdatePlayCursor( int x ) {
   if ( 0 != m_pkfv ) m_pkfv->UpdatePlayCursor( x );
 }
 
-void MonoAudioChannel::UpdateMouseShift( int diff ) {
+void MonoAudioChannel::UpdateMouseShift( int diff, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
   if ( 0 != m_pwfv ) {
-    m_pwfv->UpdateMouseShift( diff );
+    m_pwfv->UpdateMouseShift( diff, start, widthPixel );
     m_pwfv->Refresh();
   }
   if ( 0 != m_pkfv ) {
-    m_pkfv->UpdateMouseShift( diff );
+    m_pkfv->UpdateMouseShift( diff, start, widthPixel );
     m_pkfv->Refresh();
   }
 }
 
-void MonoAudioChannel::UpdateMouseZoomIn( int x ) {
+void MonoAudioChannel::UpdateMouseZoomIn( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
   if ( 0 != m_pwfv ) {
-    m_pwfv->UpdateMouseZoomIn( x );
+    m_pwfv->UpdateMouseZoomIn( x, start, widthPixel );
     m_pwfv->Refresh();
   }
   if ( 0 != m_pkfv ) {
-    m_pkfv->UpdateMouseZoomIn( x );
+    m_pkfv->UpdateMouseZoomIn( x, start, widthPixel );
     m_pkfv->Refresh();
   }
 }
 
-void MonoAudioChannel::UpdateMouseZoomOut( int x ) {
+void MonoAudioChannel::UpdateMouseZoomOut( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
   if ( 0 != m_pwfv ) {
-    m_pwfv->UpdateMouseZoomOut( x );
+    m_pwfv->UpdateMouseZoomOut( x, start, widthPixel );
     m_pwfv->Refresh();
   }
   if ( 0 != m_pkfv ) {
-    m_pkfv->UpdateMouseZoomOut( x );
+    m_pkfv->UpdateMouseZoomOut( x, start, widthPixel );
     m_pkfv->Refresh();
   }
 }
@@ -908,9 +908,9 @@ public:
 
   virtual void UpdateInteractiveCursor( int x );
   virtual void UpdatePlayCursor( int x );
-  virtual void UpdateMouseShift( int diff );
-  virtual void UpdateMouseZoomIn( int x );
-  virtual void UpdateMouseZoomOut( int x );
+  virtual void UpdateMouseShift( int diff, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel );
+  virtual void UpdateMouseZoomIn( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel );
+  virtual void UpdateMouseZoomOut( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel );
 
 protected:
 
@@ -1001,19 +1001,19 @@ void TreeItemAudioStereo::UpdatePlayCursor( int x ) {
   m_channelRight.UpdatePlayCursor( x );
 }
 
-void TreeItemAudioStereo::UpdateMouseShift( int diff ) {
-  m_channelLeft.UpdateMouseShift( diff );
-  m_channelRight.UpdateMouseShift( diff );
+void TreeItemAudioStereo::UpdateMouseShift( int diff, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
+  m_channelLeft.UpdateMouseShift( diff, start, widthPixel );
+  m_channelRight.UpdateMouseShift( diff, start, widthPixel );
 }
 
-void TreeItemAudioStereo::UpdateMouseZoomIn( int x ) {
-  m_channelLeft.UpdateMouseZoomIn( x );
-  m_channelRight.UpdateMouseZoomIn( x );
+void TreeItemAudioStereo::UpdateMouseZoomIn( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
+  m_channelLeft.UpdateMouseZoomIn( x, start, widthPixel );
+  m_channelRight.UpdateMouseZoomIn( x, start, widthPixel );
 }
 
-void TreeItemAudioStereo::UpdateMouseZoomOut( int x ) {
-  m_channelLeft.UpdateMouseZoomOut( x );
-  m_channelRight.UpdateMouseZoomOut( x );
+void TreeItemAudioStereo::UpdateMouseZoomOut( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
+  m_channelLeft.UpdateMouseZoomOut( x, start, widthPixel );
+  m_channelRight.UpdateMouseZoomOut( x, start, widthPixel );
 }
 
 void TreeItemAudioStereo::AppendToScenePanel( void ) {
@@ -2539,7 +2539,8 @@ private:
 };
 
 TreeItemScene::TreeItemScene( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources ) 
-  : TreeItemBase(id, resources), m_bAddedProjectorAreas( false ) {
+  : TreeItemBase(id, resources), 
+  m_bAddedProjectorAreas( false ) {
   m_nFramesPlayed.store( 0 );
   m_nEventsQueued.store( 0 );
   // used upon scene play and stop
@@ -2677,22 +2678,22 @@ void TreeItemScene::HandleMouseMotion( int x, int diff ) {
 void TreeItemScene::HandleZoomIn( wxCoord x ) { 
   assert( 0 != m_psv );
   SceneView::TimePixelMapping tpm;
-  m_psv->UpdateMouseZoomIn( x, tpm );  // this sends in raw, then the time should be sent to the members in the iterator below
+  tpm = m_psv->UpdateMouseZoomIn( x );
   m_psv->Refresh();
   //std::cout << "mouse zoom in" << std::endl;
   for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
-    dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseZoomIn( x );
+    dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseZoomIn( x, tpm.tdWinStart, tpm.tdPixelWidth );
   }
 }
 
 void TreeItemScene::HandleZoomOut( wxCoord x ) {
   assert( 0 != m_psv );
   SceneView::TimePixelMapping tpm;
-  m_psv->UpdateMouseZoomOut( x, tpm );
+  tpm = m_psv->UpdateMouseZoomOut( x );
   m_psv->Refresh();
   //std::cout << "mouse zoom out" << std::endl;
   for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
-    dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseZoomOut( x );
+    dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseZoomOut( x, tpm.tdWinStart, tpm.tdPixelWidth );
   }
 }
 
@@ -2700,10 +2701,10 @@ void TreeItemScene::HandleMouseShift( int diff ) {
   //std::cout << "mouse shift" << std::endl;
   assert( 0 != m_psv );
   SceneView::TimePixelMapping tpm;
-  m_psv->UpdateMouseShift( diff, tpm );
+  tpm = m_psv->UpdateMouseShift( diff );
   m_psv->Refresh();
   for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
-    dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseShift( diff );
+    dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseShift( diff, tpm.tdWinStart, tpm.tdPixelWidth );
   }
 }
 
