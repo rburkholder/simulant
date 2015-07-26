@@ -9,6 +9,8 @@
 
 #include <vector>
 
+#include <boost/shared_ptr.hpp>
+
 #include "SceneViewCommon.h"
 
 #define SYMBOL_CONTROLWAVEFORMVIEW_STYLE wxTAB_TRAVERSAL
@@ -23,6 +25,15 @@
 class WaveformView: public SceneViewCommon {
   DECLARE_DYNAMIC_CLASS( WaveformView )
 public:
+  
+  struct Waveform {
+    typedef std::vector<int16_t> vSamples_t;
+    unsigned int SamplesPerSecondNumerator;
+    unsigned int SamplesPerSecondDenominator;
+    vSamples_t* pvSamples;
+    Waveform( void ): SamplesPerSecondNumerator( 1 ), SamplesPerSecondDenominator( 1 ), pvSamples( 0 ) {}
+  };
+  typedef boost::shared_ptr<Waveform> pWaveform_t;
   
   WaveformView( );
   WaveformView( 
@@ -40,7 +51,7 @@ public:
           long style = SYMBOL_CONTROLWAVEFORMVIEW_STYLE );
   virtual ~WaveformView( );
   
-  void SetSamples( vSamples_t* );
+  void SetSamples( pWaveform_t, boost::posix_time::time_duration tdPixelWidth );
   
   virtual void UpdateMouseShift( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel );
   virtual void UpdateMouseZoomIn( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel );
@@ -63,9 +74,13 @@ private:
   size_t m_nSamplesInWindow;
   
   wxColour m_colourWaveform;
+  
+  pWaveform_t m_pWaveform;
 
   void SummarizeSamplesOnEvent( void );
   void SummarizeSamples( unsigned long width, size_t ixStart, size_t n ); // sub-sample at interval based upon number of pixels present
+  
+  void SummarizeSamples( boost::posix_time::time_duration tdPixelWidth );
   
   void HandlePaint( wxPaintEvent& );
   void HandleEraseBackground( wxEraseEvent& );

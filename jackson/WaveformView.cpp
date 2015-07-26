@@ -30,7 +30,7 @@ void WaveformView::Init() {
   m_bMouseLeftDown = false;
   m_ixFirstSampleInWindow = 0;
   m_nSamplesInWindow = 0;
-  m_pvSamples = 0;
+  //m_pvSamples = 0;
   
 }
 
@@ -105,17 +105,19 @@ void WaveformView::UnDrawCursor( wxClientDC& dc, Cursor& cursor ) {
   }
 }
 
-void WaveformView::SetSamples( vSamples_t* p ) {  // will samples ever disappear?  maybe supply as shared_ptr?
+void WaveformView::SetSamples( pWaveform_t p, boost::posix_time::time_duration tdPixelWidth ) {  // will samples ever disappear?  maybe supply as shared_ptr?
   //std::cout << "Set Samples start" << std::endl;
-  m_pvSamples = p;
+  m_pWaveform = p;
+  SummarizeSamples( tdPixelWidth );
+  // need to figure out how to draw, need the start of window bit
   wxRect rect( this->GetClientRect() );
-  if ( 0 == p ) {
-    SummarizeSamples( rect.GetWidth(), 0, 0 );
-  }
-  else {
-    SummarizeSamples( rect.GetWidth(), 0, p->size() );
-  }
-  this->Refresh();  // is this needed or done from caller?
+  //if ( 0 == p ) {
+  //  SummarizeSamples( rect.GetWidth(), 0, 0 );
+  //}
+  //else {
+  //  SummarizeSamples( rect.GetWidth(), 0, p->size() );
+  //}
+  //this->Refresh();  // is this needed or done from caller?
   //std::cout << "Set Samples done" << std::endl;
 }
 
@@ -155,7 +157,7 @@ void WaveformView::HandlePaint( wxPaintEvent& event ) {
   }
 }
 
-// may want to do in background thread at some point
+/*
 void WaveformView::SummarizeSamples( unsigned long width, size_t ixStart, size_t n ) {
   
   struct EmptyFill {
@@ -277,12 +279,85 @@ void WaveformView::SummarizeSamples( unsigned long width, size_t ixStart, size_t
     }
   }
 }
+ */
+
+// may want to do in background thread at some point
+void WaveformView::SummarizeSamples( boost::posix_time::time_duration tdPixelWidth ) {
+  // each scene element needs it's offset into the timeline
+  
+  // do things differently:
+  //  cache the whole file once per time frame change
+  //    issue:  when many media files are available, need to recache them all
+  //      so maybe only cache the portions required?
+  //      but, at the extremes, all needs to be cached anyway
+  //   so, maybe, there is a different way of doing this
+  //  not sure how, as a waveform requires summarization for display, and depends upoin the resolution present
+  //  therefore, if many waveforms present, get a bunch of workthreads to perform the work
+  
+  // current thought:
+  //   summarize whole waveform, then display appropriate portions later
+  //   which, I think, kinda provides a two stage pipeline:  summarize whole waveform, then display what ever is visible
+  
+  // =====
+  // only a portion of this implemented here, the display portion is elsewhere
+  // check for overlap in one direction or the other
+  // three stages
+  //  check for pre-blank, fill with empty
+  //  check for start of media or interior of media
+  //  run till end of media or end of window
+  //  if window left, fill with empty
+  
+  // need to maintain time intervals in window (maintained in the scene manager), all windows have same pixel relationships
+  //   vector maintains vertical lines for display
+  //   different media types will need different ways of caching the view
+  
+  struct BuildVertical {
+    size_t ix;  // offset into waveform
+    size_t nSamplesPerPixel;
+    size_t nSamplesToProcess;
+    WaveformView::vVertical_t& vVertical;
+    WaveformView::vVertical_t::reverse_iterator iterVertical;
+    void operator() ( int16_t sample ) {
+      if ( 0 == nSamplesToProcess ) {
+        vVertical.push_back( WaveformView::Vertical() );
+        iterVertical = vVertical.rbegin();
+        iterVertical->index = ix;
+        nSamplesToProcess = nSamplesPerPixel;
+      }
+      iterVertical->sampleMin = std::min<int16_t>( iterVertical->sampleMin, sample );
+      iterVertical->sampleMax = std::max<int16_t>( iterVertical->sampleMax, sample );
+      --nSamplesToProcess;
+      ++ix;
+    }
+    BuildVertical( size_t nSamplesPerPixel_, WaveformView::vVertical_t& vVertical_ )
+    : nSamplesPerPixel( nSamplesPerPixel_ ), nSamplesToProcess( 0 ), 
+      vVertical( vVertical_ ),
+      ix( 0 )
+      { 
+      assert( 0 != nSamplesPerPixel );
+    };
+    ~BuildVertical( void ) {} // any residual stuff to take care of?
+  };
+  
+  m_vVertical.clear();
+  if ( 0 < m_pWaveform.use_count() ) {
+    if ( 0 != m_pWaveform->pvSamples ) {
+      // calculate samples per pixel
+      // is there a remainder?  
+      size_t nSamplesPerPixel = ( ( tdPixelWidth.ticks() * m_pWaveform->SamplesPerSecondNumerator ) / m_pWaveform->SamplesPerSecondDenominator );
+      nSamplesPerPixel /= boost::posix_time::seconds ( 1 ).ticks();
+      // build vertical vector
+      std::for_each( m_pWaveform->pvSamples->begin(), m_pWaveform->pvSamples->end(), BuildVertical( nSamplesPerPixel, m_vVertical ));
+    }
+  }
+  
+}
 
 void WaveformView::UpdateMouseShift( int xDiff, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
   if ( 0 != xDiff ) {
-    if ( 0 != m_pvSamples ) {
+    if ( 0 < m_pWaveform.use_count() ) {
       const size_t width( m_vVertical.size() );
-      const size_t nSamplesTotal( m_pvSamples->size() );
+      const size_t nSamplesTotal( m_pWaveform->pvSamples->size() );
       assert( width <= m_nSamplesInWindow );
       size_t stepSamples = m_nSamplesInWindow / width;
       if ( 0 <= xDiff ) { // positive
@@ -304,13 +379,13 @@ void WaveformView::UpdateMouseShift( int xDiff, boost::posix_time::time_duration
 
 void WaveformView::UpdateMouseZoomIn( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
   
-  if ( 0 != m_pvSamples ) {
+  if ( 0 < m_pWaveform.use_count() ) {
     const size_t width( m_vVertical.size() );
     if ( width == m_nSamplesInWindow ) {
       // can't zoom in any more
     }
     else {
-      if ( 0 != m_pvSamples->size() ) {
+      if ( 0 != m_pWaveform->pvSamples->size() ) {
         const size_t width( m_vVertical.size() );
         assert( x <= width );
         size_t ixAbsoluteSample = m_vVertical[ x ].index;
@@ -318,7 +393,7 @@ void WaveformView::UpdateMouseZoomIn( int x, boost::posix_time::time_duration st
         if ( width > nSamplesInWindow ) nSamplesInWindow = width;  // minimum of 1 to 1 samples
         size_t offsetRelative = ( x * nSamplesInWindow ) / width;
         size_t startAbsolute = ixAbsoluteSample - offsetRelative;
-        assert( m_pvSamples->size() > ( startAbsolute + nSamplesInWindow ) );
+        assert( m_pWaveform->pvSamples->size() > ( startAbsolute + nSamplesInWindow ) );
         SummarizeSamples( width, startAbsolute, nSamplesInWindow );
       }
     }
@@ -328,13 +403,13 @@ void WaveformView::UpdateMouseZoomIn( int x, boost::posix_time::time_duration st
 
 void WaveformView::UpdateMouseZoomOut( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
   
-  if ( 0 != m_pvSamples ) {
-    const size_t size( m_pvSamples->size() );
+  if ( 0 < m_pWaveform.use_count() ) {  // need to check samples exists as well
+    const size_t size( m_pWaveform->pvSamples->size() );
     if ( size == m_nSamplesInWindow ) {
       // can't zoom out any more, need to check for the < issue, check done below
     }
     else {
-      if ( 0 != m_pvSamples->size() ) {
+      if ( 0 != m_pWaveform->pvSamples->size() ) {
         const size_t width( m_vVertical.size() );
         assert( x <= width );
         size_t ixAbsoluteSample = m_vVertical[ x ].index;
@@ -397,7 +472,7 @@ void WaveformView::HandleMouseWheel( wxMouseEvent& event ) {
 void WaveformView::HandleMouseMotion( wxMouseEvent& event ) {
   wxClientDC dc( this );
   wxPoint posMouse = event.GetPosition();
-  if ( 0 != m_pvSamples ) {
+  if ( 0 != m_pWaveform->pvSamples ) {  // need to check that the various shared ptrs are not 0
      
     int x = event.GetPosition().x;
     UnDrawCursor( dc, m_cursorInteractive );

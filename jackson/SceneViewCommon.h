@@ -24,8 +24,6 @@ class SceneViewCommon: public wxPanel {
   DECLARE_DYNAMIC_CLASS( SceneViewCommon )
 public:
 
-  typedef std::vector<int16_t> vSamples_t;
-
   typedef boost::signals2::signal<void (int, int)> signalMouseMotion_t; // x, diff
   typedef signalMouseMotion_t::slot_type slotMouseMotion_t;
 
@@ -84,19 +82,21 @@ protected:
       m_colourCursor( wxColour( 255,255,255 ) ) {}
   };
 
+  // **** maybe this should be in waveform only, is this used elsewhere?
+  // **** used in UpdatePlayCursor, need to update play cursor in waveform instead
   struct Vertical { // tracks a line for pixel width of the waveform
     size_t index;  // index into supplied waveform in m_pvSamples
     int16_t sampleMin;  // value we want to show  ( may use floats (6 digits) or double (15 digits) for everything )
     int16_t sampleMax;
     bool operator<( size_t rhs ) const { return ( index < rhs ); }
+    bool operator<( const Vertical& rhs ) const { return index < rhs.index; }
+    Vertical( void ): index( 0 ), sampleMin( 0 ), sampleMax( 0 ) {}
   };
 
   static const std::string sZeroTime;
 
-  vSamples_t* m_pvSamples;
-
   typedef std::vector<Vertical> vVertical_t;
-  vVertical_t m_vVertical;
+  vVertical_t m_vVertical;  // contains waveform sub-samples
 
   wxColour m_colourBackground;
 

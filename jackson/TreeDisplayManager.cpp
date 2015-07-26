@@ -238,8 +238,16 @@ public:
   virtual void UpdateMouseShift( int diff, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {};
   virtual void UpdateMouseZoomIn( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {};
   virtual void UpdateMouseZoomOut( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {};
+  
+  boost::posix_time::time_duration GetOffsetIntoTimeLine( void ) const { return m_tdOffsetIntoTimeLine; }
+  void SetOffsetIntoTimeLine( boost::posix_time::time_duration tdOffsetIntoTimeLine ) {
+    assert( boost::posix_time::seconds( 0 ) <= tdOffsetIntoTimeLine );
+    m_tdOffsetIntoTimeLine = tdOffsetIntoTimeLine;
+  }
 
 protected:
+  
+  boost::posix_time::time_duration m_tdOffsetIntoTimeLine;
   
 private:
 
@@ -260,6 +268,7 @@ private:
 TreeItemSceneElementBase::TreeItemSceneElementBase( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources )
   : TreeItemBase( id, resources )
 {
+  m_tdOffsetIntoTimeLine = boost::posix_time::seconds( 0 );
 }
 
 TreeItemSceneElementBase::~TreeItemSceneElementBase(void) {

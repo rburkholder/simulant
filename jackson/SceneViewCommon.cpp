@@ -26,7 +26,7 @@ SceneViewCommon::SceneViewCommon( wxWindow* parent, wxWindowID id, const wxPoint
 
 void SceneViewCommon::Init() {
 
-  m_pvSamples = 0;
+  //m_pvSamples = 0;
 
   //m_bMouseLeftDown = false;
   //m_ixFirstSampleInWindow = 0;
@@ -320,13 +320,15 @@ void SceneViewCommon::UpdatePlayCursor( size_t nFramesPlayed ) {
         wxPoint point( m_cursorPlay.m_pointStatusText );
         DrawTime( m_cursorPlay, point, TimeAtSample( nFramesPlayed, 1, 44100 ) );
         point.y += 13;
-        size_t size( m_pvSamples->size() );
-        if ( nFramesPlayed <= size ) {
-          DrawTime( m_cursorPlay, point, TimeAtSample( size - nFramesPlayed, 1, 44100 ) );
-        }
-        else {
-          EraseTime( m_cursorPlay, point );
-        }
+        //
+        // ** this needs to be migrated to WaveformView
+//        size_t size( m_pvSamples->size() );
+//        if ( nFramesPlayed <= size ) {
+//          DrawTime( m_cursorPlay, point, TimeAtSample( size - nFramesPlayed, 1, 44100 ) );
+//        }
+//        else {
+//          EraseTime( m_cursorPlay, point );
+//        }
       }
     }
   }
