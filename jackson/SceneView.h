@@ -39,7 +39,7 @@ public:
   
   struct TimePixelMapping {
     boost::posix_time::time_duration tdWinStart;  // first pixel starts at this time, 00:00;00 is minimum
-    boost::posix_time::time_duration tdPixelWidth;  // each pixel counts for this duration
+    boost::posix_time::time_duration tdPixelWidth;  // each pixel represents this duration
     TimePixelMapping( void ) {
       static boost::posix_time::time_duration tdOneSecond = boost::posix_time::seconds( 1 );
       tdWinStart = boost::posix_time::time_duration( 0, 0, 0 );

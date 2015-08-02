@@ -21,6 +21,9 @@
  *   movie screen:  four sided polygon, move object, move any vertex, moving an edge changes length of attached edges
  *   texture:  same flexbility as movie screen
  * 
+ * works in display space but not opengl space
+ * since screen is now mostly opengl, this will have to be reworked
+ * 
  * enter edit mode automatically when adding a rectangle
  * 
  * when creating rectangle, place at 1/3 and 2/3 positions

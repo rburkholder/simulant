@@ -5,7 +5,7 @@
  * Created on May 28, 2015, 11:37 AM
  */
 
-#include <limits>
+#include <limits> 
 #include <algorithm>
 #include <sstream>
 
@@ -49,7 +49,7 @@ bool WaveformView::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, 
   
   // this code snippet should be in a method
   wxRect rect( this->GetClientRect() );
-  SummarizeSamples( rect.GetWidth(), m_ixFirstSampleInWindow, m_nSamplesInWindow );
+  //SummarizeSamples( rect.GetWidth(), m_ixFirstSampleInWindow, m_nSamplesInWindow );
   
   return true;
 }
@@ -97,9 +97,13 @@ void WaveformView::UnDrawCursor( wxClientDC& dc, Cursor& cursor ) {
     //assert( width == m_vVertical.size() );  // not sure if this is the correct test
 
     // draw the pixel wide waveform data
-    Vertical& vertical( m_vVertical[ cursor.m_locCursor ] );
-    int valMin = ( vertical.sampleMin / scale ) + halfheight;
-    int valMax = ( vertical.sampleMax / scale ) + halfheight;
+    int valMin( 0 );
+    int valMax( rectClientArea.height - 1 );
+    if ( 0 != m_vVertical.size() ) {
+      Vertical& vertical( m_vVertical[ cursor.m_locCursor ] );
+      valMin = ( vertical.sampleMin / scale ) + halfheight;
+      valMax = ( vertical.sampleMax / scale ) + halfheight;
+    }
     dc.DrawLine( cursor.m_locCursor, valMin, cursor.m_locCursor, valMax );
     cursor.m_bCursorDrawn = false;
   }
@@ -311,43 +315,53 @@ void WaveformView::SummarizeSamples( boost::posix_time::time_duration tdPixelWid
   //   vector maintains vertical lines for display
   //   different media types will need different ways of caching the view
   
+  // ===
+  
+  // Since this is time based, and the time at the cursor is known, displaying the waveform should be easy
+  // What needs to be done now, re-sample the whole thing based upon the given pixelwidth
+  // then the actual display is performed elsewhere
+  
   struct BuildVertical {
     size_t ix;  // offset into waveform
     size_t nSamplesPerPixel;
     size_t nSamplesToProcess;
     WaveformView::vVertical_t& vVertical;
     WaveformView::vVertical_t::reverse_iterator iterVertical;
-    void operator() ( int16_t sample ) {
+    void operator() ( int16_t sample ) {  // may want template for this at some point
       if ( 0 == nSamplesToProcess ) {
-        vVertical.push_back( WaveformView::Vertical() );
+        vVertical.push_back( WaveformView::Vertical() );  // another structure
         iterVertical = vVertical.rbegin();
         iterVertical->index = ix;
-        nSamplesToProcess = nSamplesPerPixel;
+        nSamplesToProcess = nSamplesPerPixel;  // reset count down
       }
-      iterVertical->sampleMin = std::min<int16_t>( iterVertical->sampleMin, sample );
-      iterVertical->sampleMax = std::max<int16_t>( iterVertical->sampleMax, sample );
+      WaveformView::Vertical& v( *iterVertical );
+      v.sampleMin = std::min<int16_t>( v.sampleMin, sample );
+      v.sampleMax = std::max<int16_t>( v.sampleMax, sample );
       --nSamplesToProcess;
       ++ix;
     }
     BuildVertical( size_t nSamplesPerPixel_, WaveformView::vVertical_t& vVertical_ )
-    : nSamplesPerPixel( nSamplesPerPixel_ ), nSamplesToProcess( 0 ), 
+    : nSamplesPerPixel( nSamplesPerPixel_ ), 
+      nSamplesToProcess( 0 ), // with 0, does a pre-init to start, always have at least one vertical to show
       vVertical( vVertical_ ),
       ix( 0 )
       { 
-      assert( 0 != nSamplesPerPixel );
+      assert( 0 < nSamplesPerPixel );
     };
     ~BuildVertical( void ) {} // any residual stuff to take care of?
   };
   
   m_vVertical.clear();
-  if ( 0 < m_pWaveform.use_count() ) {
+  if ( 0 != m_pWaveform.get() ) {
     if ( 0 != m_pWaveform->pvSamples ) {
-      // calculate samples per pixel
-      // is there a remainder?  
-      size_t nSamplesPerPixel = ( ( tdPixelWidth.ticks() * m_pWaveform->SamplesPerSecondNumerator ) / m_pWaveform->SamplesPerSecondDenominator );
-      nSamplesPerPixel /= boost::posix_time::seconds ( 1 ).ticks();
-      // build vertical vector
-      std::for_each( m_pWaveform->pvSamples->begin(), m_pWaveform->pvSamples->end(), BuildVertical( nSamplesPerPixel, m_vVertical ));
+      if ( 0 != m_pWaveform->pvSamples->size() ) {
+        // calculate samples per pixel
+        // is there a remainder?  
+        size_t nSamplesPerPixel = ( ( tdPixelWidth.ticks() * m_pWaveform->SamplesPerSecondNumerator ) / m_pWaveform->SamplesPerSecondDenominator );
+        nSamplesPerPixel /= boost::posix_time::seconds ( 1 ).ticks();
+        // build vertical vector
+        std::for_each( m_pWaveform->pvSamples->begin(), m_pWaveform->pvSamples->end(), BuildVertical( nSamplesPerPixel, m_vVertical ));
+      }
     }
   }
   
@@ -364,13 +378,13 @@ void WaveformView::UpdateMouseShift( int xDiff, boost::posix_time::time_duration
         size_t delta = xDiff * stepSamples;
         size_t first = 0;
         if ( delta < m_ixFirstSampleInWindow ) first = m_ixFirstSampleInWindow - delta;
-        SummarizeSamples( width, first, m_nSamplesInWindow );
+        //SummarizeSamples( width, first, m_nSamplesInWindow );
       }
       else {
         size_t delta = -xDiff * stepSamples;
         size_t first = m_ixFirstSampleInWindow + delta;
         if ( first >  ( nSamplesTotal - m_nSamplesInWindow ) ) first = nSamplesTotal - m_nSamplesInWindow;
-        SummarizeSamples( width, first, m_nSamplesInWindow );
+        //SummarizeSamples( width, first, m_nSamplesInWindow );  // no need to do this, strictly a display update issue now
 
       }
     }
@@ -394,7 +408,8 @@ void WaveformView::UpdateMouseZoomIn( int x, boost::posix_time::time_duration st
         size_t offsetRelative = ( x * nSamplesInWindow ) / width;
         size_t startAbsolute = ixAbsoluteSample - offsetRelative;
         assert( m_pWaveform->pvSamples->size() > ( startAbsolute + nSamplesInWindow ) );
-        SummarizeSamples( width, startAbsolute, nSamplesInWindow );
+        //SummarizeSamples( width, startAbsolute, nSamplesInWindow );
+        SummarizeSamples( widthPixel );  // may not need all the above stuff now
       }
     }
   }
@@ -421,19 +436,21 @@ void WaveformView::UpdateMouseZoomOut( int x, boost::posix_time::time_duration s
         if ( startAbsolute > ( size - nSamplesInWindow ) ) startAbsolute = size - nSamplesInWindow;
         //std::cout << "final: " << startAbsolute << "," << size << "," << nSamplesInWindow << std::endl;
         assert( size >= ( startAbsolute + nSamplesInWindow ) );
-        SummarizeSamples( width, startAbsolute, nSamplesInWindow );
+        //SummarizeSamples( width, startAbsolute, nSamplesInWindow );
+        SummarizeSamples( widthPixel );  // may not need all the above stuff now
       }
     }
   }
 }
 
+// this will need to be done differently
 void WaveformView::SummarizeSamplesOnEvent( void ) {
   wxRect rectNew = this->GetRect();
   if ( rectNew != m_rectLast ) {
     m_cursorInteractive.m_bCursorDrawn = false;
     m_cursorPlay.m_bCursorDrawn = false;
     m_rectLast = rectNew;
-    SummarizeSamples( m_rectLast.GetWidth(), m_ixFirstSampleInWindow, m_nSamplesInWindow );
+    //SummarizeSamples( m_rectLast.GetWidth(), m_ixFirstSampleInWindow, m_nSamplesInWindow );
   }
 }
 

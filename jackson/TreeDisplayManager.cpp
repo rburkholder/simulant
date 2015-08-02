@@ -437,7 +437,7 @@ void MonoAudioChannel::UpdateMouseZoomOut( int x, boost::posix_time::time_durati
 void MonoAudioChannel::Clear( void ) {
   // may need to check that play is not in progress by caller
   m_vSamples.clear();
-  if ( 0 != m_pwfv )  m_pwfv->SetSamples( &m_vSamples );  // need to reset waveform
+  //if ( 0 != m_pwfv )  m_pwfv->SetSamples( &m_vSamples );  // need to reset waveform
 }
 
 void MonoAudioChannel::SetChannel( unsigned int ix) {
@@ -455,7 +455,7 @@ void MonoAudioChannel::AppendToScenePanel( void ) {
   //m_pwfv = *m_resources.tree.m_signalAppendWaveformView();
   assert( 0 != m_pwfv );
   m_resources.tree.m_signalAppendView( m_pwfv, 3 );
-  m_pwfv->SetSamples( &m_vSamples );
+  //m_pwfv->SetSamples( &m_vSamples );
 
   m_pkfv = new KeyFrameView( m_resources.pScenePanel );
   //m_pkfv = *m_resources.tree.m_signalAppendKeyframeView();
@@ -555,7 +555,7 @@ void MonoAudioChannel::SendBuffer( void ) {
 
 void MonoAudioChannel::HandleDecodeComplete( void ) {
   std::cout << "Audio Decode Complete: " << m_nChannel << ", " << m_vSamples.size() << ", " << m_vSamples.size() << " samples" << std::endl;
-  if ( 0 != m_pwfv )  m_pwfv->SetSamples( &m_vSamples );  
+  //if ( 0 != m_pwfv )  m_pwfv->SetSamples( &m_vSamples );  
   //m_pwfvFrontLeft->Refresh();
 }
 
@@ -2663,6 +2663,7 @@ void TreeItemScene::ShowContextMenu( void ) {  // need scene elements instead on
   m_resources.tree.PopupMenu( pMenu );
 }
 
+// as a SceneElement is added to the scene, attach to its events for processing
 void TreeItemScene::ConnectToEvents( TreeItemSceneElementBase* p ) {
   namespace args = boost::phoenix::arg_names;
   p->m_signalSelectionEventSetSelected.connect( boost::phoenix::bind( &TreeItemScene::HandleSetSelected, this, args::arg1 ) );
@@ -2679,6 +2680,7 @@ void TreeItemScene::HandleMouseMotion( int x, int diff ) {
   assert( 0 != m_psv );
   m_psv->UpdateInteractiveCursor( x );
   m_psv->Refresh();
+  // update the cursor in the scene elements
   for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
     dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateInteractiveCursor( x );
   }
@@ -2690,6 +2692,7 @@ void TreeItemScene::HandleZoomIn( wxCoord x ) {
   tpm = m_psv->UpdateMouseZoomIn( x );
   m_psv->Refresh();
   //std::cout << "mouse zoom in" << std::endl;
+  // update each scene elements
   for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
     dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseZoomIn( x, tpm.tdWinStart, tpm.tdPixelWidth );
   }
@@ -2701,6 +2704,7 @@ void TreeItemScene::HandleZoomOut( wxCoord x ) {
   tpm = m_psv->UpdateMouseZoomOut( x );
   m_psv->Refresh();
   //std::cout << "mouse zoom out" << std::endl;
+  // update each scene elements
   for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
     dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseZoomOut( x, tpm.tdWinStart, tpm.tdPixelWidth );
   }
@@ -2712,6 +2716,7 @@ void TreeItemScene::HandleMouseShift( int diff ) {
   SceneView::TimePixelMapping tpm;
   tpm = m_psv->UpdateMouseShift( diff );
   m_psv->Refresh();
+  // update each scene elements
   for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
     dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseShift( diff, tpm.tdWinStart, tpm.tdPixelWidth );
   }
