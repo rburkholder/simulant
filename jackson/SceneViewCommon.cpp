@@ -285,55 +285,6 @@ void SceneViewCommon::UpdateInteractiveCursor( int x ) {
   //DrawTime( m_cursorInteractive, m_cursorInteractive.m_pointStatusText, TimeAtSample( x, 1, 44100 ) );
 }
 
-// gui thread
-void SceneViewCommon::UpdatePlayCursor( size_t nFramesPlayed ) {
-
-  wxClientDC dc( this );
-
-  if ( 0 != nFramesPlayed ) { // some frames played, so move/display cursor
-    Cursor& cursor( m_cursorPlay );
-    if ( cursor.m_ixFrame != nFramesPlayed ) {  // cursor has moved, so update
-      vVertical_t::const_iterator iter = std::lower_bound( m_vVertical.begin(), m_vVertical.end(), nFramesPlayed );
-      if ( m_vVertical.end() == iter ) { // error if can't find something
-                                         // don't do anything, play may continue with nothing to play
-      }
-      else { // something found
-        bool bCanDrawCursor( true );
-        if ( iter->index > nFramesPlayed ) { // if found vertical has value greater than frame, need to back up
-          if ( m_vVertical.begin() == iter ) {  // check if can back up
-                                                // means cursor is off left end so don't draw anything
-            bCanDrawCursor = false;
-          }
-          else {
-            --iter; // backup
-            assert( iter->index <= nFramesPlayed ); // and test that things are now fine
-          }
-        }
-        if ( bCanDrawCursor ) {
-          size_t n = iter - m_vVertical.begin(); // index into the vector for cursor calc
-          if ( n != cursor.m_locCursor ) { // cursor location has changed 
-            UnDrawCursor( dc, m_cursorPlay );
-            SceneViewCommon::DrawCursor( dc, n, m_cursorPlay );
-            cursor.m_ixFrame = nFramesPlayed;
-          }
-        }
-        wxPoint point( m_cursorPlay.m_pointStatusText );
-        DrawTime( m_cursorPlay, point, TimeAtSample( nFramesPlayed, 1, 44100 ) );
-        point.y += 13;
-        //
-        // ** this needs to be migrated to WaveformView
-//        size_t size( m_pvSamples->size() );
-//        if ( nFramesPlayed <= size ) {
-//          DrawTime( m_cursorPlay, point, TimeAtSample( size - nFramesPlayed, 1, 44100 ) );
-//        }
-//        else {
-//          EraseTime( m_cursorPlay, point );
-//        }
-      }
-    }
-  }
-}
-
 void SceneViewCommon::HandleMouseRightUp( wxMouseEvent& event ) {
   m_pointLatestMouse = event.GetPosition();
   this->PopupMenu( m_pContextMenu );

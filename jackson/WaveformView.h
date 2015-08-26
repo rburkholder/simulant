@@ -7,6 +7,16 @@
 
 #pragma once
 
+// 2015/08/02 this is currently a full waveform view in the scene view elements.
+//   this structure ultimately needs to be segretated into two portions:
+//   1) a clip describing the begin/end of displayed waveform
+//   2) waveform viewer containing 0, 1, or more waveform clips
+//   ultimately, this should simply draw the contained waveform in a provided visual space
+//   but for the meantime, to get the view working properly:
+//     a single waveform is present, is 00:00:00 based, and full length
+//
+//   clips in one waveform view are non-overlapping
+
 #include <vector>
 
 #include <boost/shared_ptr.hpp>
@@ -59,6 +69,8 @@ public:
   
   virtual void UnDrawCursor( wxClientDC& dc, Cursor& cursor );
   
+  void UpdatePlayCursor( size_t nFramesPlayed );
+  
 protected:
 private:
   
@@ -67,6 +79,19 @@ private:
     ID_CONTROLWAVEFORMVIEW
   };
   
+  // **** used in UpdatePlayCursor, need to update play cursor in waveform instead
+  struct Vertical { // tracks a line for pixel width of the waveform
+    size_t index;  // index into supplied waveform in m_pvSamples
+    int16_t sampleMin;  // value we want to show  ( may use floats (6 digits) or double (15 digits) for everything )
+    int16_t sampleMax;
+    bool operator<( size_t rhs ) const { return ( index < rhs ); }
+    bool operator<( const Vertical& rhs ) const { return index < rhs.index; }
+    Vertical( void ): index( 0 ), sampleMin( 0 ), sampleMax( 0 ) {}
+  };
+
+  typedef std::vector<Vertical> vVertical_t;
+  vVertical_t m_vVertical;  // contains waveform sub-samples
+
   bool m_bMouseLeftDown;
   wxRect m_rectLast;
   

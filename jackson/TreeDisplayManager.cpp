@@ -398,7 +398,7 @@ void MonoAudioChannel::UpdateInteractiveCursor( int x ) {
 
 void MonoAudioChannel::UpdatePlayCursor( int x ) {
   if ( 0 != m_pwfv ) m_pwfv->UpdatePlayCursor( x );
-  if ( 0 != m_pkfv ) m_pkfv->UpdatePlayCursor( x );
+  //if ( 0 != m_pkfv ) m_pkfv->UpdatePlayCursor( x );  // 2015/08/02 temporary comment out, will require different type of update
 }
 
 void MonoAudioChannel::UpdateMouseShift( int diff, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
@@ -2078,7 +2078,7 @@ void TreeItemVideo::HandleAudio( AVSampleFormat format, void* buffers, int nChan
         boost::strict_lock<AudioQueue<int16_t> > guardRight( *m_pAudioQueueRight );
         m_pAudioQueueRight->AddSamples( nSamples, pSamples[1], guardRight );
       }
-        break;
+      break;
     }
     
   }

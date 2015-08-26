@@ -7,8 +7,6 @@
 
 #pragma once
 
-#include <boost/signals2.hpp>
-
 #include "SceneViewCommon.h"
 
 #define SYMBOL_CONTROLSCENEVIEW_STYLE wxTAB_TRAVERSAL
@@ -37,16 +35,7 @@ public:
           long style = SYMBOL_CONTROLSCENEVIEW_STYLE );
   ~SceneView( );
   
-  struct TimePixelMapping {
-    boost::posix_time::time_duration tdWinStart;  // first pixel starts at this time, 00:00;00 is minimum
-    boost::posix_time::time_duration tdPixelWidth;  // each pixel represents this duration
-    TimePixelMapping( void ) {
-      static boost::posix_time::time_duration tdOneSecond = boost::posix_time::seconds( 1 );
-      tdWinStart = boost::posix_time::time_duration( 0, 0, 0 );
-      tdPixelWidth = tdOneSecond; // to start, one pixel is one second of waveform or video
-      //m_tdPixelWidth = tdOneSecond / 100;  // 100 frames per second, one frame per pixel to start
-    }
-  };
+  boost::posix_time::time_duration GetPixelWidth( void ) { return m_tdTimePixelMapping.tdPixelWidth; }
 
   // in: pixel offset, out: time begin, pixel width
   TimePixelMapping UpdateMouseZoomIn( const int x );
@@ -72,11 +61,6 @@ private:
     ID_CONTROLSCENEVIEW
   };
 
-  // these two will be retired
-  //boost::posix_time::time_duration m_tdWinStart;
-  //boost::posix_time::time_duration m_tdPixelWidth;
-  TimePixelMapping m_tdTimePixelMapping;
-  
   wxMenu* m_pContextMenu;
 
   void DrawLegend( wxClientDC& dc );

@@ -15,7 +15,7 @@
 #include <wx/dcclient.h>
 
 #define SYMBOL_SCENEVIEWCOMMON_STYLE wxTAB_TRAVERSAL
-#define SYMBOL_SCENEVIEWCOMMON_TITLE _("WaveFormView")
+#define SYMBOL_SCENEVIEWCOMMON_TITLE _("SceneViewCommon")
 #define SYMBOL_SCENEVIEWCOMMON_IDNAME ID_SCENEVIEWCOMMON
 #define SYMBOL_SCENEVIEWCOMMON_SIZE wxSize(100, 50)
 #define SYMBOL_SCENEVIEWCOMMON_POSITION wxDefaultPosition
@@ -33,6 +33,16 @@ public:
   typedef boost::signals2::signal<void (wxCoord)> signalMouseWheel_t;
   typedef signalMouseWheel_t::slot_type slotMouseWheel_t;
 
+  struct TimePixelMapping {
+    boost::posix_time::time_duration tdWinStart;  // first pixel starts at this time, 00:00;00 is minimum
+    boost::posix_time::time_duration tdPixelWidth;  // each pixel represents this duration
+    TimePixelMapping( void ) {
+      tdWinStart = boost::posix_time::time_duration( 0, 0, 0 );
+      tdPixelWidth = boost::posix_time::seconds( 1 ); // to start, one pixel is one second of waveform or video
+      //m_tdPixelWidth = tdOneSecond / 100;  // 100 frames per second, one frame per pixel to start
+    }
+  };
+  
   SceneViewCommon( );
   SceneViewCommon( 
     wxWindow* parent, 
@@ -58,7 +68,6 @@ public:
   signalMouseWheel_t m_signalZoomOut; // zoom out
 
   void UpdateInteractiveCursor( int x );
-  void UpdatePlayCursor( size_t nFramesPlayed );
   
   virtual void UpdateMouseZoomIn( const int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {}  // need to pass the time begin, pixel width structure
   virtual void UpdateMouseZoomOut( const int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {}
@@ -82,22 +91,10 @@ protected:
       m_colourCursor( wxColour( 255,255,255 ) ) {}
   };
 
-  // **** maybe this should be in waveform only, is this used elsewhere?
-  // **** used in UpdatePlayCursor, need to update play cursor in waveform instead
-  struct Vertical { // tracks a line for pixel width of the waveform
-    size_t index;  // index into supplied waveform in m_pvSamples
-    int16_t sampleMin;  // value we want to show  ( may use floats (6 digits) or double (15 digits) for everything )
-    int16_t sampleMax;
-    bool operator<( size_t rhs ) const { return ( index < rhs ); }
-    bool operator<( const Vertical& rhs ) const { return index < rhs.index; }
-    Vertical( void ): index( 0 ), sampleMin( 0 ), sampleMax( 0 ) {}
-  };
-
   static const std::string sZeroTime;
 
-  typedef std::vector<Vertical> vVertical_t;
-  vVertical_t m_vVertical;  // contains waveform sub-samples
-
+  TimePixelMapping m_tdTimePixelMapping;
+  
   wxColour m_colourBackground;
 
   Cursor m_cursorInteractive;

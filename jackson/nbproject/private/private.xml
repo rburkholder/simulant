@@ -43,8 +43,11 @@
             <file>file:/home/rpb/projects/simulant/jackson/MediaStreamDecode.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/WaveformView.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/SceneManager.h</file>
-            <file>file:/home/rpb/projects/simulant/jackson/SceneView.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/SceneViewCommon.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/SceneView.cpp</file>
+        </group>
+        <group>
+            <file>file:/home/rpb/projects/simulant/jackson/FpsGenerator.h</file>
         </group>
     </open-files>
 </project-private>
