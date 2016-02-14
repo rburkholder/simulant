@@ -38,8 +38,7 @@ bool PanelSurfaceSources::Create( wxWindow* parent, wxWindowID id, const wxPoint
   wxPanel::Create( parent, id, pos, size, style );
 
   CreateControls();
-  if (GetSizer())
-  {
+  if (GetSizer()) {
     GetSizer()->SetSizeHints(this);
   }
   Centre();

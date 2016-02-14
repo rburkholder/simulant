@@ -1,9 +1,58 @@
+2016/02/14
+
+
+
+
+2016/01/17
+include files are in:
+/usr/include/x86_64-linux-gnu/
+
+mid 2015, debian switched from libav to ffmpeg, so:
+apt-get install ffmpeg-doc ffmpeg-dbg libavcodec-dev libavformat-dev libavresample-dev libavutil-dev libpostproc-dev libswresample-dev libswscale-dev libavfilter-dev libavdevice-dev
+
+
+
+wget https://github.com/g-truc/glm/releases/download/0.9.7.2/glm-0.9.7.2.zip
+unzip glm-0.9.7.2.zip
+mv glm/glm /usr/local/include
+
+
+trying out http://www.openal-soft.org/
+docs at http://www.openal.org/documentation/
+
+  542  wget http://www.openal-soft.org/openal-releases/openal-soft-1.17.1.tar.bz2
+  544  cd t
+  552  bzip2 -d ../openal-soft-1.17.1.tar.bz2 
+  555  tar xvf ../openal-soft-1.17.1.tar 
+  557  cd openal-soft-1.17.1/
+  561  cd build/
+  571  apt-get install libpulse-dev
+  572  cmake ..
+  573  make
+  574  ./openal-info 
+
+
+2015/10/11
+
+apt-get install libgtk-3-dev
+
+currently wxwidgets 3.0.2
+
+mkdir buildNormal
+cd buildNormal
+../configure --enable-threads --with-gtk=3 --enable-stl  --with-opengl    CXXFLAGS=-Ofast
+make
+sudo make install
+
 2015/07/18
 libav files (note debian is going back to ffmpeg, should i also?)
 https://lists.ffmpeg.org/pipermail/libav-user/2011-September/000624.html  -=- seeking in media file
 http://ffmpeg.org/pipermail/libav-user/2012-July/002491.html
 https://libav.org/documentation/doxygen/master/index.html
 
+
+wx_gtk3u_gl-3.1
+SOIL
 
 
 2015/07/11
@@ -30,7 +79,7 @@ GL, wt_gtk3u_gl-3.1, GLU, SOIL, bz2, rtaudio
 
 
 2015/05/23
-apt-get install librtaudio-dev
+apt-get install librtaudio4v5 librtaudio-dev
 
 
 2015/05/03

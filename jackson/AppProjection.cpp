@@ -159,7 +159,6 @@ void AppProjection::MediaFileStats( void ) {
       media.Close();
     }
     
-    
   }
   else {
     

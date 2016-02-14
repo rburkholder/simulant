@@ -135,6 +135,9 @@
         <ccTool>
           <architecture>2</architecture>
           <standard>8</standard>
+          <incDir>
+            <pElem>/usr/include/x86_64-linux-gnu/</pElem>
+          </incDir>
           <commandLine>`/usr/local/bin/wx-config --cxxflags`</commandLine>
           <preprocessorList>
             <Elem>BOOST_FILESYSTEM_NO_DEPRECATED</Elem>
@@ -154,17 +157,16 @@
             <linkerLibLibItem>z</linkerLibLibItem>
             <linkerLibLibItem>pthread</linkerLibLibItem>
             <linkerLibLibItem>png</linkerLibLibItem>
-            <linkerLibLibItem>boost_system</linkerLibLibItem>
-            <linkerLibLibItem>boost_thread</linkerLibLibItem>
-            <linkerLibLibItem>boost_chrono</linkerLibLibItem>
+            <linkerLibLibItem>boost_system-gcc52-mt-d-1_59</linkerLibLibItem>
+            <linkerLibLibItem>boost_thread-gcc52-mt-d-1_59</linkerLibLibItem>
+            <linkerLibLibItem>boost_chrono-gcc52-mt-d-1_59</linkerLibLibItem>
             <linkerLibLibItem>GL</linkerLibLibItem>
-            <linkerLibLibItem>wx_gtk3u_gl-3.1</linkerLibLibItem>
             <linkerLibLibItem>GLU</linkerLibLibItem>
-            <linkerLibLibItem>SOIL</linkerLibLibItem>
-            <linkerLibLibItem>boost_filesystem</linkerLibLibItem>
+            <linkerLibLibItem>boost_filesystem-gcc52-mt-d-1_59</linkerLibLibItem>
             <linkerLibLibItem>bz2</linkerLibLibItem>
             <linkerLibLibItem>rtaudio</linkerLibLibItem>
-            <linkerLibLibItem>boost_serialization</linkerLibLibItem>
+            <linkerLibLibItem>boost_serialization-gcc52-mt-d-1_59</linkerLibLibItem>
+            <linkerLibLibItem>wx_gtk3u_gl-3.0</linkerLibLibItem>
           </linkerLibItems>
           <commandLine>`/usr/local/bin/wx-config --libs`</commandLine>
         </linkerTool>

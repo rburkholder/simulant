@@ -77,7 +77,7 @@ public:
   
   struct TreeItemResources {  // used by inheritors of TreeItemBase
 
-    TreeDisplayManager&  tree;  // used for assigning the popup, plus other base class functions, eg for binding, etc
+    TreeDisplayManager& tree;  // used for assigning the popup, plus other base class functions, eg for binding, etc
     std::string sCurrentPath;
     TreeDisplayManager::pAudio_t pAudio;  // kept in AppProjection
     

@@ -6,14 +6,6 @@
     </data>
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="6">
         <file>
-            <url>tex2.cpp</url>
-            <bookmark id="1">
-                <name/>
-                <line>67</line>
-                <key/>
-            </bookmark>
-        </file>
-        <file>
             <url>TreeDisplayManager.cpp</url>
             <bookmark id="4">
                 <name/>
@@ -26,28 +18,32 @@
                 <key/>
             </bookmark>
         </file>
+        <file>
+            <url>tex2.cpp</url>
+            <bookmark id="1">
+                <name/>
+                <line>67</line>
+                <key/>
+            </bookmark>
+        </file>
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group/>
+        <group name="Free Group">
+            <file>file:/home/rpb/projects/simulant/jackson/AppProjection.cpp</file>
+        </group>
         <group name="simulant">
-            <file>file:/home/rpb/projects/simulant/jackson/KeyFrameView.h</file>
-            <file>file:/home/rpb/projects/simulant/jackson/SceneViewCommon.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/TreeDisplayManager.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/TreeDisplayManager.h</file>
-            <file>file:/home/rpb/projects/simulant/jackson/SceneView.h</file>
-            <file>file:/home/rpb/projects/simulant/jackson/AppProjection.cpp</file>
-            <file>file:/home/rpb/projects/simulant/jackson/TimeLine.h</file>
-            <file>file:/home/rpb/projects/simulant/jackson/WaveformView.h</file>
-            <file>file:/home/rpb/projects/simulant/jackson/AppProjection.h</file>
-            <file>file:/home/rpb/projects/simulant/jackson/KeyFrameView.cpp</file>
-            <file>file:/home/rpb/projects/simulant/jackson/notes.txt</file>
-            <file>file:/home/rpb/projects/simulant/jackson/MediaStreamDecode.cpp</file>
-            <file>file:/home/rpb/projects/simulant/jackson/WaveformView.cpp</file>
-            <file>file:/home/rpb/projects/simulant/jackson/SceneManager.h</file>
-            <file>file:/home/rpb/projects/simulant/jackson/SceneViewCommon.h</file>
-            <file>file:/home/rpb/projects/simulant/jackson/SceneView.cpp</file>
         </group>
-        <group>
-            <file>file:/home/rpb/projects/simulant/jackson/FpsGenerator.h</file>
+        <group name="Simulant">
+            <file>file:/home/rpb/projects/simulant/jackson/AppProjection.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/AppProjection.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/TreeDisplayManager.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/PanelSurfaceSources.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/PanelSurfaceSources.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/TreeDisplayManager.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/MediaStreamDecode.h</file>
         </group>
     </open-files>
 </project-private>

@@ -95,7 +95,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-lavdevice -lavfilter -lavformat -lavcodec -lavresample -lavutil -lswscale -lz -lpthread -lpng -lboost_system -lboost_thread -lboost_chrono -lGL -lwx_gtk3u_gl-3.1 -lGLU -lSOIL -lboost_filesystem -lbz2 -lrtaudio -lboost_serialization
+LDLIBSOPTIONS=-lavdevice -lavfilter -lavformat -lavcodec -lavresample -lavutil -lswscale -lz -lpthread -lpng -lboost_system-gcc52-mt-d-1_59 -lboost_thread-gcc52-mt-d-1_59 -lboost_chrono-gcc52-mt-d-1_59 -lGL -lGLU -lboost_filesystem-gcc52-mt-d-1_59 -lbz2 -lrtaudio -lboost_serialization-gcc52-mt-d-1_59 -lwx_gtk3u_gl-3.0
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -108,222 +108,222 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/jackson: ${OBJECTFILES}
 ${OBJECTDIR}/AppProjection.o: AppProjection.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AppProjection.o AppProjection.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AppProjection.o AppProjection.cpp
 
 ${OBJECTDIR}/AspectRatio.o: AspectRatio.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AspectRatio.o AspectRatio.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AspectRatio.o AspectRatio.cpp
 
 ${OBJECTDIR}/Audio.o: Audio.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Audio.o Audio.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Audio.o Audio.cpp
 
 ${OBJECTDIR}/AudioQueue.o: AudioQueue.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AudioQueue.o AudioQueue.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AudioQueue.o AudioQueue.cpp
 
 ${OBJECTDIR}/CanvasBase.o: CanvasBase.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/CanvasBase.o CanvasBase.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/CanvasBase.o CanvasBase.cpp
 
 ${OBJECTDIR}/CanvasOpenGL.o: CanvasOpenGL.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/CanvasOpenGL.o CanvasOpenGL.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/CanvasOpenGL.o CanvasOpenGL.cpp
 
 ${OBJECTDIR}/ConsoleStream.o: ConsoleStream.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/ConsoleStream.o ConsoleStream.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/ConsoleStream.o ConsoleStream.cpp
 
 ${OBJECTDIR}/Cue.o: Cue.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Cue.o Cue.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Cue.o Cue.cpp
 
 ${OBJECTDIR}/CueList.o: CueList.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/CueList.o CueList.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/CueList.o CueList.cpp
 
 ${OBJECTDIR}/DecodeH264.o: DecodeH264.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/DecodeH264.o DecodeH264.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/DecodeH264.o DecodeH264.cpp
 
 ${OBJECTDIR}/DndDropTarget.o: DndDropTarget.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/DndDropTarget.o DndDropTarget.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/DndDropTarget.o DndDropTarget.cpp
 
 ${OBJECTDIR}/DndSourceButton.o: DndSourceButton.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/DndSourceButton.o DndSourceButton.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/DndSourceButton.o DndSourceButton.cpp
 
 ${OBJECTDIR}/DndTargetButton.o: DndTargetButton.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/DndTargetButton.o DndTargetButton.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/DndTargetButton.o DndTargetButton.cpp
 
 ${OBJECTDIR}/EventGenerateFrame.o: EventGenerateFrame.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/EventGenerateFrame.o EventGenerateFrame.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/EventGenerateFrame.o EventGenerateFrame.cpp
 
 ${OBJECTDIR}/EventImage.o: EventImage.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/EventImage.o EventImage.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/EventImage.o EventImage.cpp
 
 ${OBJECTDIR}/FpsGenerator.o: FpsGenerator.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/FpsGenerator.o FpsGenerator.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/FpsGenerator.o FpsGenerator.cpp
 
 ${OBJECTDIR}/FrameMain.o: FrameMain.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/FrameMain.o FrameMain.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/FrameMain.o FrameMain.cpp
 
 ${OBJECTDIR}/FrameProjection.o: FrameProjection.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/FrameProjection.o FrameProjection.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/FrameProjection.o FrameProjection.cpp
 
 ${OBJECTDIR}/InteractiveTransform.o: InteractiveTransform.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/InteractiveTransform.o InteractiveTransform.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/InteractiveTransform.o InteractiveTransform.cpp
 
 ${OBJECTDIR}/KeyFrameDiamond.o: KeyFrameDiamond.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/KeyFrameDiamond.o KeyFrameDiamond.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/KeyFrameDiamond.o KeyFrameDiamond.cpp
 
 ${OBJECTDIR}/KeyFrameView.o: KeyFrameView.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/KeyFrameView.o KeyFrameView.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/KeyFrameView.o KeyFrameView.cpp
 
 ${OBJECTDIR}/MediaStreamDecode.o: MediaStreamDecode.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/MediaStreamDecode.o MediaStreamDecode.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/MediaStreamDecode.o MediaStreamDecode.cpp
 
 ${OBJECTDIR}/Outline.o: Outline.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Outline.o Outline.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Outline.o Outline.cpp
 
 ${OBJECTDIR}/PanelLogging.o: PanelLogging.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/PanelLogging.o PanelLogging.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/PanelLogging.o PanelLogging.cpp
 
 ${OBJECTDIR}/PanelSurfaceSources.o: PanelSurfaceSources.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/PanelSurfaceSources.o PanelSurfaceSources.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/PanelSurfaceSources.o PanelSurfaceSources.cpp
 
 ${OBJECTDIR}/PhysicalDisplay.o: PhysicalDisplay.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/PhysicalDisplay.o PhysicalDisplay.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/PhysicalDisplay.o PhysicalDisplay.cpp
 
 ${OBJECTDIR}/RawImage.o: RawImage.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/RawImage.o RawImage.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/RawImage.o RawImage.cpp
 
 ${OBJECTDIR}/ReusableBuffers.o: ReusableBuffers.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/ReusableBuffers.o ReusableBuffers.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/ReusableBuffers.o ReusableBuffers.cpp
 
 ${OBJECTDIR}/SEGrid.o: SEGrid.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SEGrid.o SEGrid.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SEGrid.o SEGrid.cpp
 
 ${OBJECTDIR}/SETexture.o: SETexture.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SETexture.o SETexture.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SETexture.o SETexture.cpp
 
 ${OBJECTDIR}/Scene.o: Scene.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Scene.o Scene.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Scene.o Scene.cpp
 
 ${OBJECTDIR}/SceneElement.o: SceneElement.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneElement.o SceneElement.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneElement.o SceneElement.cpp
 
 ${OBJECTDIR}/SceneElementOpenGL.o: SceneElementOpenGL.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneElementOpenGL.o SceneElementOpenGL.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneElementOpenGL.o SceneElementOpenGL.cpp
 
 ${OBJECTDIR}/SceneManager.o: SceneManager.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneManager.o SceneManager.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneManager.o SceneManager.cpp
 
 ${OBJECTDIR}/SceneView.o: SceneView.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneView.o SceneView.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneView.o SceneView.cpp
 
 ${OBJECTDIR}/SceneViewCommon.o: SceneViewCommon.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneViewCommon.o SceneViewCommon.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneViewCommon.o SceneViewCommon.cpp
 
 ${OBJECTDIR}/ShaderManager.o: ShaderManager.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/ShaderManager.o ShaderManager.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/ShaderManager.o ShaderManager.cpp
 
 ${OBJECTDIR}/TimeLine.o: TimeLine.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/TimeLine.o TimeLine.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/TimeLine.o TimeLine.cpp
 
 ${OBJECTDIR}/TimeLineView.o: TimeLineView.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/TimeLineView.o TimeLineView.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/TimeLineView.o TimeLineView.cpp
 
 ${OBJECTDIR}/TreeDisplayManager.o: TreeDisplayManager.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/TreeDisplayManager.o TreeDisplayManager.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/TreeDisplayManager.o TreeDisplayManager.cpp
 
 ${OBJECTDIR}/WaveformView.o: WaveformView.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/WaveformView.o WaveformView.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/WaveformView.o WaveformView.cpp
 
 ${OBJECTDIR}/tex1.o: tex1.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/tex1.o tex1.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/tex1.o tex1.cpp
 
 ${OBJECTDIR}/tex2.o: tex2.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/tex2.o tex2.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/tex2.o tex2.cpp
 
 ${OBJECTDIR}/tut1.o: tut1.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/tut1.o tut1.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/tut1.o tut1.cpp
 
 # Subprojects
 .build-subprojects:
