@@ -476,6 +476,7 @@ void MonoAudioChannel::AppendToScenePanel( void ) {
 }
 
 void MonoAudioChannel::DetachFromScenePanel( void ) {
+  // when are m_pwfv and m_pkfv deleted/destroyed?
   m_pwfv = 0;
   m_pkfv = 0;
 }

@@ -96,6 +96,7 @@ protected:
   TimePixelMapping m_tdTimePixelMapping;
   
   wxColour m_colourBackground;
+  wxColour m_colourText;
 
   Cursor m_cursorInteractive;
   Cursor m_cursorPlay;

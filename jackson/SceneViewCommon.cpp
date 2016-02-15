@@ -33,6 +33,8 @@ void SceneViewCommon::Init() {
   //m_nSamplesInWindow = 0;
   //std::cout << "SceneViewCommon colour" << std::endl;
   m_colourBackground = wxColour( 0, 0, 0 );
+  
+  m_colourText = wxColour( 255, 255, 255 ); // cursor time for now
 
   m_colourName = wxColour( 255, 255, 255 );
   m_pointName = wxPoint( 2, 2 );
@@ -112,8 +114,8 @@ void SceneViewCommon::HandlePaint( wxPaintEvent& event ) {
 
   wxPaintDC dc(this);
   wxRect rectClientArea( this->GetClientRect() );
-  int width( rectClientArea.GetWidth() );
-  int height( rectClientArea.GetHeight() );
+  //int width( rectClientArea.GetWidth() );
+  //int height( rectClientArea.GetHeight() );
   wxBrush brush( dc.GetBrush() );
   brush.SetColour( m_colourBackground );
   dc.SetBrush( brush );
@@ -244,34 +246,40 @@ void SceneViewCommon::DrawTime( const Cursor& cursor, const wxPoint& point, cons
   DrawTime( cursor.m_colourCursor, point, sTime );
 }
 
+namespace {
+  void EraseRectangle( wxClientDC& dc, const wxRect& rect, const wxColour& colour ) {
+    // brush fills in rectangle
+    wxBrush brush( dc.GetBrush() );
+    brush.SetColour( colour );
+    dc.SetBrush( brush );
+    // pen eliminates border of rectangle
+    wxPen pen( dc.GetPen() );
+    pen.SetColour( colour );
+    dc.SetPen( pen );
+    //dc.SetTextBackground( m_colourBackground );
+    dc.DrawRectangle( rect );
+  }
+}
+
 void SceneViewCommon::DrawTime( wxColour colourText, const wxPoint& point, const std::string& sTime, bool bErase ) {
   wxClientDC dc( this );
+  wxPen pen( dc.GetPen() );
   if ( bErase ) {
-    wxBrush brush( dc.GetBrush() );
-    wxPen pen( dc.GetPen() );
-    wxSize sizeText = dc.GetTextExtent( sTime );
-    brush.SetColour( m_colourBackground );
-    dc.SetBrush( brush );
-    pen.SetColour( m_colourBackground );
-    dc.SetPen( pen );
-    dc.DrawRectangle( point, sizeText );
+    const wxSize size = dc.GetTextExtent( sZeroTime );
+    const wxRect rect( point, size );
+    EraseRectangle( dc, rect, m_colourBackground );
   }
-  dc.SetTextBackground( m_colourBackground );
-  dc.SetTextForeground( colourText );
+  //dc.SetTextBackground( wxColour( 255, 0, 0 ) );  // doesn't appear to do anything
+  //dc.SetTextForeground( wxColour( 0, 255, 0 ) );
+  dc.SetTextForeground( colourText );  // sets colour of text
   dc.DrawText( sTime, point );
 }
 
 void SceneViewCommon::EraseTime( Cursor& cursor, wxPoint& point ) {
   //static const std::string s( "00:00:00.000000");
   wxClientDC dc( this );
-  wxSize size = dc.GetTextExtent( sZeroTime );
-  wxBrush brush( dc.GetBrush() );
-  brush.SetColour( m_colourBackground );
-  dc.SetBrush( brush );
-  wxPen pen( dc.GetPen() );
-  pen.SetColour( m_colourBackground );
-  dc.SetPen( pen );
-  dc.DrawRectangle( point, size );
+  const wxSize size( dc.GetTextExtent( sZeroTime ) );
+  EraseRectangle( dc, wxRect( point, size ), m_colourBackground );
 }
 
 void SceneViewCommon::UpdateInteractiveCursor( int x ) {

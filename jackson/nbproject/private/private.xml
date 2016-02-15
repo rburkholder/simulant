@@ -9,12 +9,12 @@
             <url>TreeDisplayManager.cpp</url>
             <bookmark id="4">
                 <name/>
-                <line>842</line>
+                <line>843</line>
                 <key/>
             </bookmark>
             <bookmark id="5">
                 <name/>
-                <line>1225</line>
+                <line>1226</line>
                 <key/>
             </bookmark>
         </file>
@@ -39,11 +39,19 @@
         <group name="Simulant">
             <file>file:/home/rpb/projects/simulant/jackson/AppProjection.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/AppProjection.h</file>
-            <file>file:/home/rpb/projects/simulant/jackson/TreeDisplayManager.h</file>
-            <file>file:/home/rpb/projects/simulant/jackson/PanelSurfaceSources.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/PanelSurfaceSources.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/KeyFrameView.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/WaveformView.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/SceneViewCommon.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/KeyFrameView.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/TreeDisplayManager.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/WaveformView.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/SceneView.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/SceneManager.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/SceneViewCommon.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/PanelSurfaceSources.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/SceneView.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/TreeDisplayManager.cpp</file>
-            <file>file:/home/rpb/projects/simulant/jackson/MediaStreamDecode.h</file>
         </group>
     </open-files>
 </project-private>

@@ -73,7 +73,9 @@ void SceneView::CreateControls() {
   
 }
 
-void SceneView::HandlePaint( wxPaintEvent& event ) {
+// how often does this need to be called?
+// maybe keep track of changes, and not process so often
+void SceneView::HandlePaint( wxPaintEvent& event ) {  
   SceneViewCommon::HandlePaint( event );
   wxPaintDC dc(this);
   DrawLegend( dc );
@@ -81,7 +83,7 @@ void SceneView::HandlePaint( wxPaintEvent& event ) {
 
 void SceneView::UnDrawCursor( wxClientDC& dc, Cursor& cursor ) {
   SceneViewCommon::UnDrawCursor( dc, cursor );
-  DrawLegend( dc );
+  //DrawLegend( dc );
 }
 
 void SceneView::DrawTime( const std::string& sTime ) {
@@ -92,27 +94,34 @@ void SceneView::DrawTime( const std::string& sTime ) {
 void SceneView::DrawLegend( wxClientDC& dc ) {
 
   std::stringstream ss;
-
+  
+  boost::posix_time::time_input_facet *input_facet;
+  input_facet = new boost::posix_time::time_input_facet();
+  // fractional seconds are supposed to always show, but aren't
+  input_facet->format( "%H:%M:%S.%f" );  // http://www.boost.org/doc/libs/1_60_0/doc/html/date_time/date_time_io.html
+  ss.imbue( std::locale( ss.getloc(), input_facet ) );
+  
   wxRect rect = GetClientRect();
 
   // text sizing calcs
-  wxSize sizeText = dc.GetTextExtent( SceneViewCommon::sZeroTime );
+  wxSize sizeText = dc.GetTextExtent( SceneViewCommon::sZeroTime + " " );
   int widthText = sizeText.GetWidth();
   int widthTextBy2 = widthText / 2;
   
   // play with drawing time ticks
   if ( ( 0 < widthText ) && ( 10 < rect.width ) ) {  // non zero width text and at least 10 pixel widths to draw
-    int nTextExtents = rect.width / ( widthText + 4 );  // how many ticks can we draw
+    int nTextExtents = rect.width / ( widthText );  // how many ticks can we draw
     if ( ( 0 < nTextExtents ) && ( 4 <= rect.height ) ) { // there are some extents to draw, and some height to draw them in
 
-      // prep tick locations
-      int top = std::min<int>( rect.height, rect.height - 10 );  // might not be set quite right for x pixel high tic
-      top = std::max<int>( 1, top );
+      // ticks are 10 pixels
+      // prep tick locations, top of rect is 0,0, need to reference bottom of rectangle
       int bot = rect.height - 1;
+      int top = bot - std::min<int>( 10, rect.height / 2 ); // max 10 pixels high
 
       // will need work on normalizing values, but at least get some sort of value in place for now
       // ticks start at 1/2 size of extent
       boost::posix_time::time_duration td;
+      // 2 is for pixels to left border
       for ( int ix = widthTextBy2 + 2; ix < ( rect.width - widthTextBy2 + 2 ); ix += widthText + 2 ) {
         
         // draw tick
@@ -127,7 +136,8 @@ void SceneView::DrawLegend( wxClientDC& dc ) {
           ss.str( std::string() );
           ss << td;
           std::string s( ss.str() );
-          SceneViewCommon::DrawTime( wxColour( 0, 0, 0 ), wxPoint( ix - widthTextBy2, 2 ), s );
+          // colour for the tick mark legend, and is black
+          SceneViewCommon::DrawTime( wxColour( 0, 0, 0 ), wxPoint( ix - widthTextBy2, top - 1 - sizeText.GetHeight() ), s );
         }
       }
     }
