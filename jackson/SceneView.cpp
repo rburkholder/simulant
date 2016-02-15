@@ -71,6 +71,9 @@ void SceneView::CreateControls() {
   //m_pContextMenu->Append( MIPaste, "Paste Settings" );
   //m_pContextMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &KeyFrameView::HandlePaste, this, MIPaste );
   
+  
+  wxClientDC dc( this );
+  DrawLegend( dc );
 }
 
 // how often does this need to be called?
@@ -78,7 +81,29 @@ void SceneView::CreateControls() {
 void SceneView::HandlePaint( wxPaintEvent& event ) {  
   SceneViewCommon::HandlePaint( event );
   wxPaintDC dc(this);
-  DrawLegend( dc );
+  DrawLegend( dc );  // todo:  may only need this on mouse translation or scaling, plus on init
+}
+
+void SceneView::UpdateInteractiveCursor( int x ) {
+  wxClientDC dc( this );
+  //this->DrawName( dc );
+  // change the following to  use dc at some point
+  //UnDrawCursor(dc, m_cursorInteractive );
+  //DrawCursor( dc, x, m_cursorInteractive );
+
+  // need this in SceneView only
+  //DrawTime( m_cursorInteractive, m_cursorInteractive.m_pointStatusText, TimeAtSample( x, 1, 44100 ) );
+  
+  boost::posix_time::time_duration td;
+  td = m_tdTimePixelMapping.tdWinStart + m_tdTimePixelMapping.tdPixelWidth * x;
+  
+  std::stringstream ss;
+  
+  ss << td;
+  std::string s( ss.str() );
+  //SceneViewCommon::DrawTime( wxColour( 0, 0, 0 ), wxPoint( 2, 2 ), s );
+  DrawTime( s );
+          
 }
 
 void SceneView::UnDrawCursor( wxClientDC& dc, Cursor& cursor ) {
@@ -144,6 +169,7 @@ void SceneView::DrawLegend( wxClientDC& dc ) {
   }
 }
 
+// takes cursor position in window, calculates and returns new window beginning and pixel width
 SceneView::TimePixelMapping SceneView::UpdateMouseZoomIn( const int x ) {
   
   assert( 0 <= x );
@@ -170,6 +196,7 @@ SceneView::TimePixelMapping SceneView::UpdateMouseZoomIn( const int x ) {
 
 }
 
+// takes cursor position in window, calculates and returns new window beginning and pixel width
 SceneView::TimePixelMapping SceneView::UpdateMouseZoomOut( const int x ) {
   
   assert( 0 <= x );
@@ -201,6 +228,7 @@ SceneView::TimePixelMapping SceneView::UpdateMouseZoomOut( const int x ) {
 
 }
 
+// takes cursor position in window, calculates and returns new window beginning and pixel width
 SceneView::TimePixelMapping SceneView::UpdateMouseShift( const int x ) {
 
   const wxRect rect = GetClientRect();

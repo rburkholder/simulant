@@ -2640,6 +2640,7 @@ void TreeItemScene::AppendToScenePanel( void ) {
 }
 
 void TreeItemScene::DetachFromScenePanel( void ) {
+  m_psv->Destroy();
   m_psv = 0;
 }
 
@@ -2680,7 +2681,7 @@ void TreeItemScene::HandleMouseMotion( int x, int diff ) {
   //std::cout << "mouse motion" << std::endl;
   assert( 0 != m_psv );
   m_psv->UpdateInteractiveCursor( x );
-  m_psv->Refresh();
+  //m_psv->Refresh();
   // update the cursor in the scene elements
   for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
     dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateInteractiveCursor( x );
@@ -2691,7 +2692,7 @@ void TreeItemScene::HandleZoomIn( wxCoord x ) {
   assert( 0 != m_psv );
   SceneView::TimePixelMapping tpm;
   tpm = m_psv->UpdateMouseZoomIn( x );
-  m_psv->Refresh();
+  //
   //std::cout << "mouse zoom in" << std::endl;
   // update each scene elements
   for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
@@ -2703,7 +2704,7 @@ void TreeItemScene::HandleZoomOut( wxCoord x ) {
   assert( 0 != m_psv );
   SceneView::TimePixelMapping tpm;
   tpm = m_psv->UpdateMouseZoomOut( x );
-  m_psv->Refresh();
+  //m_psv->Refresh();
   //std::cout << "mouse zoom out" << std::endl;
   // update each scene elements
   for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
@@ -2716,7 +2717,7 @@ void TreeItemScene::HandleMouseShift( int diff ) {
   assert( 0 != m_psv );
   SceneView::TimePixelMapping tpm;
   tpm = m_psv->UpdateMouseShift( diff );
-  m_psv->Refresh();
+  //m_psv->Refresh();
   // update each scene elements
   for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
     dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseShift( diff, tpm.tdWinStart, tpm.tdPixelWidth );

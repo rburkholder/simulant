@@ -67,7 +67,7 @@ public:
   signalMouseWheel_t m_signalZoomIn; // zoom in
   signalMouseWheel_t m_signalZoomOut; // zoom out
 
-  void UpdateInteractiveCursor( int x );
+  virtual void UpdateInteractiveCursor( int x );
   
   virtual void UpdateMouseZoomIn( const int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {}  // need to pass the time begin, pixel width structure
   virtual void UpdateMouseZoomOut( const int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {}
@@ -100,6 +100,8 @@ protected:
 
   Cursor m_cursorInteractive;
   Cursor m_cursorPlay;
+  
+  void EraseRectangle( wxClientDC& dc, const wxRect& rect, const wxColour& colour );
 
   void DrawCursor( wxClientDC& dc, int ix, Cursor& cursor ); // if < 0, don't draw
   static const std::string TimeAtSample( size_t nSample, size_t numerator, size_t denominator );

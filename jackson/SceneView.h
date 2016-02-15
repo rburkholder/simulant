@@ -44,15 +44,15 @@ public:
   
   void DrawTime( const std::string& sTime );
   
+  virtual void UpdateInteractiveCursor( int x );
+
 protected:
-
-
+  
   virtual void UnDrawCursor( wxClientDC& dc, Cursor& cursor );
 
-  //virtual void HandlePaint( wxPaintEvent& event ) { SceneViewCommon::HandlePaint( event ); }
   virtual void HandlePaint( wxPaintEvent& event );
-  virtual void HandleEraseBackground( wxEraseEvent& event ) { SceneViewCommon::HandleEraseBackground( event ); }
-  virtual void HandleSize( wxSizeEvent& event ) { SceneViewCommon::HandleSize( event ); }
+  //virtual void HandleEraseBackground( wxEraseEvent& event ) { SceneViewCommon::HandleEraseBackground( event ); }
+  //virtual void HandleSize( wxSizeEvent& event ) { SceneViewCommon::HandleSize( event ); }
 
 private:
   

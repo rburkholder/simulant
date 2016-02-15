@@ -110,18 +110,28 @@ void SceneViewCommon::HandleEraseBackground( wxEraseEvent& event ) {
   event.Skip();
 }
 
+void SceneViewCommon::EraseRectangle( wxClientDC& dc, const wxRect& rect, const wxColour& colour ) {
+  // brush fills in rectangle
+  wxBrush brush( dc.GetBrush() );
+  brush.SetColour( colour );
+  dc.SetBrush( brush );
+  // pen eliminates border of rectangle
+  wxPen pen( dc.GetPen() );
+  pen.SetColour( colour );
+  dc.SetPen( pen );
+  //dc.SetTextBackground( m_colourBackground );
+  dc.DrawRectangle( rect );
+}
+
+// this clears out legend, so does this need to be called all the time?
+// should it do something else, in addition to just erasing the background
+// maybe erase only when flagged
 void SceneViewCommon::HandlePaint( wxPaintEvent& event ) {
 
   wxPaintDC dc(this);
   wxRect rectClientArea( this->GetClientRect() );
-  //int width( rectClientArea.GetWidth() );
-  //int height( rectClientArea.GetHeight() );
-  wxBrush brush( dc.GetBrush() );
-  brush.SetColour( m_colourBackground );
-  dc.SetBrush( brush );
-  dc.DrawRectangle( rectClientArea );  // blank out background
+  //EraseRectangle( dc, rectClientArea, m_colourBackground );
   //DrawName( dc );
-
 }
 
 void SceneViewCommon::HandleSize( wxSizeEvent& event ) {
@@ -246,21 +256,6 @@ void SceneViewCommon::DrawTime( const Cursor& cursor, const wxPoint& point, cons
   DrawTime( cursor.m_colourCursor, point, sTime );
 }
 
-namespace {
-  void EraseRectangle( wxClientDC& dc, const wxRect& rect, const wxColour& colour ) {
-    // brush fills in rectangle
-    wxBrush brush( dc.GetBrush() );
-    brush.SetColour( colour );
-    dc.SetBrush( brush );
-    // pen eliminates border of rectangle
-    wxPen pen( dc.GetPen() );
-    pen.SetColour( colour );
-    dc.SetPen( pen );
-    //dc.SetTextBackground( m_colourBackground );
-    dc.DrawRectangle( rect );
-  }
-}
-
 void SceneViewCommon::DrawTime( wxColour colourText, const wxPoint& point, const std::string& sTime, bool bErase ) {
   wxClientDC dc( this );
   wxPen pen( dc.GetPen() );
@@ -276,21 +271,15 @@ void SceneViewCommon::DrawTime( wxColour colourText, const wxPoint& point, const
 }
 
 void SceneViewCommon::EraseTime( Cursor& cursor, wxPoint& point ) {
-  //static const std::string s( "00:00:00.000000");
-  wxClientDC dc( this );
-  const wxSize size( dc.GetTextExtent( sZeroTime ) );
-  EraseRectangle( dc, wxRect( point, size ), m_colourBackground );
+//  wxClientDC dc( this );
+//  const wxSize size( dc.GetTextExtent( sZeroTime ) );
+//  EraseRectangle( dc, wxRect( point, size ), m_colourBackground );
 }
 
 void SceneViewCommon::UpdateInteractiveCursor( int x ) {
   wxClientDC dc( this );
-  //this->DrawName( dc );
-  // change the following to  use dc at some point
   UnDrawCursor(dc, m_cursorInteractive );
   DrawCursor( dc, x, m_cursorInteractive );
-
-  // need this in SceneView only
-  //DrawTime( m_cursorInteractive, m_cursorInteractive.m_pointStatusText, TimeAtSample( x, 1, 44100 ) );
 }
 
 void SceneViewCommon::HandleMouseRightUp( wxMouseEvent& event ) {
