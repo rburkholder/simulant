@@ -180,12 +180,20 @@ void SceneViewCommon::HandleMouseMotion( wxMouseEvent& event ) {
   event.Skip();
 }
 
+// needs to call signal so all windows are scene elements are cleared, 
+//   effectively calling UnDrawCursor in each window
 void SceneViewCommon::HandleLeaveWindow( wxMouseEvent& event ) {
   //std::cout << "wfv leave window" << std::endl;
   wxClientDC dc( this );
   UnDrawCursor( dc, m_cursorInteractive );
   SceneViewCommon::DrawCursor( dc, -1, m_cursorInteractive );  
-  EraseTime( m_cursorInteractive, m_cursorInteractive.m_pointStatusText );
+  EraseTime( m_cursorInteractive, m_cursorInteractive.m_pointStatusText );  // will be SceneView only
+  
+  // above stuff refactored to elsewhere?  following code remains:
+  wxPoint point = event.GetPosition();
+  int x = point.x;
+  m_signalMouseDeparts( x );  // signal should invoke UnDrawCursor in associated views
+  
   event.Skip();
 }
 

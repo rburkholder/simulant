@@ -709,7 +709,7 @@ protected:
 
 private:
 
-  MonoAudioChannel m_audioChannel;
+  MonoAudioChannel m_audioChannel;  // contains the waveform and keyframe viewers
 
   void HandleSelectAudio( wxCommandEvent& event );
   void HandleSetChannel( wxCommandEvent& event );
@@ -2416,7 +2416,7 @@ private:
 
   bool m_bAddedProjectorAreas;
   
-  SceneView* m_psv;
+  SceneView* m_psv;  // change to shared_ptr, aids auto-destruction
 
   boost::signals2::connection m_connectAudio;
   boost::atomic<size_t> m_nFramesPlayed;
@@ -2640,7 +2640,8 @@ void TreeItemScene::AppendToScenePanel( void ) {
 }
 
 void TreeItemScene::DetachFromScenePanel( void ) {
-  m_psv->Destroy();
+  // need to redraw area
+  //m_psv->Destroy(); // probably already destroyed, still shows though, so a bug somewhere
   m_psv = 0;
 }
 
@@ -3369,7 +3370,8 @@ void TreeDisplayManager::HandleSelectionChanged( wxTreeEvent& event ) {
 
 void TreeDisplayManager::RemoveSelectOld( void ) {
   //std::cout << "HandleSelectionChanging " << event.GetItem().GetID() << std::endl;
-  if ( m_idOld.IsOk() ) m_mapDecoder[ m_idOld ]->RemoveSelected( m_guiElements );
+  if ( m_idOld.IsOk() ) 
+    m_mapDecoder[ m_idOld ]->RemoveSelected( m_guiElements );
   m_idOld.Unset();
 }
 

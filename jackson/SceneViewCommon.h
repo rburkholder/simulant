@@ -32,6 +32,9 @@ public:
 
   typedef boost::signals2::signal<void (wxCoord)> signalMouseWheel_t;
   typedef signalMouseWheel_t::slot_type slotMouseWheel_t;
+  
+  typedef boost::signals2::signal<void (int)> signalMouseDeparts_t; // x
+  typedef signalMouseDeparts_t::slot_type slotMouseDeparts_t;
 
   struct TimePixelMapping {
     boost::posix_time::time_duration tdWinStart;  // first pixel starts at this time, 00:00;00 is minimum
@@ -66,6 +69,7 @@ public:
   signalMouseShift_t m_signalMouseShift; // shifting content
   signalMouseWheel_t m_signalZoomIn; // zoom in
   signalMouseWheel_t m_signalZoomOut; // zoom out
+  signalMouseDeparts_t m_signalMouseDeparts;  // departs client area
 
   virtual void UpdateInteractiveCursor( int x );
   

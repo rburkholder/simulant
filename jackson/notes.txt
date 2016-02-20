@@ -1,6 +1,8 @@
 2016/02/14
 
-
+todo:  remove cursor when exiting one of the windows
+todo:  attach scene elements to scene
+         does not need to go through tree items for the window events.
 
 
 2016/01/17

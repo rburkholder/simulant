@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <map>
+
 #include "SceneViewCommon.h"
 
 #define SYMBOL_CONTROLSCENEVIEW_STYLE wxTAB_TRAVERSAL
@@ -18,6 +20,8 @@
 class SceneView: public SceneViewCommon {
   DECLARE_DYNAMIC_CLASS( SceneView )
 public:
+  
+  typedef boost::shared_ptr<SceneView> pSceneView_t;
   
   SceneView( );
   SceneView( 
