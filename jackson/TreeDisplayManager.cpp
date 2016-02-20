@@ -56,7 +56,7 @@
 
 #include "WaveformView.h"
 #include "KeyFrameView.h"
-#include "SceneView.h"
+#include "SceneMgmtView.h"
 
 #include "InteractiveTransform.h"
 #include "TreeDisplayManager.h"
@@ -2416,7 +2416,7 @@ private:
 
   bool m_bAddedProjectorAreas;
   
-  SceneView* m_psv;  // change to shared_ptr, aids auto-destruction
+  SceneMgmtView* m_psv;  // change to shared_ptr, aids auto-destruction
 
   boost::signals2::connection m_connectAudio;
   boost::atomic<size_t> m_nFramesPlayed;
@@ -2624,7 +2624,7 @@ void TreeItemScene::HandleRemoveSelected( CommonGuiElements& elements ) {
 
 void TreeItemScene::AppendToScenePanel( void ) {
 
-  m_psv = new SceneView( m_resources.pScenePanel );
+  m_psv = new SceneMgmtView( m_resources.pScenePanel );
   assert( 0 != m_psv );
   m_resources.tree.m_signalAppendView( m_psv, 1 );
   std::string sName( m_resources.tree.GetItemText( m_id ) );
@@ -2691,7 +2691,7 @@ void TreeItemScene::HandleMouseMotion( int x, int diff ) {
 
 void TreeItemScene::HandleZoomIn( wxCoord x ) { 
   assert( 0 != m_psv );
-  SceneView::TimePixelMapping tpm;
+  SceneMgmtView::TimePixelMapping tpm;
   tpm = m_psv->UpdateMouseZoomIn( x );
   //
   //std::cout << "mouse zoom in" << std::endl;
@@ -2703,7 +2703,7 @@ void TreeItemScene::HandleZoomIn( wxCoord x ) {
 
 void TreeItemScene::HandleZoomOut( wxCoord x ) {
   assert( 0 != m_psv );
-  SceneView::TimePixelMapping tpm;
+  SceneMgmtView::TimePixelMapping tpm;
   tpm = m_psv->UpdateMouseZoomOut( x );
   //m_psv->Refresh();
   //std::cout << "mouse zoom out" << std::endl;
@@ -2716,7 +2716,7 @@ void TreeItemScene::HandleZoomOut( wxCoord x ) {
 void TreeItemScene::HandleMouseShift( int diff ) {
   //std::cout << "mouse shift" << std::endl;
   assert( 0 != m_psv );
-  SceneView::TimePixelMapping tpm;
+  SceneMgmtView::TimePixelMapping tpm;
   tpm = m_psv->UpdateMouseShift( diff );
   //m_psv->Refresh();
   // update each scene elements

@@ -9,23 +9,23 @@
 
 #include <wx/wx.h>
 
-#include "SceneView.h"
+#include "SceneMgmtView.h"
 
-IMPLEMENT_DYNAMIC_CLASS( SceneView, SceneViewCommon )
+IMPLEMENT_DYNAMIC_CLASS( SceneMgmtView, SceneViewCommon )
 
-SceneView::SceneView( ) {
+SceneMgmtView::SceneMgmtView( ) {
   Init();
 }
 
-SceneView::SceneView( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) {
+SceneMgmtView::SceneMgmtView( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) {
   Init();
   Create(parent, id, pos, size, style);
 }
 
-void SceneView::Init() {
+void SceneMgmtView::Init() {
 }
 
-bool SceneView::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) {
+bool SceneMgmtView::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) {
     
   SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
   SceneViewCommon::Create( parent, id, pos, size, style );
@@ -41,15 +41,15 @@ bool SceneView::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, con
   return true;
 }
 
-SceneView::~SceneView( ) {
+SceneMgmtView::~SceneMgmtView( ) {
 }
 
-void SceneView::CreateControls() {
-  Bind( wxEVT_PAINT, &SceneView::HandlePaint, this );   // from SceneViewCommon
-  Bind( wxEVT_ERASE_BACKGROUND, &SceneView::HandleEraseBackground, this );   // from SceneViewCommon
-  Bind( wxEVT_SIZE, &SceneView::HandleSize, this );   // from SceneViewCommon
-  Bind( wxEVT_RIGHT_UP, &SceneView::HandleMouseRightUp, this );   // from SceneViewCommon
-  Bind( wxEVT_LEFT_UP, &SceneView::HandleMouseLeftUp, this );   // from SceneViewCommon
+void SceneMgmtView::CreateControls() {
+  Bind( wxEVT_PAINT, &SceneMgmtView::HandlePaint, this );   // from SceneViewCommon
+  Bind( wxEVT_ERASE_BACKGROUND, &SceneMgmtView::HandleEraseBackground, this );   // from SceneViewCommon
+  Bind( wxEVT_SIZE, &SceneMgmtView::HandleSize, this );   // from SceneViewCommon
+  Bind( wxEVT_RIGHT_UP, &SceneMgmtView::HandleMouseRightUp, this );   // from SceneViewCommon
+  Bind( wxEVT_LEFT_UP, &SceneMgmtView::HandleMouseLeftUp, this );   // from SceneViewCommon
   //Bind( wxEVT_SIZING, &WaveformView::HandleSizing, this );
   //Bind( wxEVT_LEFT_DOWN, &WaveformView::HandleMouseLeftDown, this );
   //Bind( wxEVT_MOUSEWHEEL, &WaveformView::HandleMouseWheel, this );
@@ -78,13 +78,13 @@ void SceneView::CreateControls() {
 
 // how often does this need to be called?
 // maybe keep track of changes, and not process so often
-void SceneView::HandlePaint( wxPaintEvent& event ) {  
+void SceneMgmtView::HandlePaint( wxPaintEvent& event ) {  
   SceneViewCommon::HandlePaint( event );
   wxPaintDC dc(this);
   DrawLegend( dc );  // todo:  may only need this on mouse translation or scaling, plus on init
 }
 
-void SceneView::UpdateInteractiveCursor( int x ) {
+void SceneMgmtView::UpdateInteractiveCursor( int x ) {
   wxClientDC dc( this );
   //this->DrawName( dc );
   // change the following to  use dc at some point
@@ -106,17 +106,17 @@ void SceneView::UpdateInteractiveCursor( int x ) {
           
 }
 
-void SceneView::UnDrawCursor( wxClientDC& dc, Cursor& cursor ) {
+void SceneMgmtView::UnDrawCursor( wxClientDC& dc, Cursor& cursor ) {
   SceneViewCommon::UnDrawCursor( dc, cursor );
   //DrawLegend( dc );
 }
 
-void SceneView::DrawTime( const std::string& sTime ) {
+void SceneMgmtView::DrawTime( const std::string& sTime ) {
   wxClientDC dc( this );
   SceneViewCommon::DrawTime( m_cursorInteractive, m_cursorInteractive.m_pointStatusText, sTime );
 }
 
-void SceneView::DrawLegend( wxClientDC& dc ) {
+void SceneMgmtView::DrawLegend( wxClientDC& dc ) {
 
   std::stringstream ss;
   
@@ -170,7 +170,7 @@ void SceneView::DrawLegend( wxClientDC& dc ) {
 }
 
 // takes cursor position in window, calculates and returns new window beginning and pixel width
-SceneView::TimePixelMapping SceneView::UpdateMouseZoomIn( const int x ) {
+SceneMgmtView::TimePixelMapping SceneMgmtView::UpdateMouseZoomIn( const int x ) {
   
   assert( 0 <= x );
   
@@ -197,7 +197,7 @@ SceneView::TimePixelMapping SceneView::UpdateMouseZoomIn( const int x ) {
 }
 
 // takes cursor position in window, calculates and returns new window beginning and pixel width
-SceneView::TimePixelMapping SceneView::UpdateMouseZoomOut( const int x ) {
+SceneMgmtView::TimePixelMapping SceneMgmtView::UpdateMouseZoomOut( const int x ) {
   
   assert( 0 <= x );
   
@@ -229,7 +229,7 @@ SceneView::TimePixelMapping SceneView::UpdateMouseZoomOut( const int x ) {
 }
 
 // takes cursor position in window, calculates and returns new window beginning and pixel width
-SceneView::TimePixelMapping SceneView::UpdateMouseShift( const int x ) {
+SceneMgmtView::TimePixelMapping SceneMgmtView::UpdateMouseShift( const int x ) {
 
   const wxRect rect = GetClientRect();
   const int width( rect.GetWidth() );
@@ -250,16 +250,4 @@ SceneView::TimePixelMapping SceneView::UpdateMouseShift( const int x ) {
     }
   }
   return m_tdTimePixelMapping;
-}
-
-wxBitmap SceneView::GetBitmapResource( const wxString& name ) {
-  // Bitmap retrieval
-  wxUnusedVar(name);
-  return wxNullBitmap;
-}
-
-wxIcon SceneView::GetIconResource( const wxString& name ) {
-  // Icon retrieval
-  wxUnusedVar(name);
-  return wxNullIcon;
 }

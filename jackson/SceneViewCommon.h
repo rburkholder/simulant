@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <boost/shared_ptr.hpp>
+
 #include <boost/signals2.hpp>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -23,6 +25,8 @@
 class SceneViewCommon: public wxPanel {
   DECLARE_DYNAMIC_CLASS( SceneViewCommon )
 public:
+  
+  typedef boost::shared_ptr<SceneViewCommon> pSceneViewCommon_t;
 
   typedef boost::signals2::signal<void (int, int)> signalMouseMotion_t; // x, diff
   typedef signalMouseMotion_t::slot_type slotMouseMotion_t;
