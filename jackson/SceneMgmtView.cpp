@@ -7,6 +7,9 @@
 
 #include <math.h>
 
+#include <boost/phoenix/bind/bind_member_function.hpp>
+#include <boost/phoenix/core/argument.hpp>
+
 #include <wx/wx.h>
 
 #include "SceneMgmtView.h"
@@ -38,10 +41,16 @@ bool SceneMgmtView::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos,
     GetSizer()->SetSizeHints(this);
   }
   
+  
+  
+  std::cout << "scene constructed" << std::endl;
+  
   return true;
 }
 
 SceneMgmtView::~SceneMgmtView( ) {
+  //ClearViews();   // maybe bind the ondestroy event in the map'd views
+  std::cout << "scene destroyed" << std::endl;
 }
 
 void SceneMgmtView::CreateControls() {
@@ -70,8 +79,10 @@ void SceneMgmtView::CreateControls() {
   //m_pContextMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &KeyFrameView::HandleCopy, this, MICopy );
   //m_pContextMenu->Append( MIPaste, "Paste Settings" );
   //m_pContextMenu->Bind( wxEVT_COMMAND_MENU_SELECTED, &KeyFrameView::HandlePaste, this, MIPaste );
+
+  ConnectSignals( m_view, this );
   
-  
+// there is an already existing paint event for this, so can we trigger the event?  HandlePaint
   wxClientDC dc( this );
   DrawLegend( dc );
 }
@@ -84,7 +95,8 @@ void SceneMgmtView::HandlePaint( wxPaintEvent& event ) {
   DrawLegend( dc );  // todo:  may only need this on mouse translation or scaling, plus on init
 }
 
-void SceneMgmtView::UpdateInteractiveCursor( int x ) {
+void SceneMgmtView::UpdateInteractiveCursor( int x, bool bTurnOn ) {
+  
   wxClientDC dc( this );
   //this->DrawName( dc );
   // change the following to  use dc at some point
@@ -251,3 +263,120 @@ SceneMgmtView::TimePixelMapping SceneMgmtView::UpdateMouseShift( const int x ) {
   }
   return m_tdTimePixelMapping;
 }
+
+void SceneMgmtView::ConnectSignals( View& view, SceneViewCommon* pview ) {
+  namespace args = boost::phoenix::arg_names;
+
+  view.connMouseMotion = pview->m_signalMouseMotion.connect( boost::phoenix::bind( &SceneMgmtView::HandleMouseMotion, this, args::arg1, args::arg2 ) );
+  view.connMouseShift = pview->m_signalMouseShift.connect( boost::phoenix::bind( &SceneMgmtView::HandleMouseShift, this, args::arg1 ) );
+  view.connZoomIn = pview->m_signalZoomIn.connect( boost::phoenix::bind( &SceneMgmtView::HandleZoomIn, this, args::arg1 ) );
+  view.connZoomOut = pview->m_signalZoomOut.connect( boost::phoenix::bind( &SceneMgmtView::HandleZoomOut, this, args::arg1 ) );
+  view.connMouseDeparts = pview->m_signalMouseDeparts.connect( boost::phoenix::bind( &SceneMgmtView::HandleMouseDeparts, this, args::arg1 ) );
+}
+
+void SceneMgmtView::AddView(const std::string& sViewName, SceneViewCommon* pview) {
+  if ( m_mapViews.end() != m_mapViews.find( sViewName ) ) {
+    throw std::invalid_argument( "name exists: " + sViewName );
+  }
+  
+  View view;
+  
+  view.pSceneViewCommon = pview;
+  
+  ConnectSignals( view, pview );
+  
+  m_mapViews[ sViewName ] = view;  // are the connections copied, or do we need to put onto the heap?
+}
+
+void SceneMgmtView::DisconnectSignals( View& view ) {
+  view.connMouseDeparts.disconnect();
+  view.connMouseMotion.disconnect();
+  view.connMouseShift.disconnect();
+  view.connZoomIn.disconnect();
+  view.connZoomOut.disconnect();
+}
+
+void SceneMgmtView::DeleteView( const std::string& sViewName ) {
+  mapViews_t::iterator iter = m_mapViews.find( sViewName );
+  if ( m_mapViews.end() == iter ) {
+    throw std::invalid_argument( "name not found: " + sViewName );
+  }
+  
+  DisconnectSignals( iter->second );
+  
+  m_mapViews.erase( iter ); // when the view is destroyed, the connections are disconnected
+}
+
+void SceneMgmtView::RenameView(const std::string& sOldName, const std::string& sNewName) {
+  // is case sensitive
+  if ( sOldName != sNewName ) {
+    mapViews_t::const_iterator iterOld = m_mapViews.find( sOldName );
+    if ( m_mapViews.end() == iterOld ) {
+      throw std::invalid_argument( "name not found: " + sOldName );
+    }
+    mapViews_t::const_iterator iterNew = m_mapViews.find( sNewName );
+    if ( m_mapViews.end() != iterNew ) {
+      throw std::invalid_argument( "name already exists: " + sNewName );
+    }
+    // erase first or insert first?
+    m_mapViews[ sNewName ] = iterOld->second;
+    m_mapViews.erase( iterOld );
+  }
+}
+
+void SceneMgmtView::ClearViews( void ) {
+  while ( !m_mapViews.empty() ) {
+    mapViews_t::iterator iter = m_mapViews.begin();
+    DeleteView( iter->first );
+  }
+}
+
+void SceneMgmtView::HandleMouseMotion( int x, int diff ) {
+  //std::cout << "mouse motion" << std::endl;
+  UpdateInteractiveCursor( x );
+  //m_psv->Refresh();
+  for ( mapViews_t::iterator iter = m_mapViews.begin(); m_mapViews.end() != iter; ++iter ) {
+    iter->second.pSceneViewCommon->UpdateInteractiveCursor( x );
+  }
+}
+
+void SceneMgmtView::HandleMouseShift( int diff ) {
+  //std::cout << "mouse shift" << std::endl;
+  SceneMgmtView::TimePixelMapping tpm;
+  tpm = UpdateMouseShift( diff );
+  //m_psv->Refresh();
+  for ( mapViews_t::iterator iter = m_mapViews.begin(); m_mapViews.end() != iter; ++iter ) {
+    iter->second.pSceneViewCommon->UpdateMouseShift( diff, tpm.tdWinStart, tpm.tdPixelWidth );
+  }
+}
+
+void SceneMgmtView::HandleZoomIn( wxCoord x ) { 
+  //assert( 0 != m_psv );
+  SceneMgmtView::TimePixelMapping tpm;
+  tpm = UpdateMouseZoomIn( x );
+  //
+  //std::cout << "mouse zoom in" << std::endl;
+  for ( mapViews_t::iterator iter = m_mapViews.begin(); m_mapViews.end() != iter; ++iter ) {
+    iter->second.pSceneViewCommon->UpdateMouseZoomIn( x, tpm.tdWinStart, tpm.tdPixelWidth );
+  }
+}
+
+void SceneMgmtView::HandleZoomOut( wxCoord x ) {
+  //assert( 0 != m_psv );
+  SceneMgmtView::TimePixelMapping tpm;
+  tpm = UpdateMouseZoomOut( x );
+  //m_psv->Refresh();
+  //std::cout << "mouse zoom out" << std::endl;
+  for ( mapViews_t::iterator iter = m_mapViews.begin(); m_mapViews.end() != iter; ++iter ) {
+    iter->second.pSceneViewCommon->UpdateMouseZoomOut( x, tpm.tdWinStart, tpm.tdPixelWidth );
+  }
+}
+
+void SceneMgmtView::HandleMouseDeparts( int x ) {
+  //std::cout << "mouse departs" << std::endl;
+  UpdateInteractiveCursor( x );
+  for ( mapViews_t::iterator iter = m_mapViews.begin(); m_mapViews.end() != iter; ++iter ) {
+    iter->second.pSceneViewCommon->UpdateInteractiveCursor( x, false );  // turn the cursor off
+  }
+}
+

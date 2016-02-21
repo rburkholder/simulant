@@ -76,7 +76,7 @@ void SceneViewCommon::CreateControls() {
   Bind( wxEVT_MOTION, &SceneViewCommon::HandleMouseMotion, this );
   //Bind( wxEVT_LEAVE_WINDOW, &SceneViewCommon::HandleLeaveWindow, this );
   //Bind( wxEVT_IDLE, &WaveformView::HandleIdle, this );
-  Bind( wxEVT_LEAVE_WINDOW, &SceneViewCommon::HandleLeaveWindow, this );
+  Bind( wxEVT_LEAVE_WINDOW, &SceneViewCommon::HandleMouseLeaveWindow, this );
   //Bind( wxEVT_COMMAND_ENTER, &SceneViewCommon::HandlePlayCursor, this, ID_EVENT_PLAYCURSOR );
 }
 
@@ -182,7 +182,7 @@ void SceneViewCommon::HandleMouseMotion( wxMouseEvent& event ) {
 
 // needs to call signal so all windows are scene elements are cleared, 
 //   effectively calling UnDrawCursor in each window
-void SceneViewCommon::HandleLeaveWindow( wxMouseEvent& event ) {
+void SceneViewCommon::HandleMouseLeaveWindow( wxMouseEvent& event ) {
   //std::cout << "wfv leave window" << std::endl;
   wxClientDC dc( this );
   UnDrawCursor( dc, m_cursorInteractive );
@@ -284,10 +284,12 @@ void SceneViewCommon::EraseTime( Cursor& cursor, wxPoint& point ) {
 //  EraseRectangle( dc, wxRect( point, size ), m_colourBackground );
 }
 
-void SceneViewCommon::UpdateInteractiveCursor( int x ) {
+void SceneViewCommon::UpdateInteractiveCursor( int x, bool bTurnOn ) {
   wxClientDC dc( this );
   UnDrawCursor(dc, m_cursorInteractive );
-  DrawCursor( dc, x, m_cursorInteractive );
+  if ( bTurnOn ) {
+    DrawCursor( dc, x, m_cursorInteractive );
+  }
 }
 
 void SceneViewCommon::HandleMouseRightUp( wxMouseEvent& event ) {

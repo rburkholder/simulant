@@ -9,12 +9,12 @@
             <url>TreeDisplayManager.cpp</url>
             <bookmark id="4">
                 <name/>
-                <line>843</line>
+                <line>757</line>
                 <key/>
             </bookmark>
             <bookmark id="5">
                 <name/>
-                <line>1226</line>
+                <line>1101</line>
                 <key/>
             </bookmark>
         </file>
@@ -42,15 +42,15 @@
             <file>file:/home/rpb/projects/simulant/jackson/AppProjection.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/PanelSurfaceSources.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/KeyFrameView.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/SceneMgmtView.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/WaveformView.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/SceneViewCommon.h</file>
-            <file>file:/home/rpb/projects/simulant/jackson/KeyFrameView.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/TreeDisplayManager.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/KeyFrameView.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/SceneMgmtView.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/WaveformView.cpp</file>
-            <file>file:/home/rpb/projects/simulant/jackson/SceneView.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/SceneViewCommon.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/PanelSurfaceSources.cpp</file>
-            <file>file:/home/rpb/projects/simulant/jackson/SceneView.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/TreeDisplayManager.cpp</file>
         </group>
     </open-files>

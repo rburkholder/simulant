@@ -85,6 +85,8 @@ public:
   
   void HandleRename( wxCommandEvent& event );
   
+  const std::string Name( void ) { return m_resources.tree.GetItemText( m_id ); }
+  
   void Rename( const wxString& sPrompt, const wxString& sDefault );
   void Rename( const wxString& sPrompt = "Change Text:" );
   
@@ -205,8 +207,6 @@ public:
   typedef boost::signals2::signal<void (CommonGuiElements&)> signalSelectionEvent_t;
   typedef signalSelectionEvent_t::slot_type slotSelectionEvent_t;
 
-  //typedef boost::signals2::signal<void (wxPoint&)> signal
-
   TreeItemSceneElementBase( wxTreeItemId id_, TreeDisplayManager::TreeItemResources& resources );
   virtual ~TreeItemSceneElementBase( void );
 
@@ -215,30 +215,12 @@ public:
   virtual void SetSelected( CommonGuiElements& elements );
   virtual void RemoveSelected( CommonGuiElements& elements );
 
-  virtual void AppendToScenePanel( void ) {};
+  virtual void AppendToScenePanel( SceneMgmtView* p ) { m_pSceneMgmtView = p; };  // requires call from override
   virtual void DetachFromScenePanel( void ) {};
 
   signalSelectionEvent_t m_signalSelectionEventSetSelected;
   signalSelectionEvent_t m_signalSelectionEventRemoveSelected;
 
-  // for callers to register
-  KeyFrameView::signalMouseMotion_t m_signalMouseMotion;
-  KeyFrameView::signalMouseShift_t m_signalMouseShift;
-  KeyFrameView::signalMouseWheel_t m_signalZoomIn;
-  KeyFrameView::signalMouseWheel_t m_signalZoomOut;
-
-  // for handling inheritor arrivals
-  void HandleMouseMotion( int x, int diff ) { m_signalMouseMotion( x, diff ); }
-  void HandleMouseShift( int diff ) { m_signalMouseShift( diff ); }
-  void HandleZoomIn( wxCoord x ) { m_signalZoomIn( x );  }
-  void HandleZoomOut( wxCoord x ) { m_signalZoomOut( x ); }
-
-  virtual void UpdateInteractiveCursor( int x ) {};
-  virtual void UpdatePlayCursor( int x ) {};
-  virtual void UpdateMouseShift( int diff, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {};
-  virtual void UpdateMouseZoomIn( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {};
-  virtual void UpdateMouseZoomOut( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {};
-  
   boost::posix_time::time_duration GetOffsetIntoTimeLine( void ) const { return m_tdOffsetIntoTimeLine; }
   void SetOffsetIntoTimeLine( boost::posix_time::time_duration tdOffsetIntoTimeLine ) {
     assert( boost::posix_time::seconds( 0 ) <= tdOffsetIntoTimeLine );
@@ -246,6 +228,8 @@ public:
   }
 
 protected:
+  
+  SceneMgmtView* m_pSceneMgmtView;
   
   boost::posix_time::time_duration m_tdOffsetIntoTimeLine;
   
@@ -266,7 +250,7 @@ private:
 };
 
 TreeItemSceneElementBase::TreeItemSceneElementBase( wxTreeItemId id, TreeDisplayManager::TreeItemResources& resources )
-  : TreeItemBase( id, resources )
+  : TreeItemBase( id, resources ), m_pSceneMgmtView( 0 )
 {
   m_tdOffsetIntoTimeLine = boost::posix_time::seconds( 0 );
 }
@@ -302,8 +286,8 @@ public:
   void SetSelected( CommonGuiElements& elements );
   void RemoveSelected( CommonGuiElements& elements );
 
-  virtual void AppendToScenePanel( void );
-  virtual void DetachFromScenePanel( void );
+  virtual void AppendToScenePanel( const std::string& sBaseName, SceneMgmtView* p );
+  virtual void DetachFromScenePanel( const std::string& sBaseName, SceneMgmtView* p );
 
   //void HandleAudioForPlay( AVSampleFormat format, void* buffers, int nChannels, int nSamples );
   void HandleAudioForBuffer( AVSampleFormat format, void* buffers, int nChannels, int nSamples, int offset );
@@ -312,17 +296,6 @@ public:
   void SendBuffer( void );
 
   void Clear( void );
-
-  KeyFrameView::signalMouseMotion_t m_signalMouseMotion;
-  KeyFrameView::signalMouseShift_t m_signalMouseShift;
-  KeyFrameView::signalMouseWheel_t m_signalZoomIn;
-  KeyFrameView::signalMouseWheel_t m_signalZoomOut;
-
-  virtual void UpdateInteractiveCursor( int x );
-  virtual void UpdatePlayCursor( int x );
-  virtual void UpdateMouseShift( int diff, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel );
-  virtual void UpdateMouseZoomIn( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel );
-  virtual void UpdateMouseZoomOut( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel );
 
 protected:
 private:
@@ -346,11 +319,6 @@ private:
   int m_intVolume; 
 
   void HandleScrollChangedVolume( wxScrollEvent& event );
-
-  void HandleMouseMotion( int x, int diff ) { m_signalMouseMotion( x, diff ); }
-  void HandleMouseShift( int diff ) { m_signalMouseShift( diff ); }
-  void HandleZoomIn( wxCoord x ) { m_signalZoomIn( x );  }
-  void HandleZoomOut( wxCoord x ) { m_signalZoomOut( x ); }
 
   template<typename Archive>
   void save( Archive& ar, const unsigned int version ) const {
@@ -391,49 +359,6 @@ MonoAudioChannel::~MonoAudioChannel( void ) {
 
 }
 
-void MonoAudioChannel::UpdateInteractiveCursor( int x ) {
-  if ( 0 != m_pwfv ) m_pwfv->UpdateInteractiveCursor( x );
-  if ( 0 != m_pkfv ) m_pkfv->UpdateInteractiveCursor( x );
-}
-
-void MonoAudioChannel::UpdatePlayCursor( int x ) {
-  if ( 0 != m_pwfv ) m_pwfv->UpdatePlayCursor( x );
-  //if ( 0 != m_pkfv ) m_pkfv->UpdatePlayCursor( x );  // 2015/08/02 temporary comment out, will require different type of update
-}
-
-void MonoAudioChannel::UpdateMouseShift( int diff, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
-  if ( 0 != m_pwfv ) {
-    m_pwfv->UpdateMouseShift( diff, start, widthPixel );
-    m_pwfv->Refresh();
-  }
-  if ( 0 != m_pkfv ) {
-    m_pkfv->UpdateMouseShift( diff, start, widthPixel );
-    m_pkfv->Refresh();
-  }
-}
-
-void MonoAudioChannel::UpdateMouseZoomIn( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
-  if ( 0 != m_pwfv ) {
-    m_pwfv->UpdateMouseZoomIn( x, start, widthPixel );
-    m_pwfv->Refresh();
-  }
-  if ( 0 != m_pkfv ) {
-    m_pkfv->UpdateMouseZoomIn( x, start, widthPixel );
-    m_pkfv->Refresh();
-  }
-}
-
-void MonoAudioChannel::UpdateMouseZoomOut( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
-  if ( 0 != m_pwfv ) {
-    m_pwfv->UpdateMouseZoomOut( x, start, widthPixel );
-    m_pwfv->Refresh();
-  }
-  if ( 0 != m_pkfv ) {
-    m_pkfv->UpdateMouseZoomOut( x, start, widthPixel );
-    m_pkfv->Refresh();
-  }
-}
-
 void MonoAudioChannel::Clear( void ) {
   // may need to check that play is not in progress by caller
   m_vSamples.clear();
@@ -449,35 +374,28 @@ void MonoAudioChannel::SetChannel( unsigned int ix) {
   m_resources.pAudio->Attach( m_nChannel, m_pAudioQueue );
 }
 
-void MonoAudioChannel::AppendToScenePanel( void ) {
+void MonoAudioChannel::AppendToScenePanel( const std::string& sBaseName, SceneMgmtView* p ) {
 
   m_pwfv = new WaveformView( m_resources.pScenePanel );
   //m_pwfv = *m_resources.tree.m_signalAppendWaveformView();
   assert( 0 != m_pwfv );
   m_resources.tree.m_signalAppendView( m_pwfv, 3 );
   //m_pwfv->SetSamples( &m_vSamples );
+  p->AddView( sBaseName + "Wave", m_pwfv );
 
   m_pkfv = new KeyFrameView( m_resources.pScenePanel );
   //m_pkfv = *m_resources.tree.m_signalAppendKeyframeView();
   assert( 0 != m_pkfv );
   m_resources.tree.m_signalAppendView( m_pkfv, 1 );
+  p->AddView( sBaseName + "Key", m_pkfv );
 
-  namespace args = boost::phoenix::arg_names;
-
-  m_pwfv->m_signalMouseMotion.connect( boost::phoenix::bind( &MonoAudioChannel::HandleMouseMotion, this, args::arg1, args::arg2 ) );
-  m_pwfv->m_signalMouseShift.connect( boost::phoenix::bind( &MonoAudioChannel::HandleMouseShift, this, args::arg1 ) );
-  m_pwfv->m_signalZoomIn.connect( boost::phoenix::bind( &MonoAudioChannel::HandleZoomIn, this, args::arg1 ) );
-  m_pwfv->m_signalZoomOut.connect( boost::phoenix::bind( &MonoAudioChannel::HandleZoomOut, this, args::arg1 ) );
-
-  m_pkfv->m_signalMouseMotion.connect( boost::phoenix::bind( &MonoAudioChannel::HandleMouseMotion, this, args::arg1, args::arg2 ) );
-  m_pkfv->m_signalMouseShift.connect( boost::phoenix::bind( &MonoAudioChannel::HandleMouseShift, this, args::arg1 ) );
-  m_pkfv->m_signalZoomIn.connect( boost::phoenix::bind( &MonoAudioChannel::HandleZoomIn, this, args::arg1 ) );
-  m_pkfv->m_signalZoomOut.connect( boost::phoenix::bind( &MonoAudioChannel::HandleZoomOut, this, args::arg1 ) );
 }
 
-void MonoAudioChannel::DetachFromScenePanel( void ) {
+void MonoAudioChannel::DetachFromScenePanel( const std::string& sBaseName, SceneMgmtView* p ) {
   // when are m_pwfv and m_pkfv deleted/destroyed?
+  p->DeleteView( sBaseName + "Wave" );
   m_pwfv = 0;
+  p->DeleteView( sBaseName + "Key" );
   m_pkfv = 0;
 }
 
@@ -697,7 +615,7 @@ public:
   virtual void SetSelected( CommonGuiElements& elements );
   virtual void RemoveSelected( CommonGuiElements& elements );
 
-  virtual void AppendToScenePanel( void );
+  virtual void AppendToScenePanel( SceneMgmtView* p );
   virtual void DetachFromScenePanel( void );
 
   virtual void DecodeAudio( void );
@@ -755,11 +673,6 @@ TreeItemAudioMono::TreeItemAudioMono( wxTreeItemId id, TreeDisplayManager::TreeI
   m_connectionAudioReady = m_player.ConnectAudioReady( boost::phoenix::bind( &TreeItemAudioMono::HandleAudioForBuffer, this, args::arg1, args::arg2, args::arg3, args::arg4 ) );
   m_connectionDecodeComplete = m_player.ConnectDecodeDone( boost::phoenix::bind( &TreeItemAudioMono::HandleDecodeComplete, this ) );
 
-  m_audioChannel.m_signalMouseMotion.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleMouseMotion, this, args::arg1, args::arg2 ) );
-  m_audioChannel.m_signalMouseShift.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleMouseShift, this, args::arg1 ) );
-  m_audioChannel.m_signalZoomIn.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleZoomIn, this, args::arg1 ) );
-  m_audioChannel.m_signalZoomOut.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleZoomOut, this, args::arg1 ) );
-
 }
 
 TreeItemAudioMono::~TreeItemAudioMono( void ) {
@@ -779,12 +692,13 @@ void TreeItemAudioMono::RemoveSelected( CommonGuiElements& elements ) {
   TreeItemSceneElementBase::RemoveSelected( elements );
 }
 
-void TreeItemAudioMono::AppendToScenePanel( void ) {
-  m_audioChannel.AppendToScenePanel();
+void TreeItemAudioMono::AppendToScenePanel( SceneMgmtView* p ) {
+  TreeItemSceneElementBase::AppendToScenePanel( p );
+  m_audioChannel.AppendToScenePanel( Name(), p );
 }
 
 void TreeItemAudioMono::DetachFromScenePanel( void ) {
-  m_audioChannel.DetachFromScenePanel();
+  m_audioChannel.DetachFromScenePanel( Name(), m_pSceneMgmtView );
 }
 
 void TreeItemAudioMono::ShowContextMenu( void ) {
@@ -911,16 +825,10 @@ public:
   virtual void SetSelected( CommonGuiElements& elements );
   virtual void RemoveSelected( CommonGuiElements& elements );
   
-  virtual void AppendToScenePanel( void );
+  virtual void AppendToScenePanel( SceneMgmtView* );
   virtual void DetachFromScenePanel( void );
 
   virtual void DecodeAudio( void );
-
-  virtual void UpdateInteractiveCursor( int x );
-  virtual void UpdatePlayCursor( int x );
-  virtual void UpdateMouseShift( int diff, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel );
-  virtual void UpdateMouseZoomIn( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel );
-  virtual void UpdateMouseZoomOut( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel );
 
 protected:
 
@@ -983,15 +891,6 @@ TreeItemAudioStereo::TreeItemAudioStereo( wxTreeItemId id, TreeDisplayManager::T
   m_connectionAudioReady = m_player.ConnectAudioReady( boost::phoenix::bind( &TreeItemAudioStereo::HandleAudioForBuffer, this, args::arg1, args::arg2, args::arg3, args::arg4 ) );
   m_connectionDecodeComplete = m_player.ConnectDecodeDone( boost::phoenix::bind( &TreeItemAudioStereo::HandleDecodeComplete, this ) );
   
-  m_channelLeft.m_signalMouseMotion.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleMouseMotion, this, args::arg1, args::arg2 ) );
-  m_channelLeft.m_signalMouseShift.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleMouseShift, this, args::arg1 ) );
-  m_channelLeft.m_signalZoomIn.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleZoomIn, this, args::arg1 ) );
-  m_channelLeft.m_signalZoomOut.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleZoomOut, this, args::arg1 ) );
-
-  m_channelRight.m_signalMouseMotion.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleMouseMotion, this, args::arg1, args::arg2 ) );
-  m_channelRight.m_signalMouseShift.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleMouseShift, this, args::arg1 ) );
-  m_channelRight.m_signalZoomIn.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleZoomIn, this, args::arg1 ) );
-  m_channelRight.m_signalZoomOut.connect( boost::phoenix::bind( &TreeItemSceneElementBase::HandleZoomOut, this, args::arg1 ) );
 }
 
 TreeItemAudioStereo::~TreeItemAudioStereo( void ) {
@@ -1001,39 +900,15 @@ TreeItemAudioStereo::~TreeItemAudioStereo( void ) {
   
 }
 
-void TreeItemAudioStereo::UpdateInteractiveCursor( int x ) {
-  m_channelLeft.UpdateInteractiveCursor( x );
-  m_channelRight.UpdateInteractiveCursor( x );
+void TreeItemAudioStereo::AppendToScenePanel( SceneMgmtView* p ) {  // *** need to handle rename event
+  TreeItemSceneElementBase::AppendToScenePanel( p );
+  m_channelLeft.AppendToScenePanel( Name() + "Left", p );
+  m_channelRight.AppendToScenePanel( Name() + "Right", p );
 }
 
-void TreeItemAudioStereo::UpdatePlayCursor( int x ) {
-  m_channelLeft.UpdatePlayCursor( x );
-  m_channelRight.UpdatePlayCursor( x );
-}
-
-void TreeItemAudioStereo::UpdateMouseShift( int diff, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
-  m_channelLeft.UpdateMouseShift( diff, start, widthPixel );
-  m_channelRight.UpdateMouseShift( diff, start, widthPixel );
-}
-
-void TreeItemAudioStereo::UpdateMouseZoomIn( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
-  m_channelLeft.UpdateMouseZoomIn( x, start, widthPixel );
-  m_channelRight.UpdateMouseZoomIn( x, start, widthPixel );
-}
-
-void TreeItemAudioStereo::UpdateMouseZoomOut( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
-  m_channelLeft.UpdateMouseZoomOut( x, start, widthPixel );
-  m_channelRight.UpdateMouseZoomOut( x, start, widthPixel );
-}
-
-void TreeItemAudioStereo::AppendToScenePanel( void ) {
-  m_channelLeft.AppendToScenePanel();
-  m_channelRight.AppendToScenePanel();
-}
-
-void TreeItemAudioStereo::DetachFromScenePanel( void ) {
-  m_channelLeft.DetachFromScenePanel();
-  m_channelRight.DetachFromScenePanel();
+void TreeItemAudioStereo::DetachFromScenePanel( void ) { // *** need to handle rename event
+  m_channelLeft.DetachFromScenePanel( Name() + "Left", m_pSceneMgmtView );
+  m_channelRight.DetachFromScenePanel( Name() + "Right", m_pSceneMgmtView );
 }
 
 void TreeItemAudioStereo::SetSelected( CommonGuiElements& elements ) {
@@ -2199,8 +2074,8 @@ public:
 
   virtual void ShowContextMenu( void );
 
+  void AppendToScenePanel( SceneMgmtView* p );
   void DetachFromScenePanel( void );
-  void AppendToScenePanel( void );
 
 protected:
 
@@ -2319,10 +2194,11 @@ void TreeItemProjectorArea::HandleRemoveSelected( CommonGuiElements& elements ) 
 
 }
 
-void TreeItemProjectorArea::AppendToScenePanel( void ) {
+void TreeItemProjectorArea::AppendToScenePanel( SceneMgmtView* p ) {
+  TreeItemSceneElementBase::AppendToScenePanel( p );
   // recursive process of scene elements
   for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
-    dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->AppendToScenePanel();
+    dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->AppendToScenePanel( p );
   }
 }
 
@@ -2416,7 +2292,7 @@ private:
 
   bool m_bAddedProjectorAreas;
   
-  SceneMgmtView* m_psv;  // change to shared_ptr, aids auto-destruction
+  SceneMgmtView* m_psv; // managed by wx
 
   boost::signals2::connection m_connectAudio;
   boost::atomic<size_t> m_nFramesPlayed;
@@ -2436,15 +2312,10 @@ private:
   void HandleSetSelected( CommonGuiElements& elements );
   void HandleRemoveSelected( CommonGuiElements& elements );
 
-  void DetachFromScenePanel( void );
   void AppendToScenePanel( void );
+  void DetachFromScenePanel( void );
   
   void ConnectToEvents( TreeItemSceneElementBase* p );
-
-  void HandleMouseMotion( int x, int diff );
-  void HandleMouseShift( int diff );
-  void HandleZoomIn( wxCoord x );
-  void HandleZoomOut( wxCoord x );
 
   void HandleFrameCounterBkgnd( size_t nFrames );
   void HandleFrameCounterFgnd( wxCommandEvent& );
@@ -2591,11 +2462,11 @@ void TreeItemScene::ResetFramesPlayed( void ) {
 // children need to notify scene when clicked on, scene changes if child is new for scene
 void TreeItemScene::SetSelected( CommonGuiElements& elements ) { // needs some tweaking
   if ( this->m_id != m_resources.currentScene ) {
-    m_resources.pScenePanel->DestroyChildren();
+    m_resources.pScenePanel->DestroyChildren();  // just in case it wasn't already
     //m_resources.tree.m_signalClearScenePanel();
     AppendToScenePanel();
     for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
-      dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->AppendToScenePanel();
+      dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->AppendToScenePanel( m_psv );
     }
     m_resources.currentScene = this->m_id;
   }
@@ -2607,10 +2478,10 @@ void TreeItemScene::HandleSetSelected( CommonGuiElements& elements ) {
 
 void TreeItemScene::RemoveSelected( CommonGuiElements& elements ) {  // needs some tweaking
   if ( this->m_id != m_resources.currentScene ) {
-    DetachFromScenePanel();
     for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
       dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->DetachFromScenePanel();
     }
+    DetachFromScenePanel();
     //m_resources.tree.m_signalClearScenePanel();
     m_resources.pScenePanel->DestroyChildren();
   }
@@ -2630,19 +2501,12 @@ void TreeItemScene::AppendToScenePanel( void ) {
   std::string sName( m_resources.tree.GetItemText( m_id ) );
   m_psv->SetName( sName );
 
-  namespace args = boost::phoenix::arg_names;
-
-  m_psv->m_signalMouseMotion.connect( boost::phoenix::bind( &TreeItemScene::HandleMouseMotion, this, args::arg1, args::arg2 ) );
-  m_psv->m_signalMouseShift.connect( boost::phoenix::bind( &TreeItemScene::HandleMouseShift, this, args::arg1 ) );
-  m_psv->m_signalZoomIn.connect( boost::phoenix::bind( &TreeItemScene::HandleZoomIn, this, args::arg1 ) );
-  m_psv->m_signalZoomOut.connect( boost::phoenix::bind( &TreeItemScene::HandleZoomOut, this, args::arg1 ) );
-
 }
 
 void TreeItemScene::DetachFromScenePanel( void ) {
   // need to redraw area
   //m_psv->Destroy(); // probably already destroyed, still shows though, so a bug somewhere
-  m_psv = 0;
+  m_psv = 0;  // should have been destroyed by RemoveSelected
 }
 
 void TreeItemScene::ShowContextMenu( void ) {  // need scene elements instead once I get this figured out
@@ -2671,58 +2535,6 @@ void TreeItemScene::ConnectToEvents( TreeItemSceneElementBase* p ) {
   namespace args = boost::phoenix::arg_names;
   p->m_signalSelectionEventSetSelected.connect( boost::phoenix::bind( &TreeItemScene::HandleSetSelected, this, args::arg1 ) );
   p->m_signalSelectionEventRemoveSelected.connect( boost::phoenix::bind( &TreeItemScene::HandleRemoveSelected, this, args::arg1 ) );
-
-  p->m_signalMouseMotion.connect( boost::phoenix::bind( &TreeItemScene::HandleMouseMotion, this, args::arg1, args::arg2 ) );
-  p->m_signalMouseShift.connect( boost::phoenix::bind( &TreeItemScene::HandleMouseShift, this, args::arg1 ) );
-  p->m_signalZoomIn.connect( boost::phoenix::bind( &TreeItemScene::HandleZoomIn, this, args::arg1 ) );
-  p->m_signalZoomOut.connect( boost::phoenix::bind( &TreeItemScene::HandleZoomOut, this, args::arg1 ) );
-}
-
-void TreeItemScene::HandleMouseMotion( int x, int diff ) {
-  //std::cout << "mouse motion" << std::endl;
-  assert( 0 != m_psv );
-  m_psv->UpdateInteractiveCursor( x );
-  //m_psv->Refresh();
-  // update the cursor in the scene elements
-  for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
-    dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateInteractiveCursor( x );
-  }
-}
-
-void TreeItemScene::HandleZoomIn( wxCoord x ) { 
-  assert( 0 != m_psv );
-  SceneMgmtView::TimePixelMapping tpm;
-  tpm = m_psv->UpdateMouseZoomIn( x );
-  //
-  //std::cout << "mouse zoom in" << std::endl;
-  // update each scene elements
-  for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
-    dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseZoomIn( x, tpm.tdWinStart, tpm.tdPixelWidth );
-  }
-}
-
-void TreeItemScene::HandleZoomOut( wxCoord x ) {
-  assert( 0 != m_psv );
-  SceneMgmtView::TimePixelMapping tpm;
-  tpm = m_psv->UpdateMouseZoomOut( x );
-  //m_psv->Refresh();
-  //std::cout << "mouse zoom out" << std::endl;
-  // update each scene elements
-  for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
-    dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseZoomOut( x, tpm.tdWinStart, tpm.tdPixelWidth );
-  }
-}
-
-void TreeItemScene::HandleMouseShift( int diff ) {
-  //std::cout << "mouse shift" << std::endl;
-  assert( 0 != m_psv );
-  SceneMgmtView::TimePixelMapping tpm;
-  tpm = m_psv->UpdateMouseShift( diff );
-  //m_psv->Refresh();
-  // update each scene elements
-  for ( vMembers_t::iterator iter = m_vMembers.begin(); m_vMembers.end() != iter; ++iter ) {
-    dynamic_cast<TreeItemSceneElementBase*>( iter->m_pTreeItemBase.get() )->UpdateMouseShift( diff, tpm.tdWinStart, tpm.tdPixelWidth );
-  }
 }
 
 void TreeItemScene::HandleAddProjectorAreas( wxCommandEvent& event ) {
@@ -2742,6 +2554,7 @@ void TreeItemScene::HandleAddAudioStereo( wxCommandEvent& event ) {
   TreeItemAudioStereo* p = AddTreeItem<TreeItemAudioStereo,IdTreeItemType>( "Stereo", IdMusic );
   ConnectToEvents( p );
   p->Rename();
+  
 }
 
 void TreeItemScene::HandleAddAudioMono( wxCommandEvent& event ) {

@@ -1,3 +1,21 @@
+2016/02/21
+
+SceneViewCommon::{HandleMouseLeftDown, HandleMouseWheel, HandleMouseMotion, HandleLeaveWindow} are
+  base wx events bound in CreateControls
+
+HandleMouseLeftDown tracks mouse position on click
+HandleMouseWheel generates m_signalZoomIn, m_signalZoomOut
+HandleMouseMotion generates m_signalMouseShift, m_signalMouseMotion, updates mouse position state
+HandleMouseLeaveWindow generates m_signalMouseDeparts
+
+SceneMgmtView connects to these events, and processes the event locally, and then calls each sub-view:
+HandleMouseMotion: UpdateInteractiveCursor( x )
+HandleMouseShift: UpdateMouseShift( diff, tpm.tdWinStart, tpm.tdPixelWidth )
+HandleZoomIn: UpdateMouseZoomIn( x, tpm.tdWinStart, tpm.tdPixelWidth )
+HandleZoomOut: UpdateMouseZoomOut( x, tpm.tdWinStart, tpm.tdPixelWidth )
+HandleMouseDeparts: UpdateInteractiveCursor( x, false )  [turns cursor off]
+
+
 2016/02/14
 
 todo:  remove cursor when exiting one of the windows

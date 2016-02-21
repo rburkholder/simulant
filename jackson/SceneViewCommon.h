@@ -26,7 +26,8 @@ class SceneViewCommon: public wxPanel {
   DECLARE_DYNAMIC_CLASS( SceneViewCommon )
 public:
   
-  typedef boost::shared_ptr<SceneViewCommon> pSceneViewCommon_t;
+  // can't really do this as the underlying wx system handles the destroy function
+  //typedef boost::shared_ptr<SceneViewCommon> pSceneViewCommon_t;
 
   typedef boost::signals2::signal<void (int, int)> signalMouseMotion_t; // x, diff
   typedef signalMouseMotion_t::slot_type slotMouseMotion_t;
@@ -69,17 +70,19 @@ public:
 
   void SetName( const std::string& sName );
 
+  // these events need to be propagated towards SceneMgmtView, which then redistributes to all associated panels
   signalMouseMotion_t m_signalMouseMotion;  // interactive cursor
   signalMouseShift_t m_signalMouseShift; // shifting content
   signalMouseWheel_t m_signalZoomIn; // zoom in
   signalMouseWheel_t m_signalZoomOut; // zoom out
   signalMouseDeparts_t m_signalMouseDeparts;  // departs client area
 
-  virtual void UpdateInteractiveCursor( int x );
+  virtual void UpdateInteractiveCursor( int x, bool bTurnOn = true );  // cursor is, by default, on
   
   virtual void UpdateMouseZoomIn( const int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {}  // need to pass the time begin, pixel width structure
   virtual void UpdateMouseZoomOut( const int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {}
   virtual void UpdateMouseShift( const int diff, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {}
+  virtual void UpdateMouseDeparts( const int x ) {};
 
 protected:
 
@@ -145,7 +148,7 @@ protected:
   signalMouseEvent_t m_signalMouseEventEditKeyFrame;
   signalMouseEvent_t m_signalMouseEventDeleteKeyFrame;
   signalMouseEvent_t m_signalMouseEventSelectKeyFrame;
-  signalMouseEvent_t m_signalMouseEventMovement;
+  signalMouseEvent_t m_signalMouseEventMovement;  // need to define this, not very clear
   
 private:
 
@@ -167,7 +170,7 @@ private:
 
   void HandleMouseLeftDown( wxMouseEvent& event );
 
-  void HandleLeaveWindow( wxMouseEvent& );
+  void HandleMouseLeaveWindow( wxMouseEvent& );
 
   void Init();
   void CreateControls();

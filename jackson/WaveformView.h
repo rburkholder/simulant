@@ -119,9 +119,5 @@ private:
   
   void Init();
   void CreateControls();
-  wxBitmap GetBitmapResource( const wxString& name );
-  wxIcon GetIconResource( const wxString& name );
-
-  static bool ShowToolTips( void ) { return true; };
 };
 

@@ -559,15 +559,3 @@ void WaveformView::HandleMouseMotion( wxMouseEvent& event ) {
   }
   event.Skip();
 }
-
-wxBitmap WaveformView::GetBitmapResource( const wxString& name ) {
-  // Bitmap retrieval
-  wxUnusedVar(name);
-  return wxNullBitmap;
-}
-
-wxIcon WaveformView::GetIconResource( const wxString& name ) {
-  // Icon retrieval
-  wxUnusedVar(name);
-  return wxNullIcon;
-}

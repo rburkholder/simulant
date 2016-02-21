@@ -69,7 +69,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/SceneElement.o \
 	${OBJECTDIR}/SceneElementOpenGL.o \
 	${OBJECTDIR}/SceneManager.o \
-	${OBJECTDIR}/SceneView.o \
+	${OBJECTDIR}/SceneMgmtView.o \
 	${OBJECTDIR}/SceneViewCommon.o \
 	${OBJECTDIR}/ShaderManager.o \
 	${OBJECTDIR}/TimeLine.o \
@@ -275,10 +275,10 @@ ${OBJECTDIR}/SceneManager.o: SceneManager.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneManager.o SceneManager.cpp
 
-${OBJECTDIR}/SceneView.o: SceneView.cpp 
+${OBJECTDIR}/SceneMgmtView.o: SceneMgmtView.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneView.o SceneView.cpp
+	$(COMPILE.cc) -g -DBOOST_FILESYSTEM_NO_DEPRECATED -D_DEBUG -DwxUSE_GUI -I/usr/include/x86_64-linux-gnu/ -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/SceneMgmtView.o SceneMgmtView.cpp
 
 ${OBJECTDIR}/SceneViewCommon.o: SceneViewCommon.cpp 
 	${MKDIR} -p ${OBJECTDIR}

@@ -39,7 +39,7 @@
       <itemPath>SceneElement.h</itemPath>
       <itemPath>SceneElementOpenGL.h</itemPath>
       <itemPath>SceneManager.h</itemPath>
-      <itemPath>SceneView.h</itemPath>
+      <itemPath>SceneMgmtView.h</itemPath>
       <itemPath>SceneViewCommon.h</itemPath>
       <itemPath>ShaderManager.h</itemPath>
       <itemPath>SpinLock.h</itemPath>
@@ -98,7 +98,7 @@
       <itemPath>SceneElement.cpp</itemPath>
       <itemPath>SceneElementOpenGL.cpp</itemPath>
       <itemPath>SceneManager.cpp</itemPath>
-      <itemPath>SceneView.cpp</itemPath>
+      <itemPath>SceneMgmtView.cpp</itemPath>
       <itemPath>SceneViewCommon.cpp</itemPath>
       <itemPath>ShaderManager.cpp</itemPath>
       <itemPath>TimeLine.cpp</itemPath>
@@ -309,9 +309,9 @@
       </item>
       <item path="SceneManager.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="SceneView.cpp" ex="false" tool="1" flavor2="0">
+      <item path="SceneMgmtView.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="SceneView.h" ex="false" tool="3" flavor2="0">
+      <item path="SceneMgmtView.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="SceneViewCommon.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -557,9 +557,9 @@
       </item>
       <item path="SceneManager.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="SceneView.cpp" ex="false" tool="1" flavor2="0">
+      <item path="SceneMgmtView.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="SceneView.h" ex="false" tool="3" flavor2="0">
+      <item path="SceneMgmtView.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="SceneViewCommon.cpp" ex="false" tool="1" flavor2="0">
       </item>

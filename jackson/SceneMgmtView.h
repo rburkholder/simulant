@@ -7,6 +7,9 @@
 
 #pragma once
 
+// A SceneView contains a number of specific views:  keyframe markers, waveforms, video stills, images
+// each view will then contain a number of clips
+
 #include <string>
 #include <map>
 
@@ -22,8 +25,9 @@ class SceneMgmtView: public SceneViewCommon {
   DECLARE_DYNAMIC_CLASS( SceneMgmtView )
 public:
   
-  typedef SceneViewCommon::pSceneViewCommon_t pSceneViewCommon_t;
-  typedef boost::shared_ptr<SceneMgmtView> pSceneView_t;
+  // can't really do either of these, as the underlying wx system handles the destroy function
+  //typedef SceneViewCommon::pSceneViewCommon_t pSceneViewCommon_t;
+  //typedef boost::shared_ptr<SceneMgmtView> pSceneView_t;
   
   SceneMgmtView( );
   SceneMgmtView( 
@@ -43,18 +47,16 @@ public:
   
   boost::posix_time::time_duration GetPixelWidth( void ) { return m_tdTimePixelMapping.tdPixelWidth; }
 
-  // in: pixel offset, out: time begin, pixel width
-  TimePixelMapping UpdateMouseZoomIn( const int x );
-  TimePixelMapping UpdateMouseZoomOut( const int x );
-  TimePixelMapping UpdateMouseShift( const int diff );
+  // who holds the time offsets?  the manager, the view, or the clips?
+  void AddView( const std::string& sViewName, SceneViewCommon* pSceneViewCommon );
+  void DeleteView( const std::string& sViewName );
+  void RenameView( const std::string& sOldName, const std::string& sNewName ); // is case sensitive
   
-  void AddClip( const std::string& sClipName, pSceneViewCommon_t pSceneViewCommon );
-  void RemoveClip( const std::string& sClipName );
-  void RenameClip( const std::string& sOldName, const std::string& sNewName );
+  void ClearViews( void );
   
   void DrawTime( const std::string& sTime );
   
-  virtual void UpdateInteractiveCursor( int x );
+  virtual void UpdateInteractiveCursor( int x, bool bTurnOn = true );
 
 protected:
   
@@ -71,14 +73,41 @@ private:
     ID_CONTROLSCENEVIEW
   };
 
-  // how are the clips going to be identified?  creation timestamp?  sequence number?  renamable auto id?
-  typedef std::map<std::string,pSceneViewCommon_t> mapClips_t;
+  struct View {
+    SceneViewCommon* pSceneViewCommon;
+    boost::signals2::connection connMouseMotion;
+    boost::signals2::connection connMouseShift;
+    boost::signals2::connection connZoomIn;
+    boost::signals2::connection connZoomOut;
+    boost::signals2::connection connMouseDeparts;
+    View( void ): pSceneViewCommon( 0 ) {};
+  };
   
+  // how are the views going to be identified?  creation timestamp?  sequence number?  rename-able auto id?
+  typedef std::map<std::string,View> mapViews_t;
+  
+  View m_view;  // holds our own connections;
+  
+  mapViews_t m_mapViews;
+
   wxMenu* m_pContextMenu;
   
-  mapClips_t m_mapClips;
-
+  void ConnectSignals( View& view, SceneViewCommon* pview );
+  void DisconnectSignals( View& view );
+  
   void DrawLegend( wxClientDC& dc );
+  
+  // process self-update, then call each of the sub-views for their self-update
+  void HandleMouseMotion( int x, int diff );
+  void HandleMouseShift( int diff );
+  void HandleZoomIn( wxCoord x );
+  void HandleZoomOut( wxCoord x );
+  void HandleMouseDeparts( wxCoord x );
+
+  // in: pixel offset, out: time begin, pixel width
+  TimePixelMapping UpdateMouseZoomIn( const int x );
+  TimePixelMapping UpdateMouseZoomOut( const int x );
+  TimePixelMapping UpdateMouseShift( const int diff );
   
   void Init();
   void CreateControls();
