@@ -63,8 +63,10 @@ public:
           long style = SYMBOL_CONTROLWAVEFORMVIEW_STYLE );
   virtual ~WaveformView( );
   
-  void SetSamples( pWaveform_t, boost::posix_time::time_duration tdPixelWidth );
+  void SetSamples( pWaveform_t );
+  //void SetSamples( pWaveform_t, boost::posix_time::time_duration tdPixelWidth ) { assert( 0 ); };
   
+  virtual void SetTimePixelMapping( const TimePixelMapping& );
   virtual void UpdateMouseShift( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel );
   virtual void UpdateMouseZoomIn( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel );
   virtual void UpdateMouseZoomOut( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel );
@@ -90,6 +92,7 @@ private:
   bool m_bMouseLeftDown;
   wxRect m_rectLast;
   
+  // these items  need to be updated with m_tdTimePixelMapping
   size_t m_ixFirstSampleInWindow;
   size_t m_nSamplesInWindow;
   
@@ -100,7 +103,8 @@ private:
   void SummarizeSamplesOnEvent( void );
   void SummarizeSamples( unsigned long width, size_t ixStart, size_t n ); // sub-sample at interval based upon number of pixels present
   
-  void SummarizeSamples( boost::posix_time::time_duration tdPixelWidth );
+  //void SummarizeSamples( boost::posix_time::time_duration tdPixelWidth );
+  void SummarizeSamples( void );
   
   void HandlePaint( wxPaintEvent& );
   void HandleEraseBackground( wxEraseEvent& );

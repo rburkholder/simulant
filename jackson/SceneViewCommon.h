@@ -49,6 +49,8 @@ public:
       tdPixelWidth = boost::posix_time::seconds( 1 ); // to start, one pixel is one second of waveform or video
       //m_tdPixelWidth = tdOneSecond / 100;  // 100 frames per second, one frame per pixel to start
     }
+    TimePixelMapping( boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel )
+      : tdWinStart( start ), tdPixelWidth( widthPixel ) {}
   };
   
   SceneViewCommon( );
@@ -76,12 +78,18 @@ public:
   signalMouseWheel_t m_signalZoomIn; // zoom in
   signalMouseWheel_t m_signalZoomOut; // zoom out
   signalMouseDeparts_t m_signalMouseDeparts;  // departs client area
-
-  virtual void UpdateInteractiveCursor( int x, bool bTurnOn = true );  // cursor is, by default, on
   
+  //SceneMgmtView::AddView calls
+  virtual void SetTimePixelMapping( const TimePixelMapping& tpm ) { m_tdTimePixelMapping = tpm; }
+  //SceneMgmtView::HandleMouseMotion calls
+  virtual void UpdateInteractiveCursor( int x, bool bTurnOn = true );  // cursor is, by default, on
+  //SceneMgmtView::HandleZoomIn calls
   virtual void UpdateMouseZoomIn( const int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {}  // need to pass the time begin, pixel width structure
+  //SceneMgmtView::HandleZoomOut calls
   virtual void UpdateMouseZoomOut( const int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {}
+  //SceneMgmtView::HandleMouseShift calls
   virtual void UpdateMouseShift( const int diff, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {}
+  //SceneMgmtView::HandleMouseDeparts calls
   virtual void UpdateMouseDeparts( const int x ) {};
 
 protected:

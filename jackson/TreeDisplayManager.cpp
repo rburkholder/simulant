@@ -292,6 +292,9 @@ public:
   //void HandleAudioForPlay( AVSampleFormat format, void* buffers, int nChannels, int nSamples );
   void HandleAudioForBuffer( AVSampleFormat format, void* buffers, int nChannels, int nSamples, int offset );
   void HandleDecodeComplete( void );
+  
+  void SetSampleRate( int rate ) { m_nSampleRate = rate; }
+  int GetSampleRate( void ) const { return m_nSampleRate; }
 
   void SendBuffer( void );
 
@@ -316,6 +319,7 @@ private:
   WaveformView* m_pwfv;
   KeyFrameView* m_pkfv;
 
+  int m_nSampleRate;
   int m_intVolume; 
 
   void HandleScrollChangedVolume( wxScrollEvent& event );
@@ -342,7 +346,7 @@ private:
 };
 
 MonoAudioChannel::MonoAudioChannel( TreeDisplayManager::TreeItemResources& resources )
-  : m_resources( resources), m_pwfv( 0 ), m_pkfv( 0 ), m_intVolume( 0 ), m_nChannel( 0 )
+  : m_resources( resources), m_pwfv( 0 ), m_pkfv( 0 ), m_intVolume( 0 ), m_nChannel( 0 ), m_nSampleRate( 0 )
 {
 
   m_pAudioQueue.reset( new AudioQueue<int16_t> );
@@ -380,7 +384,15 @@ void MonoAudioChannel::AppendToScenePanel( const std::string& sBaseName, SceneMg
   //m_pwfv = *m_resources.tree.m_signalAppendWaveformView();
   assert( 0 != m_pwfv );
   m_resources.tree.m_signalAppendView( m_pwfv, 3 );
-  //m_pwfv->SetSamples( &m_vSamples );
+  
+  assert( 0 != m_nSampleRate );
+  
+  WaveformView::pWaveform_t pWaveform( new WaveformView::Waveform );
+  //p->SamplesPerSecondNumerator = m_player.GetAudioSampleRate();
+  pWaveform->SamplesPerSecondNumerator = m_nSampleRate;
+  pWaveform->pvSamples = &m_vSamples;
+  m_pwfv->SetSamples( pWaveform );
+  
   p->AddView( sBaseName + "Wave", m_pwfv );
 
   m_pkfv = new KeyFrameView( m_resources.pScenePanel );
@@ -473,7 +485,7 @@ void MonoAudioChannel::SendBuffer( void ) {
 }
 
 void MonoAudioChannel::HandleDecodeComplete( void ) {
-  std::cout << "Audio Decode Complete: " << m_nChannel << ", " << m_vSamples.size() << ", " << m_vSamples.size() << " samples" << std::endl;
+  std::cout << "Audio Decode Complete: " << m_nChannel << ", " << m_vSamples.size() << " samples" << std::endl;
   //if ( 0 != m_pwfv )  m_pwfv->SetSamples( &m_vSamples );  
   //m_pwfvFrontLeft->Refresh();
 }
@@ -1003,6 +1015,8 @@ void TreeItemAudioStereo::DecodeAudio( void ) {
   if ( m_player.Open( m_sFilePath ) ) {  // means it needs to be closed manually or automatically
     if ( m_player.GetBestAudioStreamFound() ) {
       assert( 44100 == m_player.GetAudioSampleRate() );  // need to be a bit more flexible
+      m_channelLeft.SetSampleRate( m_player.GetAudioSampleRate() );
+      m_channelRight.SetSampleRate( m_player.GetAudioSampleRate() );
     }
     //m_player.Play();  // get the stream into our local buffer, may have issue with premature closure
   }

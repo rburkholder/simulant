@@ -7,6 +7,8 @@
 
 #include <math.h>
 
+#include <string>
+
 #include <boost/phoenix/bind/bind_member_function.hpp>
 #include <boost/phoenix/core/argument.hpp>
 
@@ -40,8 +42,6 @@ bool SceneMgmtView::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos,
   if (GetSizer()) {
     GetSizer()->SetSizeHints(this);
   }
-  
-  
   
   std::cout << "scene constructed" << std::endl;
   
@@ -93,29 +93,6 @@ void SceneMgmtView::HandlePaint( wxPaintEvent& event ) {
   SceneViewCommon::HandlePaint( event );
   wxPaintDC dc(this);
   DrawLegend( dc );  // todo:  may only need this on mouse translation or scaling, plus on init
-}
-
-void SceneMgmtView::UpdateInteractiveCursor( int x, bool bTurnOn ) {
-  
-  wxClientDC dc( this );
-  //this->DrawName( dc );
-  // change the following to  use dc at some point
-  //UnDrawCursor(dc, m_cursorInteractive );
-  //DrawCursor( dc, x, m_cursorInteractive );
-
-  // need this in SceneView only
-  //DrawTime( m_cursorInteractive, m_cursorInteractive.m_pointStatusText, TimeAtSample( x, 1, 44100 ) );
-  
-  boost::posix_time::time_duration td;
-  td = m_tdTimePixelMapping.tdWinStart + m_tdTimePixelMapping.tdPixelWidth * x;
-  
-  std::stringstream ss;
-  
-  ss << td;
-  std::string s( ss.str() );
-  //SceneViewCommon::DrawTime( wxColour( 0, 0, 0 ), wxPoint( 2, 2 ), s );
-  DrawTime( s );
-          
 }
 
 void SceneMgmtView::UnDrawCursor( wxClientDC& dc, Cursor& cursor ) {
@@ -181,89 +158,6 @@ void SceneMgmtView::DrawLegend( wxClientDC& dc ) {
   }
 }
 
-// takes cursor position in window, calculates and returns new window beginning and pixel width
-SceneMgmtView::TimePixelMapping SceneMgmtView::UpdateMouseZoomIn( const int x ) {
-  
-  assert( 0 <= x );
-  
-  const wxRect rect = GetClientRect();
-  const int width( rect.GetWidth() );
-  assert( 0 < width );
-  assert( x < width );
-  
-  // is there a minimum pixel width to be checked?
-  
-  boost::posix_time::time_duration tdAtX 
-    = m_tdTimePixelMapping.tdWinStart + m_tdTimePixelMapping.tdPixelWidth * x;
-  boost::posix_time::time_duration tdPixelWidth = (m_tdTimePixelMapping.tdPixelWidth * 3) / 4;  // use this ratio for now
-  if ( boost::posix_time::milliseconds( 1 ) > tdPixelWidth ) tdPixelWidth = boost::posix_time::milliseconds( 1 );
-  //boost::posix_time::time_duration tdRelativeOffset = (tdPixelWidth * x) / width; // linear interpolation
-  boost::posix_time::time_duration tdWinStart = tdAtX - ( tdPixelWidth * x );  // ** needs an offset
-  assert( boost::posix_time::time_duration( 0, 0, 0 ) <= tdWinStart );  // assert rather than fix to assess math correctness
-  
-  m_tdTimePixelMapping.tdPixelWidth = tdPixelWidth;
-  m_tdTimePixelMapping.tdWinStart = tdWinStart;
-  
-  return m_tdTimePixelMapping;
-
-}
-
-// takes cursor position in window, calculates and returns new window beginning and pixel width
-SceneMgmtView::TimePixelMapping SceneMgmtView::UpdateMouseZoomOut( const int x ) {
-  
-  assert( 0 <= x );
-  
-  const wxRect rect = GetClientRect();
-  const int width( rect.GetWidth() );
-  assert( 0 < width );
-  assert( x < width );
-  
-  // is there a minimum pixel width to be checked?
-  static const boost::posix_time::time_duration tdOneMinute( boost::posix_time::time_duration( 0, 1, 0 ) );
-  boost::posix_time::time_duration tdAtX 
-    = m_tdTimePixelMapping.tdWinStart + m_tdTimePixelMapping.tdPixelWidth * x;
-  boost::posix_time::time_duration tdPixelWidth = (m_tdTimePixelMapping.tdPixelWidth * 4) / 3;  // use this ratio for now
-  if ( tdOneMinute < tdPixelWidth ) tdPixelWidth = tdOneMinute;
-  //boost::posix_time::time_duration tdRelativeOffset = (tdPixelWidth * x) / width; // linear interpolation
-  boost::posix_time::time_duration tdOffset = tdPixelWidth * x;
-  if ( tdOffset >= tdAtX ) {
-    m_tdTimePixelMapping.tdWinStart = boost::posix_time::time_duration( 0, 0, 0 );
-  }
-  else {
-    m_tdTimePixelMapping.tdWinStart = tdAtX - tdOffset;
-  }
-  assert( boost::posix_time::time_duration( 0, 0, 0 ) <= m_tdTimePixelMapping.tdWinStart );
-  
-  m_tdTimePixelMapping.tdPixelWidth = tdPixelWidth;
-  
-  return m_tdTimePixelMapping;
-
-}
-
-// takes cursor position in window, calculates and returns new window beginning and pixel width
-SceneMgmtView::TimePixelMapping SceneMgmtView::UpdateMouseShift( const int x ) {
-
-  const wxRect rect = GetClientRect();
-  const int width( rect.GetWidth() );
-  assert( 0 < width );
-  
-  if ( 0 != x ) {
-    if ( 0 > x ) { // closer to origin
-      m_tdTimePixelMapping.tdWinStart += m_tdTimePixelMapping.tdPixelWidth * -x;
-    }
-    else { // farther from origin
-      boost::posix_time::time_duration tdOffset = m_tdTimePixelMapping.tdPixelWidth * x;
-      if ( tdOffset >= m_tdTimePixelMapping.tdWinStart ) {
-        m_tdTimePixelMapping.tdWinStart = boost::posix_time::time_duration( 0, 0, 0 );
-      }
-      else {
-        m_tdTimePixelMapping.tdWinStart -= tdOffset;
-      }
-    }
-  }
-  return m_tdTimePixelMapping;
-}
-
 void SceneMgmtView::ConnectSignals( View& view, SceneViewCommon* pview ) {
   namespace args = boost::phoenix::arg_names;
 
@@ -275,6 +169,7 @@ void SceneMgmtView::ConnectSignals( View& view, SceneViewCommon* pview ) {
 }
 
 void SceneMgmtView::AddView(const std::string& sViewName, SceneViewCommon* pview) {
+  
   if ( m_mapViews.end() != m_mapViews.find( sViewName ) ) {
     throw std::invalid_argument( "name exists: " + sViewName );
   }
@@ -286,6 +181,8 @@ void SceneMgmtView::AddView(const std::string& sViewName, SceneViewCommon* pview
   ConnectSignals( view, pview );
   
   m_mapViews[ sViewName ] = view;  // are the connections copied, or do we need to put onto the heap?
+  
+  pview->SetTimePixelMapping( m_tdTimePixelMapping );  // set the new addition to the same time frame
 }
 
 void SceneMgmtView::DisconnectSignals( View& view ) {
@@ -378,5 +275,111 @@ void SceneMgmtView::HandleMouseDeparts( int x ) {
   for ( mapViews_t::iterator iter = m_mapViews.begin(); m_mapViews.end() != iter; ++iter ) {
     iter->second.pSceneViewCommon->UpdateInteractiveCursor( x, false );  // turn the cursor off
   }
+}
+
+void SceneMgmtView::UpdateInteractiveCursor( int x, bool bTurnOn ) {
+  
+  wxClientDC dc( this );
+  //this->DrawName( dc );
+  // change the following to  use dc at some point
+  //UnDrawCursor(dc, m_cursorInteractive );
+  //DrawCursor( dc, x, m_cursorInteractive );
+
+  // need this in SceneView only
+  //DrawTime( m_cursorInteractive, m_cursorInteractive.m_pointStatusText, TimeAtSample( x, 1, 44100 ) );
+  
+  boost::posix_time::time_duration td;
+  td = m_tdTimePixelMapping.tdWinStart + m_tdTimePixelMapping.tdPixelWidth * x;
+  
+  std::stringstream ss;
+  
+  ss << td;
+  std::string s( ss.str() );
+  //SceneViewCommon::DrawTime( wxColour( 0, 0, 0 ), wxPoint( 2, 2 ), s );
+  DrawTime( s );
+          
+}
+
+// takes cursor position in window, calculates and returns new window beginning and pixel width
+SceneMgmtView::TimePixelMapping SceneMgmtView::UpdateMouseZoomIn( const int x ) {
+  
+  assert( 0 <= x );
+  
+  const wxRect rect = GetClientRect();
+  const int width( rect.GetWidth() );
+  assert( 0 < width );
+  assert( x < width );
+  
+  // is there a minimum pixel width to be checked?
+  
+  boost::posix_time::time_duration tdAtX 
+    = m_tdTimePixelMapping.tdWinStart + m_tdTimePixelMapping.tdPixelWidth * x;
+  boost::posix_time::time_duration tdPixelWidth = (m_tdTimePixelMapping.tdPixelWidth * 3) / 4;  // use this ratio for now
+  if ( boost::posix_time::milliseconds( 1 ) > tdPixelWidth ) tdPixelWidth = boost::posix_time::milliseconds( 1 );
+  //boost::posix_time::time_duration tdRelativeOffset = (tdPixelWidth * x) / width; // linear interpolation
+  boost::posix_time::time_duration tdWinStart = tdAtX - ( tdPixelWidth * x );  // ** needs an offset
+  assert( boost::posix_time::time_duration( 0, 0, 0 ) <= tdWinStart );  // assert rather than fix to assess math correctness
+  
+  m_tdTimePixelMapping.tdPixelWidth = tdPixelWidth;
+  m_tdTimePixelMapping.tdWinStart = tdWinStart;
+  
+  return m_tdTimePixelMapping;
+
+}
+
+// takes cursor position in window, calculates and returns new window beginning and pixel width
+SceneMgmtView::TimePixelMapping SceneMgmtView::UpdateMouseZoomOut( const int x ) {
+  
+  assert( 0 <= x );
+  
+  const wxRect rect = GetClientRect();
+  const int width( rect.GetWidth() );
+  assert( 0 < width );
+  assert( x < width );
+  
+  // is there a minimum pixel width to be checked?
+  static const boost::posix_time::time_duration tdOneMinute( boost::posix_time::time_duration( 0, 1, 0 ) );
+  boost::posix_time::time_duration tdAtX 
+    = m_tdTimePixelMapping.tdWinStart + m_tdTimePixelMapping.tdPixelWidth * x;
+  boost::posix_time::time_duration tdPixelWidth = (m_tdTimePixelMapping.tdPixelWidth * 4) / 3;  // use this ratio for now
+  if ( tdOneMinute < tdPixelWidth ) tdPixelWidth = tdOneMinute;
+  //boost::posix_time::time_duration tdRelativeOffset = (tdPixelWidth * x) / width; // linear interpolation
+  boost::posix_time::time_duration tdOffset = tdPixelWidth * x;
+  if ( tdOffset >= tdAtX ) {
+    m_tdTimePixelMapping.tdWinStart = boost::posix_time::time_duration( 0, 0, 0 );
+  }
+  else {
+    m_tdTimePixelMapping.tdWinStart = tdAtX - tdOffset;
+  }
+  assert( boost::posix_time::time_duration( 0, 0, 0 ) <= m_tdTimePixelMapping.tdWinStart );
+  
+  m_tdTimePixelMapping.tdPixelWidth = tdPixelWidth;
+  
+  return m_tdTimePixelMapping;
+
+}
+
+// takes cursor position in window, calculates and returns new window beginning and pixel width
+SceneMgmtView::TimePixelMapping SceneMgmtView::UpdateMouseShift( const int x ) {
+
+  const wxRect rect = GetClientRect();
+  const int width( rect.GetWidth() );
+  assert( 0 < width );
+  
+  if ( 0 != x ) {
+    if ( 0 > x ) { // closer to origin
+      m_tdTimePixelMapping.tdWinStart += m_tdTimePixelMapping.tdPixelWidth * -x;
+    }
+    else { // farther from origin
+      boost::posix_time::time_duration tdOffset = m_tdTimePixelMapping.tdPixelWidth * x;
+      if ( tdOffset >= m_tdTimePixelMapping.tdWinStart ) {
+        m_tdTimePixelMapping.tdWinStart = boost::posix_time::time_duration( 0, 0, 0 );
+      }
+      else {
+        m_tdTimePixelMapping.tdWinStart -= tdOffset;
+      }
+    }
+  }
+  return m_tdTimePixelMapping;
 }
 

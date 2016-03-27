@@ -11,6 +11,10 @@
 
 #include "QuadraticInterpolation.h"
 
+// have to think about waveform subsets:
+//   may be space prior to the waveform
+//   may be space after the waveform
+
 template<typename sample_t>
 struct Vertical { // tracks a line for pixel width of the waveform
   // #samples > #pixels: summarize samples into Vertical, index step > 1
@@ -46,32 +50,59 @@ struct WaveformRenderToVertical {
   : m_vVertical( vVertical )
   {}
   
-  void SummarizeGivenSamplesPerPixel( 
+  void SummarizeWorkInProgress( 
     typename vSample_t::const_iterator begin, 
     typename vSample_t::const_iterator end, 
-    size_t nSamplesPerPixel ) {
+    size_t nPixelsToCover, // may not be able to cover all pixels
+    size_t nSamplesPerPixel 
+  ) {
+  }
+
+  // will have to re-write this sometime because rounding will not sync further down the waveform in the scene
+  void Summarize( 
+    typename vSample_t::const_iterator begin, 
+    typename vSample_t::const_iterator end, 
+    size_t nVerticalsToCover, // may not be able to cover all pixels
+    size_t nSamplesPerPixel 
+) {
     
     typename vVertical_t::reverse_iterator iter;
     
+    if ( 0 == nSamplesPerPixel ) return;
+    
+    m_vVertical.clear();
+    m_vVertical.reserve( nVerticalsToCover );
+    
+    int nVerticalsToProcess( nVerticalsToCover );
     size_t cnt( 0 ); // repeat the count to pack the samples
     size_t ixSample( 0 );
-    while ( begin != end ) {
+    size_t nSamplesProcessed( 0 );
+    size_t nPixelsProcessed( 0 );
+    while ( ( begin != end ) && ( 0 != nVerticalsToProcess ) ) {
       if ( 0 == cnt ) {
 	m_vVertical.push_back( Vertical<sample_t>( ixSample, *begin, *begin ) );
 	iter = m_vVertical.rbegin();
 	cnt = nSamplesPerPixel;
+        nVerticalsToProcess--;  // does this leave us with an empty vertical, or maybe an unfinished vertical?
+	nPixelsProcessed++;
       }
       else {
 	iter->sampleMin = std::min<sample_t>( iter->sampleMin, *begin );
-	iter->sampleMax = std::min<sample_t>( iter->sampleMax, *begin );
+	iter->sampleMax = std::max<sample_t>( iter->sampleMax, *begin );
       }
       cnt--;
       ixSample++;
       begin++;
+      nSamplesProcessed++;
     }
+    std::cout << "Summarized: " << nSamplesProcessed << " samples, " << nPixelsProcessed << " pixels" << std::endl;
   }
   
-  Results Summarize( typename vSample_t::const_iterator begin, typename vSample_t::const_iterator end, size_t ttlPixels ) {
+  Results SummarizeGivenTotalPixels( 
+    typename vSample_t::const_iterator begin, 
+    typename vSample_t::const_iterator end, 
+    size_t ttlPixels 
+  ) {
     Results results;
     m_vVertical.clear();
     m_vVertical.reserve( ttlPixels );

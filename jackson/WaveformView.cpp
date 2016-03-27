@@ -16,6 +16,25 @@
 #include "WaveformRenderToVertical.h"
 #include "WaveformView.h"
 
+// 20160337 a bigger question:  
+//   recent code summarizes the waveform, but the display code used the whole summarized waveform
+//   so... now need to work on showing only a portion of the waveform
+
+// waveform window needs to handle multiple clips
+// so need to create a clip object, which can then be displayed, wholly or partially
+
+// this is because the waveform window is part of the scene, and view portion matches scene portion
+
+// clip placement scenarios:
+//   like premiere pro and blender:  a waveform window with relative placement
+//   like djs do it:  slide them back and forth aurally till beats match
+//   like the sound program:  a set of rules which cue waveforms and their play
+
+// BUT FOR NOW:
+//   implicit clip always starts at beginning of scene time frame
+//   later can work on sliding clip back and forth
+//   therefore, only white space we have is at the end of the waveform, if any
+
 IMPLEMENT_DYNAMIC_CLASS( WaveformView, SceneViewCommon )
 
 WaveformView::WaveformView( ) {
@@ -112,12 +131,20 @@ void WaveformView::UnDrawCursor( wxClientDC& dc, Cursor& cursor ) {
   }
 }
 
-void WaveformView::SetSamples( pWaveform_t p, boost::posix_time::time_duration tdPixelWidth ) {  // will samples ever disappear?  maybe supply as shared_ptr?
+// 20160326 remove the tdPixelWidth
+//   will need to perform a refresh with the correct parameters elsewhere
+//   will need to pass in the SamplesPerSecond stuff
+//   use flag to determine if summarized, then summarize on demand, or on redraw, or in background
+
+void WaveformView::SetSamples( pWaveform_t p ) {  // will samples ever disappear?  maybe supply as shared_ptr?
   //std::cout << "Set Samples start" << std::endl;
   m_pWaveform = p;
-  SummarizeSamples( tdPixelWidth );
+  // need to fix this bit:
+  //SummarizeSamples( tdPixelWidth );
+  SummarizeSamples();
+  // all the following can go away?
   // need to figure out how to draw, need the start of window bit
-  wxRect rect( this->GetClientRect() );
+  //wxRect rect( this->GetClientRect() );
   //if ( 0 == p ) {
   //  SummarizeSamples( rect.GetWidth(), 0, 0 );
   //}
@@ -168,7 +195,8 @@ void WaveformView::HandlePaint( wxPaintEvent& event ) {
 }
 
 // may want to do in background thread at some point
-void WaveformView::SummarizeSamples( boost::posix_time::time_duration tdPixelWidth ) {
+//void WaveformView::SummarizeSamples( boost::posix_time::time_duration tdPixelWidth ) {
+void WaveformView::SummarizeSamples( void ) {
   // each clip needs it's offset into the timeline
   
   // do things differently:
@@ -209,13 +237,29 @@ void WaveformView::SummarizeSamples( boost::posix_time::time_duration tdPixelWid
   if ( 0 != m_pWaveform.get() ) {
     if ( 0 != m_pWaveform->pvSamples ) {
       if ( 0 != m_pWaveform->pvSamples->size() ) {
+        Waveform::vSamples_t vSamples( *m_pWaveform->pvSamples );
         // calculate samples per pixel
-        // is there a remainder?  
+        // is there a remainder?  do we care?  maybe so, as it may cause misalignment with other views
+        boost::posix_time::time_duration tdPixelWidth = m_tdTimePixelMapping.tdPixelWidth;
         size_t nSamplesPerPixel = ( ( tdPixelWidth.ticks() * m_pWaveform->SamplesPerSecondNumerator ) / m_pWaveform->SamplesPerSecondDenominator );
-        nSamplesPerPixel /= boost::posix_time::seconds ( 1 ).ticks();
-        // build vertical vector
-        //std::for_each( m_pWaveform->pvSamples->begin(), m_pWaveform->pvSamples->end(), BuildVertical( nSamplesPerPixel, m_vVertical ));
-        wrtv.SummarizeGivenSamplesPerPixel( m_pWaveform->pvSamples->begin(), m_pWaveform->pvSamples->end(), nSamplesPerPixel );
+        if ( boost::posix_time::seconds( 1 ).ticks() > nSamplesPerPixel ) {
+          // interpolate the waveform
+        }
+        else {
+          // summarize the waveform
+          nSamplesPerPixel /= boost::posix_time::seconds ( 1 ).ticks();
+          // build vertical vector
+          //std::for_each( m_pWaveform->pvSamples->begin(), m_pWaveform->pvSamples->end(), BuildVertical( nSamplesPerPixel, m_vVertical ));
+          // ** need to do this on samples visible in window, rather than all samples
+          size_t offset = ( ( m_tdTimePixelMapping.tdWinStart.total_microseconds() * m_pWaveform->SamplesPerSecondNumerator ) / m_pWaveform->SamplesPerSecondDenominator ) / 1000000; // 1 sec / 1,000,000 microseconds
+          if ( offset < vSamples.size() ) {
+            wxRect rect = this->GetRect();
+            // do interpolation separate from summary
+            size_t remaining = vSamples.size() - offset;
+            wrtv.Summarize( vSamples.begin() + offset, vSamples.end(), rect.width, nSamplesPerPixel );  // end may occur prior to end of rectangle
+          }
+        }
+        
       }
     }
   }
@@ -305,7 +349,16 @@ void WaveformView::SummarizeSamples( boost::posix_time::time_duration tdPixelWid
   
 }
 */
+
+void WaveformView::SetTimePixelMapping( const TimePixelMapping& tpm ) {
+  SceneViewCommon::SetTimePixelMapping( tpm );
+  // now we have the information for waveform summarization
+}
+
 void WaveformView::UpdateMouseShift( int xDiff, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
+  
+  m_tdTimePixelMapping = SceneViewCommon::TimePixelMapping( start, widthPixel );
+  
   if ( 0 != xDiff ) {
     if ( 0 < m_pWaveform.use_count() ) {
       const size_t width( m_vVertical.size() );
@@ -323,13 +376,15 @@ void WaveformView::UpdateMouseShift( int xDiff, boost::posix_time::time_duration
         size_t first = m_ixFirstSampleInWindow + delta;
         if ( first >  ( nSamplesTotal - m_nSamplesInWindow ) ) first = nSamplesTotal - m_nSamplesInWindow;
         //SummarizeSamples( width, first, m_nSamplesInWindow );  // no need to do this, strictly a display update issue now
-
       }
+      SummarizeSamples();
     }
   }
 }
 
 void WaveformView::UpdateMouseZoomIn( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
+  
+  m_tdTimePixelMapping = TimePixelMapping( start, widthPixel );
   
   if ( 0 < m_pWaveform.use_count() ) {
     const size_t width( m_vVertical.size() );
@@ -347,36 +402,43 @@ void WaveformView::UpdateMouseZoomIn( int x, boost::posix_time::time_duration st
         size_t startAbsolute = ixAbsoluteSample - offsetRelative;
         assert( m_pWaveform->pvSamples->size() > ( startAbsolute + nSamplesInWindow ) );
         //SummarizeSamples( width, startAbsolute, nSamplesInWindow );
-        SummarizeSamples( widthPixel );  // may not need all the above stuff now
+        //SummarizeSamples( widthPixel );  // may not need all the above stuff now
+        SummarizeSamples();
       }
     }
   }
   
 }
 
+// 20160327 rather than samples, limit to 1 microsecond  per pixel
 void WaveformView::UpdateMouseZoomOut( int x, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
   
-  if ( 0 < m_pWaveform.use_count() ) {  // need to check samples exists as well
-    const size_t size( m_pWaveform->pvSamples->size() );
-    if ( size == m_nSamplesInWindow ) {
-      // can't zoom out any more, need to check for the < issue, check done below
-    }
-    else {
-      if ( 0 != m_pWaveform->pvSamples->size() ) {
-        const size_t width( m_vVertical.size() );
-        assert( x <= width );
-        size_t ixAbsoluteSample = m_vVertical[ x ].index;
-        size_t nSamplesInWindow = ( m_nSamplesInWindow * 4 ) / 3;  // use this ratio for now
-        if ( size < nSamplesInWindow ) nSamplesInWindow = size;
-        size_t offsetRelative = ( x * nSamplesInWindow ) / width;
-        if ( offsetRelative > ixAbsoluteSample ) offsetRelative = ixAbsoluteSample;
-        size_t startAbsolute = ixAbsoluteSample - offsetRelative;
-        if ( startAbsolute > ( size - nSamplesInWindow ) ) startAbsolute = size - nSamplesInWindow;
-        //std::cout << "final: " << startAbsolute << "," << size << "," << nSamplesInWindow << std::endl;
-        assert( size >= ( startAbsolute + nSamplesInWindow ) );
-        //SummarizeSamples( width, startAbsolute, nSamplesInWindow );
-        SummarizeSamples( widthPixel );  // may not need all the above stuff now
-      }
+  m_tdTimePixelMapping = TimePixelMapping( start, widthPixel );
+  
+  if ( 0 < m_pWaveform.use_count() ) {
+    if ( 0 != m_pWaveform->pvSamples ) {
+      const size_t size( m_pWaveform->pvSamples->size() );
+      //if ( size == m_nSamplesInWindow ) {
+        // can't zoom out any more, need to check for the < issue, check done below
+      //}
+      //else {
+        if ( 0 != size ) {
+          const size_t width( m_vVertical.size() );
+          assert( x <= width );
+          size_t ixAbsoluteSample = m_vVertical[ x ].index;
+          size_t nSamplesInWindow = ( m_nSamplesInWindow * 4 ) / 3;  // use this ratio for now
+          if ( size < nSamplesInWindow ) nSamplesInWindow = size;
+          size_t offsetRelative = ( x * nSamplesInWindow ) / width;
+          if ( offsetRelative > ixAbsoluteSample ) offsetRelative = ixAbsoluteSample;
+          size_t startAbsolute = ixAbsoluteSample - offsetRelative;
+          if ( startAbsolute > ( size - nSamplesInWindow ) ) startAbsolute = size - nSamplesInWindow;
+          //std::cout << "final: " << startAbsolute << "," << size << "," << nSamplesInWindow << std::endl;
+          assert( size >= ( startAbsolute + nSamplesInWindow ) );
+          //SummarizeSamples( width, startAbsolute, nSamplesInWindow );
+          //SummarizeSamples( widthPixel );  // may not need all the above stuff now
+          SummarizeSamples();
+        }
+      //}
     }
   }
 }
@@ -414,7 +476,8 @@ void WaveformView::UpdatePlayCursor( size_t nFramesPlayed ) {
           }
         }
         wxPoint point( m_cursorPlay.m_pointStatusText );
-        DrawTime( m_cursorPlay, point, TimeAtSample( nFramesPlayed, 1, 44100 ) );
+        assert( 0 != m_pWaveform);
+        DrawTime( m_cursorPlay, point, TimeAtSample( nFramesPlayed, 1, m_pWaveform->SamplesPerSecondNumerator ) );
         point.y += 13;
         //
         // ** this needs to be migrated to WaveformView
@@ -438,6 +501,7 @@ void WaveformView::SummarizeSamplesOnEvent( void ) {
     m_cursorPlay.m_bCursorDrawn = false;
     m_rectLast = rectNew;
     //SummarizeSamples( m_rectLast.GetWidth(), m_ixFirstSampleInWindow, m_nSamplesInWindow );
+    SummarizeSamples();
   }
 }
 
@@ -473,6 +537,7 @@ void WaveformView::HandleMouseWheel( wxMouseEvent& event ) {
   event.Skip();
 }
 
+// 20160327 shouldn't this be emitting an event?  Does this actually get called?
 void WaveformView::HandleMouseMotion( wxMouseEvent& event ) {
   wxClientDC dc( this );
   wxPoint posMouse = event.GetPosition();
