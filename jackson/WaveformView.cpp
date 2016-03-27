@@ -13,6 +13,7 @@
 
 #include <wx/wx.h>
 
+#include "WaveformRenderToVertical.h"
 #include "WaveformView.h"
 
 IMPLEMENT_DYNAMIC_CLASS( WaveformView, SceneViewCommon )
@@ -57,14 +58,10 @@ bool WaveformView::Create( wxWindow* parent, wxWindowID id, const wxPoint& pos, 
 void WaveformView::CreateControls() {
   Bind( wxEVT_PAINT, &WaveformView::HandlePaint, this );
   //Bind( wxEVT_ERASE_BACKGROUND, &WaveformView::HandleEraseBackground, this );
-  //Bind( wxEVT_MOTION, &WaveformView::HandleMouseMotion, this );
-
   Bind( wxEVT_SIZE, &WaveformView::HandleSize, this );
   //Bind( wxEVT_SIZING, &WaveformView::HandleSizing, this );
-  //Bind( wxEVT_LEFT_DOWN, &WaveformView::HandleMouseLeftDown, this );
   //Bind( wxEVT_LEFT_UP, &WaveformView::HandleMouseLeftUp, this );
   //Bind( wxEVT_MOUSEWHEEL, &WaveformView::HandleMouseWheel, this );
-  //Bind( wxEVT_LEAVE_WINDOW, &WaveformView::HandleLeaveWindow, this );
   
 }
 
@@ -103,7 +100,7 @@ void WaveformView::UnDrawCursor( wxClientDC& dc, Cursor& cursor ) {
         int valMin( 0 );
         int valMax( rectClientArea.height - 1 );
 
-        Vertical& vertical( m_vVertical[ cursor.m_locCursor ] );
+        vertical_t& vertical( m_vVertical[ cursor.m_locCursor ] );
         valMin = ( vertical.sampleMin / scale ) + halfheight;
         valMax = ( vertical.sampleMax / scale ) + halfheight;
         
@@ -170,133 +167,9 @@ void WaveformView::HandlePaint( wxPaintEvent& event ) {
   }
 }
 
-/*
-void WaveformView::SummarizeSamples( unsigned long width, size_t ixStart, size_t n ) {
-  
-  struct EmptyFill {
-    inline void operator()( Vertical& vertical ) {
-      vertical.index = ix;  ++ix;
-      vertical.sampleMin = vertical.sampleMax = 0;
-    }
-    EmptyFill(): ix( 0 ) {};
-    size_t ix;
-  };
-  
-  struct StairCase {
-    typedef WaveformView::vSamples_t::const_iterator citer;
-    // I think there is an overflow case when no more stuff to put in remaining verticals
-    // hopefully resolve, but a minor change if still goes over end
-    StairCase( citer iterBegin_, citer iterEnd_, size_t step_ )
-      : iterBegin( iterBegin_ ), iterEnd( iterEnd_ ), step( step_ ), remaining_in_step( step_ ), ix( 0 ) {}
-    
-    inline void operator()( Vertical& vertical ) {
-      vertical.index = ix;
-      vertical.sampleMin = vertical.sampleMax = ( iterEnd != iterBegin ) ? *iterBegin : 0;
-      --remaining_in_step;
-      if ( 0 == remaining_in_step ) {
-        ++iterBegin;
-        ++ix;
-        remaining_in_step = step;
-      }
-    }
-    
-    size_t ix;
-    size_t step;
-    size_t remaining_in_step;
-    citer iterBegin;
-    citer iterEnd;
-  };
-  
-  struct FullFill {
-    typedef WaveformView::vVertical_t::iterator iter;
-    typedef WaveformView::vVertical_t::const_iterator citer;
-    FullFill( iter iterBegin_, citer iterEnd_, size_t start_, size_t step_ )
-      : iterBegin( iterBegin_ ), iterEnd( iterEnd_ ), step( step_ ), remaining_in_step( step_ ), 
-      ix( start_ ), ixBeginOfSummary( start_ ), min {}, max {}, initType {} {
-        assert( 0 != step_ );
-                                                      }
-      ~FullFill( void ) {
-        if ( 0 != remaining_in_step ) {
-          //std::cout << "~fullfill " << step << "," << remaining_in_step << ", " << iterEnd - iterBegin << std::endl;
-          if ( iterEnd != iterBegin ) {
-            iterBegin->index = ixBeginOfSummary;  // index to beginning of summarized samples
-            iterBegin->sampleMin = min;
-            iterBegin->sampleMax = max;
-            ++iterBegin;
-          }
-        }
-      }
-      
-    inline void operator() ( int16_t sample ) {
-      min = std::min<int16_t>( min, sample );
-      max = std::max<int16_t>( max, sample );
-      --remaining_in_step;
-      if ( 0 == remaining_in_step ) {
-        if ( iterEnd == iterBegin ) {
-          //std::cout << "left over? " << ixBeginOfSummary << "," << ix << std::endl;
-        }
-        else {
-          //assert( iterEnd != iterBegin );
-          iterBegin->index = ixBeginOfSummary;  // index to beginning of summarized samples
-          ixBeginOfSummary = ix;
-          iterBegin->sampleMin = min;
-          iterBegin->sampleMax = max;
-          min = max = initType;
-          remaining_in_step = step;
-          ++iterBegin; 
-        }
-      }
-      ++ix;
-    }
-    int16_t initType;
-    int16_t min;
-    int16_t max;
-    size_t ixBeginOfSummary;
-    size_t ix; // may not start at 0 if we are taking a sub-segment of samples
-    size_t step;
-    size_t remaining_in_step;
-    iter iterBegin;
-    citer iterEnd;
-  };
-  
-  m_ixFirstSampleInWindow = ixStart;
-  m_nSamplesInWindow = n;
-  
-  m_vVertical.resize( width );
-  if ( ( 0 == m_pvSamples ) || ( 4 >= width ) ) { // show a straight line for little or nothing
-    // fill with empty values
-    //std::cout << "summary with EmptyFill 1" << std::endl;
-    std::for_each( m_vVertical.begin(), m_vVertical.end(), EmptyFill() );
-  }
-  else {
-    if ( ( 10 >= m_pvSamples->size() ) || ( 4 >= width ) ) {
-      //std::cout << "summary with EmptyFill 2" << std::endl;
-      std::for_each( m_vVertical.begin(), m_vVertical.end(), EmptyFill() );
-    }
-    else {
-      if ( width >= m_pvSamples->size() ) { // should do a linear interpolation, or better yet, a curve of some sort
-        // one to one sampling, or fill to match width
-        //std::cout << "summary with StairCase" << std::endl;
-        size_t step = width / m_pvSamples->size();     // integer arithmetic, drop the remainder
-        std::for_each( m_vVertical.begin(), m_vVertical.end(), StairCase( m_pvSamples->begin(), m_pvSamples->end(), step ) );
-      }
-      else {
-        // sub sample the samples
-        // there might be an overflow when no data to fill end verticals, fill with zero
-        // may have an overflow issue with not enough samples to fill vertical
-        //std::cout << "summary with FullFill: " << width << ", v=" << m_vVertical.size() << ", s=" << m_pvSamples->size() << std::endl;
-        size_t step = n / ( width ); // # samples per pixel width, integer arithmetic, make use of remainder
-        vSamples_t::const_iterator iterBegin( m_pvSamples->begin() + ixStart );
-        std::for_each( iterBegin, iterBegin + n, FullFill( m_vVertical.begin(), m_vVertical.end(), ixStart, step ) );
-      }
-    }
-  }
-}
- */
-
 // may want to do in background thread at some point
 void WaveformView::SummarizeSamples( boost::posix_time::time_duration tdPixelWidth ) {
-  // each scene element needs it's offset into the timeline
+  // each clip needs it's offset into the timeline
   
   // do things differently:
   //  cache the whole file once per time frame change
@@ -304,7 +177,62 @@ void WaveformView::SummarizeSamples( boost::posix_time::time_duration tdPixelWid
   //      so maybe only cache the portions required?
   //      but, at the extremes, all needs to be cached anyway
   //   so, maybe, there is a different way of doing this
-  //  not sure how, as a waveform requires summarization for display, and depends upoin the resolution present
+  //  not sure how, as a waveform requires summarization for display, and depends upon the resolution present
+  //  therefore, if many waveforms present, get a bunch of workthreads to perform the work
+  
+  // current thought:
+  //   summarize whole waveform, then display appropriate portions later
+  //   which, I think, kinda provides a two stage pipeline:  summarize whole waveform, then display what ever is visible
+  //    but waveform is summarized based upon display, so will depend upon which waveforms and which portions are displayed
+  
+  // =====
+  // only a portion of this implemented here, the display portion is elsewhere
+  // check for overlap in one direction or the other
+  // three stages
+  //  check for pre-blank, fill with empty
+  //  check for start of media or interior of media
+  //  run till end of media or end of window
+  //  if window left, fill with empty
+  
+  // need to maintain time intervals in window (maintained in the scene manager), all windows have same pixel relationships
+  //   vector maintains vertical lines for display
+  //   different media types will need different ways of caching the view
+  
+  // ===
+  
+  // Since this is time based, and the time at the cursor is known, displaying the waveform should be easy
+  // What needs to be done now, re-sample the whole thing based upon the given pixelwidth
+  // then the actual display is performed elsewhere
+  
+  m_vVertical.clear();
+  WaveformRenderToVertical<int16_t> wrtv( m_vVertical );
+  if ( 0 != m_pWaveform.get() ) {
+    if ( 0 != m_pWaveform->pvSamples ) {
+      if ( 0 != m_pWaveform->pvSamples->size() ) {
+        // calculate samples per pixel
+        // is there a remainder?  
+        size_t nSamplesPerPixel = ( ( tdPixelWidth.ticks() * m_pWaveform->SamplesPerSecondNumerator ) / m_pWaveform->SamplesPerSecondDenominator );
+        nSamplesPerPixel /= boost::posix_time::seconds ( 1 ).ticks();
+        // build vertical vector
+        //std::for_each( m_pWaveform->pvSamples->begin(), m_pWaveform->pvSamples->end(), BuildVertical( nSamplesPerPixel, m_vVertical ));
+        wrtv.SummarizeGivenSamplesPerPixel( m_pWaveform->pvSamples->begin(), m_pWaveform->pvSamples->end(), nSamplesPerPixel );
+      }
+    }
+  }
+  
+}
+/*
+// *** to be removed with use of WaveformRenderToVertical
+void WaveformView::SummarizeSamples( boost::posix_time::time_duration tdPixelWidth ) {
+  // each clip needs it's offset into the timeline
+  
+  // do things differently:
+  //  cache the whole file once per time frame change
+  //    issue:  when many media files are available, need to recache them all
+  //      so maybe only cache the portions required?
+  //      but, at the extremes, all needs to be cached anyway
+  //   so, maybe, there is a different way of doing this
+  //  not sure how, as a waveform requires summarization for display, and depends upon the resolution present
   //  therefore, if many waveforms present, get a bunch of workthreads to perform the work
   
   // current thought:
@@ -336,6 +264,7 @@ void WaveformView::SummarizeSamples( boost::posix_time::time_duration tdPixelWid
     size_t nSamplesToProcess;
     WaveformView::vVertical_t& vVertical;
     WaveformView::vVertical_t::reverse_iterator iterVertical;
+    
     void operator() ( int16_t sample ) {  // may want template for this at some point
       if ( 0 == nSamplesToProcess ) {
         vVertical.push_back( WaveformView::Vertical() );  // another structure
@@ -375,7 +304,7 @@ void WaveformView::SummarizeSamples( boost::posix_time::time_duration tdPixelWid
   }
   
 }
-
+*/
 void WaveformView::UpdateMouseShift( int xDiff, boost::posix_time::time_duration start, boost::posix_time::time_duration widthPixel ) {
   if ( 0 != xDiff ) {
     if ( 0 < m_pWaveform.use_count() ) {

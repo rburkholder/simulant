@@ -21,6 +21,8 @@
 
 #include <boost/shared_ptr.hpp>
 
+#include "WaveformRenderToVertical.h"
+
 #include "SceneViewCommon.h"
 
 #define SYMBOL_CONTROLWAVEFORMVIEW_STYLE wxTAB_TRAVERSAL
@@ -80,16 +82,9 @@ private:
   };
   
   // **** used in UpdatePlayCursor, need to update play cursor in waveform instead
-  struct Vertical { // tracks a line for pixel width of the waveform
-    size_t index;  // index into supplied waveform in m_pvSamples
-    int16_t sampleMin;  // value we want to show  ( may use floats (6 digits) or double (15 digits) for everything )
-    int16_t sampleMax;
-    bool operator<( size_t rhs ) const { return ( index < rhs ); }
-    bool operator<( const Vertical& rhs ) const { return index < rhs.index; }
-    Vertical( void ): index( 0 ), sampleMin( 0 ), sampleMax( 0 ) {}
-  };
 
-  typedef std::vector<Vertical> vVertical_t;
+  typedef Vertical<int16_t> vertical_t;
+  typedef std::vector<vertical_t> vVertical_t;
   vVertical_t m_vVertical;  // contains waveform sub-samples
 
   bool m_bMouseLeftDown;

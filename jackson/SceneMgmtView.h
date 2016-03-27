@@ -1,5 +1,5 @@
 /* 
- * File:   SceneView.h
+ * File:   SceneMgmtView.h
  * Author: rpb
  *
  * Created on June 15, 2015, 10:28 AM
