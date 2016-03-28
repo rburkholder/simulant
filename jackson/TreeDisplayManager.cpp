@@ -485,9 +485,17 @@ void MonoAudioChannel::SendBuffer( void ) {
 }
 
 void MonoAudioChannel::HandleDecodeComplete( void ) {
+  
+  WaveformView::pWaveform_t pWaveform( new WaveformView::Waveform );
+  //p->SamplesPerSecondNumerator = m_player.GetAudioSampleRate();
+  pWaveform->SamplesPerSecondNumerator = m_nSampleRate;
+  pWaveform->pvSamples = &m_vSamples;
+  m_pwfv->SetSamples( pWaveform );
+  //m_pwfv->Refresh();
+  
+  m_pkfv->Refresh();
+  
   std::cout << "Audio Decode Complete: " << m_nChannel << ", " << m_vSamples.size() << " samples" << std::endl;
-  //if ( 0 != m_pwfv )  m_pwfv->SetSamples( &m_vSamples );  
-  //m_pwfvFrontLeft->Refresh();
 }
 
 // ================
@@ -661,13 +669,13 @@ private:
 
   template<typename Archive>
   void save( Archive& ar, const unsigned int version ) const {
-    ar & boost::serialization::base_object<const TreeItemSceneElementBase>(*this);
+    ar & boost::serialization::base_object<const TreeItemAudioCommon>(*this);
     ar & m_audioChannel;
   }
 
   template<typename Archive>
   void load( Archive& ar, const unsigned int version ) {
-    ar & boost::serialization::base_object<TreeItemSceneElementBase>(*this);
+    ar & boost::serialization::base_object<TreeItemAudioCommon>(*this);
     ar & m_audioChannel;
   }
 
@@ -784,12 +792,14 @@ void TreeItemAudioMono::HandleSetChannel( wxCommandEvent& event ) {
   std::cout << "Set Channel to " << ix << std::endl;
 }
 
+// should this being opened when the stereo side has been opened?
 void TreeItemAudioMono::DecodeAudio( void ) {
   m_audioChannel.Clear();
   m_player.Close();
   if ( m_player.Open( m_sFilePath ) ) {  // means it needs to be closed manually or automatically
     if ( m_player.GetBestAudioStreamFound() ) {
       assert( 44100 == m_player.GetAudioSampleRate() );  // need to be a bit more flexible
+      m_audioChannel.SetSampleRate( m_player.GetAudioSampleRate() );
     }
     //m_player.Play();  // get the stream into our local buffer, may have issue with premature closure
   }
@@ -997,6 +1007,8 @@ void TreeItemAudioStereo::HandleStats( wxCommandEvent& event ) {
 void TreeItemAudioStereo::HandleLoadBuffer( wxCommandEvent& event ) {
   // need to test that the file is open
   //std::cout << "play start" << std::endl;
+  m_channelLeft.Clear();
+  m_channelRight.Clear();
   m_player.Play();
 }
 
@@ -1008,6 +1020,7 @@ void TreeItemAudioStereo::HandleSelectMusic( wxCommandEvent& event ) {
   TreeItemAudioCommon::BrowseForAudio( "Stereo Audio" );
 }
 
+// there is one of these in Mono
 void TreeItemAudioStereo::DecodeAudio( void ) {
   m_channelLeft.Clear();
   m_channelRight.Clear();

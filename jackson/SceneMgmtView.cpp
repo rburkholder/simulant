@@ -234,6 +234,7 @@ void SceneMgmtView::HandleMouseMotion( int x, int diff ) {
   //m_psv->Refresh();
   for ( mapViews_t::iterator iter = m_mapViews.begin(); m_mapViews.end() != iter; ++iter ) {
     iter->second.pSceneViewCommon->UpdateInteractiveCursor( x );
+    //iter->second.pSceneViewCommon->Refresh(); // is this one needed?
   }
 }
 
@@ -244,6 +245,7 @@ void SceneMgmtView::HandleMouseShift( int diff ) {
   //m_psv->Refresh();
   for ( mapViews_t::iterator iter = m_mapViews.begin(); m_mapViews.end() != iter; ++iter ) {
     iter->second.pSceneViewCommon->UpdateMouseShift( diff, tpm.tdWinStart, tpm.tdPixelWidth );
+    iter->second.pSceneViewCommon->Refresh();
   }
 }
 
@@ -255,6 +257,7 @@ void SceneMgmtView::HandleZoomIn( wxCoord x ) {
   //std::cout << "mouse zoom in" << std::endl;
   for ( mapViews_t::iterator iter = m_mapViews.begin(); m_mapViews.end() != iter; ++iter ) {
     iter->second.pSceneViewCommon->UpdateMouseZoomIn( x, tpm.tdWinStart, tpm.tdPixelWidth );
+    iter->second.pSceneViewCommon->Refresh();
   }
 }
 
@@ -266,6 +269,7 @@ void SceneMgmtView::HandleZoomOut( wxCoord x ) {
   //std::cout << "mouse zoom out" << std::endl;
   for ( mapViews_t::iterator iter = m_mapViews.begin(); m_mapViews.end() != iter; ++iter ) {
     iter->second.pSceneViewCommon->UpdateMouseZoomOut( x, tpm.tdWinStart, tpm.tdPixelWidth );
+    iter->second.pSceneViewCommon->Refresh();
   }
 }
 

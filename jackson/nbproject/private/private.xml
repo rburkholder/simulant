@@ -9,12 +9,12 @@
             <url>TreeDisplayManager.cpp</url>
             <bookmark id="4">
                 <name/>
-                <line>757</line>
+                <line>777</line>
                 <key/>
             </bookmark>
             <bookmark id="5">
                 <name/>
-                <line>1101</line>
+                <line>1128</line>
                 <key/>
             </bookmark>
         </file>
@@ -38,20 +38,24 @@
         </group>
         <group name="Simulant">
             <file>file:/home/rpb/projects/simulant/jackson/AppProjection.cpp</file>
-            <file>file:/home/rpb/projects/simulant/jackson/notes.txt</file>
+            <file>file:/home/rpb/projects/simulant/jackson/WaveformRenderToVertical.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/AppProjection.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/QuadraticInterpolation.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/PanelSurfaceSources.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/KeyFrameView.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/SceneMgmtView.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/AudioQueue.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/WaveformView.h</file>
+            <file>file:/home/rpb/projects/simulant/jackson/MediaStreamDecode.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/SceneViewCommon.h</file>
-            <file>file:/home/rpb/projects/simulant/jackson/TreeDisplayManager.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/KeyFrameView.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/TreeDisplayManager.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/SceneMgmtView.h</file>
             <file>file:/home/rpb/projects/simulant/jackson/WaveformView.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/SceneViewCommon.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/PanelSurfaceSources.cpp</file>
             <file>file:/home/rpb/projects/simulant/jackson/TreeDisplayManager.cpp</file>
+            <file>file:/home/rpb/projects/simulant/jackson/MediaStreamDecode.h</file>
         </group>
     </open-files>
 </project-private>

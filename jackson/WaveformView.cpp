@@ -151,7 +151,7 @@ void WaveformView::SetSamples( pWaveform_t p ) {  // will samples ever disappear
   //else {
   //  SummarizeSamples( rect.GetWidth(), 0, p->size() );
   //}
-  //this->Refresh();  // is this needed or done from caller?
+  this->Refresh();  // is this needed or done from caller?
   //std::cout << "Set Samples done" << std::endl;
 }
 
@@ -168,8 +168,9 @@ void WaveformView::HandlePaint( wxPaintEvent& event ) {
 
   SceneViewCommon::EraseRectangle( dc, rectClientArea, m_colourBackground );
 
-  if ((width != m_vVertical.size()) || (1 >= height)) {
-    //std::cout << "window width: " << width << ", sample width: " << m_vVertical.size() << std::endl;
+  //if ((width != m_vVertical.size()) || (1 >= height)) {
+  if ( 1 >= height ) {
+    std::cout << "window width: " << width << ", sample width: " << m_vVertical.size() << std::endl;
   }
   else {
     wxBrush brush( dc.GetBrush() );
@@ -182,14 +183,17 @@ void WaveformView::HandlePaint( wxPaintEvent& event ) {
     
     int halfheight = height / 2;
     int scale = std::numeric_limits<short>::max() / halfheight;
-    assert( width == m_vVertical.size() );
+    //assert( width == m_vVertical.size() );
 
+    int ix( 0 );
     vVertical_t::const_iterator iter = m_vVertical.begin();
-    for ( int ix = 0; ix < width; ++ix ) {
+    while ( ( ix < width ) && ( m_vVertical.end() != iter ) ) {
+    //for ( int ix = 0; ix < width; ++ix ) {
       int valMin = ( iter->sampleMin / scale ) + halfheight;
       int valMax = ( iter->sampleMax / scale ) + halfheight;
       dc.DrawLine( ix, valMin, ix, valMax );
-      ++iter;
+      iter++;
+      ix++;
     }
   }
 }
@@ -237,6 +241,7 @@ void WaveformView::SummarizeSamples( void ) {
   if ( 0 != m_pWaveform.get() ) {
     if ( 0 != m_pWaveform->pvSamples ) {
       if ( 0 != m_pWaveform->pvSamples->size() ) {
+        m_rectLast = this->GetRect();
         Waveform::vSamples_t vSamples( *m_pWaveform->pvSamples );
         // calculate samples per pixel
         // is there a remainder?  do we care?  maybe so, as it may cause misalignment with other views
@@ -253,10 +258,9 @@ void WaveformView::SummarizeSamples( void ) {
           // ** need to do this on samples visible in window, rather than all samples
           size_t offset = ( ( m_tdTimePixelMapping.tdWinStart.total_microseconds() * m_pWaveform->SamplesPerSecondNumerator ) / m_pWaveform->SamplesPerSecondDenominator ) / 1000000; // 1 sec / 1,000,000 microseconds
           if ( offset < vSamples.size() ) {
-            wxRect rect = this->GetRect();
             // do interpolation separate from summary
             size_t remaining = vSamples.size() - offset;
-            wrtv.Summarize( vSamples.begin() + offset, vSamples.end(), rect.width, nSamplesPerPixel );  // end may occur prior to end of rectangle
+            wrtv.Summarize( vSamples.begin() + offset, vSamples.end(), m_rectLast.width, nSamplesPerPixel );  // end may occur prior to end of rectangle
           }
         }
         
@@ -265,6 +269,7 @@ void WaveformView::SummarizeSamples( void ) {
   }
   
 }
+
 /*
 // *** to be removed with use of WaveformRenderToVertical
 void WaveformView::SummarizeSamples( boost::posix_time::time_duration tdPixelWidth ) {
@@ -361,6 +366,7 @@ void WaveformView::UpdateMouseShift( int xDiff, boost::posix_time::time_duration
   
   if ( 0 != xDiff ) {
     if ( 0 < m_pWaveform.use_count() ) {
+      /*
       const size_t width( m_vVertical.size() );
       const size_t nSamplesTotal( m_pWaveform->pvSamples->size() );
       assert( width <= m_nSamplesInWindow );
@@ -377,6 +383,7 @@ void WaveformView::UpdateMouseShift( int xDiff, boost::posix_time::time_duration
         if ( first >  ( nSamplesTotal - m_nSamplesInWindow ) ) first = nSamplesTotal - m_nSamplesInWindow;
         //SummarizeSamples( width, first, m_nSamplesInWindow );  // no need to do this, strictly a display update issue now
       }
+      */
       SummarizeSamples();
     }
   }
@@ -389,11 +396,11 @@ void WaveformView::UpdateMouseZoomIn( int x, boost::posix_time::time_duration st
   if ( 0 < m_pWaveform.use_count() ) {
     const size_t width( m_vVertical.size() );
     if ( width == m_nSamplesInWindow ) {
-      // can't zoom in any more
+      // can't zoom in any more, ... can fix this now, now that waveform interpolation is available
     }
     else {
       if ( 0 != m_pWaveform->pvSamples->size() ) {
-        const size_t width( m_vVertical.size() );
+/*        const size_t width( m_vVertical.size() );
         assert( x <= width );
         size_t ixAbsoluteSample = m_vVertical[ x ].index;
         size_t nSamplesInWindow = ( m_nSamplesInWindow * 3 ) / 4;  // use this ratio for now
@@ -403,7 +410,7 @@ void WaveformView::UpdateMouseZoomIn( int x, boost::posix_time::time_duration st
         assert( m_pWaveform->pvSamples->size() > ( startAbsolute + nSamplesInWindow ) );
         //SummarizeSamples( width, startAbsolute, nSamplesInWindow );
         //SummarizeSamples( widthPixel );  // may not need all the above stuff now
-        SummarizeSamples();
+  */      SummarizeSamples();
       }
     }
   }
@@ -423,7 +430,7 @@ void WaveformView::UpdateMouseZoomOut( int x, boost::posix_time::time_duration s
       //}
       //else {
         if ( 0 != size ) {
-          const size_t width( m_vVertical.size() );
+/*          const size_t width( m_vVertical.size() );
           assert( x <= width );
           size_t ixAbsoluteSample = m_vVertical[ x ].index;
           size_t nSamplesInWindow = ( m_nSamplesInWindow * 4 ) / 3;  // use this ratio for now
@@ -436,7 +443,7 @@ void WaveformView::UpdateMouseZoomOut( int x, boost::posix_time::time_duration s
           assert( size >= ( startAbsolute + nSamplesInWindow ) );
           //SummarizeSamples( width, startAbsolute, nSamplesInWindow );
           //SummarizeSamples( widthPixel );  // may not need all the above stuff now
-          SummarizeSamples();
+  */        SummarizeSamples();
         }
       //}
     }
@@ -496,7 +503,7 @@ void WaveformView::UpdatePlayCursor( size_t nFramesPlayed ) {
 // this will need to be done differently
 void WaveformView::SummarizeSamplesOnEvent( void ) {
   wxRect rectNew = this->GetRect();
-  if ( rectNew != m_rectLast ) {
+  if ( rectNew.width != m_rectLast.width ) {
     m_cursorInteractive.m_bCursorDrawn = false;
     m_cursorPlay.m_bCursorDrawn = false;
     m_rectLast = rectNew;

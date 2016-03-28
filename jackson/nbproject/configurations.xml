@@ -31,6 +31,7 @@
       <itemPath>PanelLogging.h</itemPath>
       <itemPath>PanelSurfaceSources.h</itemPath>
       <itemPath>PhysicalDisplay.h</itemPath>
+      <itemPath>QuadraticInterpolation.h</itemPath>
       <itemPath>RawImage.h</itemPath>
       <itemPath>ReusableBuffers.h</itemPath>
       <itemPath>SEGrid.h</itemPath>
@@ -46,6 +47,7 @@
       <itemPath>TimeLine.h</itemPath>
       <itemPath>TimeLineView.h</itemPath>
       <itemPath>TreeDisplayManager.h</itemPath>
+      <itemPath>WaveformRenderToVertical.h</itemPath>
       <itemPath>WaveformView.h</itemPath>
       <itemPath>common.h</itemPath>
       <itemPath>structures.h</itemPath>
@@ -277,6 +279,8 @@
       </item>
       <item path="PhysicalDisplay.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="QuadraticInterpolation.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="RawImage.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="RawImage.h" ex="false" tool="3" flavor2="0">
@@ -334,6 +338,8 @@
       <item path="TreeDisplayManager.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="TreeDisplayManager.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="WaveformRenderToVertical.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="WaveformView.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -525,6 +531,8 @@
       </item>
       <item path="PhysicalDisplay.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="QuadraticInterpolation.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="RawImage.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="RawImage.h" ex="false" tool="3" flavor2="0">
@@ -582,6 +590,8 @@
       <item path="TreeDisplayManager.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="TreeDisplayManager.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="WaveformRenderToVertical.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="WaveformView.cpp" ex="false" tool="1" flavor2="0">
       </item>
