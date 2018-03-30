@@ -1,3 +1,8 @@
+2018/03/29
+
+A music visualizer library to be added:
+https://lwn.net/Articles/750152/
+
 2015/06/01
 building libav on windows
 msys2 http://msys2.github.io/  ./configure based env for windows compatible with win
