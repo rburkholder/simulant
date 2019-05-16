@@ -26,3 +26,5 @@ to facilitate and animations.
 This is a 64 bit oriented solution.  
 The 32 bit versions are not configured to properly build.
 
+Something to look at
+* scenegraph: https://github.com/skypjack/entt
